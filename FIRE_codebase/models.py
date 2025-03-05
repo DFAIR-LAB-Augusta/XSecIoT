@@ -1,0 +1,308 @@
+import os
+import numpy as np
+import pandas as pd
+import joblib
+import xgboost as xgb
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.decomposition import PCA
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Input
+from tensorflow.keras.utils import to_categorical
+
+def run_feature_engineering(aggregated_file: str):
+    """
+    Performs scaling and PCA on the aggregated data.
+    Saves the scaler and PCA objects to the 'feature_engineering' folder.
+    Returns the scaler, PCA object, and the PCA-transformed features.
+    """
+    data = pd.read_csv(aggregated_file)
+    # Drop columns not used for feature engineering
+    X = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
+                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds'], errors='ignore')
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    pca = PCA(n_components=0.95)
+    X_pca = pca.fit_transform(X_scaled)
+    
+    # Save scaler and PCA objects in a folder for feature engineering
+    fe_dir = os.path.join(os.getcwd(), "feature_engineering")
+    if not os.path.exists(fe_dir):
+        os.makedirs(fe_dir)
+    joblib.dump(scaler, os.path.join(fe_dir, 'scaler.pkl'))
+    joblib.dump(pca, os.path.join(fe_dir, 'pca.pkl'))
+    print("Scaler and PCA objects saved in feature_engineering folder.")
+    return scaler, pca, X_pca
+
+def run_binary_classification(aggregated_file: str):
+    """
+    Loads aggregated data, performs scaling and PCA, then trains and evaluates
+    multiple binary classifiers using the 'BinLabel' column as the target.
+    Trained models and transformation objects are saved in the 'binary_models' folder.
+    """
+    data = pd.read_csv(aggregated_file)
+    # Prepare features and binary target
+    if 'BinLabel' not in data.columns and 'Label' in data.columns:
+        data['BinLabel'] = data['Label'].apply(lambda x: 0 if x == 'Benign' else 1)
+    X = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
+                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds'], errors='ignore')
+    y = data['BinLabel']
+    
+    print("Checking for NaN values in features:")
+    print(X.isna().sum())
+    print("Any NaN in X:", X.isna().any().any())
+
+    # Fill missing values with the mean for each column.
+    if X.isna().any().any():
+        print("Found NaN values, filling with column means.")
+        X = X.fillna(X.mean())
+    
+    # Feature Engineering: Scale and apply PCA
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    pca = PCA(n_components=0.95)
+    X_pca = pca.fit_transform(X_scaled)
+    
+    print("PCA Explained Variance Ratio:", pca.explained_variance_ratio_)
+    
+    # Split data for evaluation
+    X_train, X_test, y_train, y_test = train_test_split(X_pca, y, test_size=0.2, random_state=42)
+    
+    # ------------------
+    # Random Forest
+    rf = RandomForestClassifier(random_state=42)
+    cv_scores = cross_val_score(rf, X_pca, y, cv=5, scoring='accuracy')
+    print(f"Random Forest CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
+    rf.fit(X_train, y_train)
+    y_pred = rf.predict(X_test)
+    print("Random Forest Confusion Matrix:")
+    print(confusion_matrix(y_test, y_pred))
+    print("Random Forest Classification Report:")
+    print(classification_report(y_test, y_pred, target_names=['Benign', 'Attack']))
+    
+    # ------------------
+    # K-Nearest Neighbors
+    knn = KNeighborsClassifier(n_neighbors=5)
+    cv_scores = cross_val_score(knn, X_pca, y, cv=5, scoring='accuracy')
+    print(f"KNN CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
+    knn.fit(X_train, y_train)
+    y_pred_knn = knn.predict(X_test)
+    print("KNN Confusion Matrix:")
+    print(confusion_matrix(y_test, y_pred_knn))
+    print("KNN Classification Report:")
+    print(classification_report(y_test, y_pred_knn, target_names=['Benign', 'Attack']))
+    
+    # ------------------
+    # Decision Tree
+    dt = DecisionTreeClassifier(random_state=42)
+    cv_scores = cross_val_score(dt, X_pca, y, cv=5, scoring='accuracy')
+    print(f"Decision Tree CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
+    dt.fit(X_train, y_train)
+    y_pred_dt = dt.predict(X_test)
+    print("Decision Tree Confusion Matrix:")
+    print(confusion_matrix(y_test, y_pred_dt))
+    print("Decision Tree Classification Report:")
+    print(classification_report(y_test, y_pred_dt, target_names=['Benign', 'Attack']))
+    
+    # ------------------
+    # Support Vector Machine
+    svm = SVC(kernel='poly', C=1, random_state=0, probability=True)
+    cv_scores = cross_val_score(svm, X_pca, y, cv=5, scoring='accuracy')
+    print(f"SVM CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
+    svm.fit(X_train, y_train)
+    y_pred_svm = svm.predict(X_test)
+    print("SVM Confusion Matrix:")
+    print(confusion_matrix(y_test, y_pred_svm))
+    print("SVM Classification Report:")
+    print(classification_report(y_test, y_pred_svm, target_names=['Benign', 'Attack']))
+    
+    # ------------------
+    # XGBoost
+    dtrain = xgb.DMatrix(X_train, label=y_train, feature_names=[f"f_{i}" for i in range(X_train.shape[1])])
+    params = {'objective': 'binary:logistic', 'learning_rate': 0.1, 'max_depth': 8, 'random_state': 42}
+    xgb_model = xgb.train(params, dtrain=dtrain)
+    dtest = xgb.DMatrix(X_test, feature_names=[f"f_{i}" for i in range(X_test.shape[1])])
+    y_pred_prob = xgb_model.predict(dtest)
+    y_pred_xgb = (y_pred_prob > 0.5).astype(int)
+    print(f"XGBoost Accuracy: {accuracy_score(y_test, y_pred_xgb):.4f}")
+    print("XGBoost Confusion Matrix:")
+    print(confusion_matrix(y_test, y_pred_xgb))
+    print("XGBoost Classification Report:")
+    print(classification_report(y_test, y_pred_xgb, target_names=['Benign', 'Attack']))
+    
+    # ------------------
+    # Feedforward Neural Network
+    feedforward_model_bin = Sequential([
+        Input(shape=(X_train.shape[1],)),
+        Dense(64, activation='relu'),
+        Dropout(0.3),
+        Dense(32, activation='relu'),
+        Dropout(0.3),
+        Dense(1, activation='sigmoid')
+    ])
+    feedforward_model_bin.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    feedforward_model_bin.fit(X_train, y_train, epochs=50, batch_size=32, validation_split=0.2, verbose=0)
+    loss, acc = feedforward_model_bin.evaluate(X_test, y_test, verbose=0)
+    print(f"Feedforward NN - Loss: {loss:.4f}, Accuracy: {acc:.4f}")
+    
+    # Determine dataset name from aggregated file path.
+    dataset_name = os.path.basename(os.path.dirname(aggregated_file))
+    binary_models_dir = os.path.join(os.getcwd(), "binary_models", dataset_name)
+    if not os.path.exists(binary_models_dir):
+        os.makedirs(binary_models_dir)
+    
+    # Save binary models and transformation objects into the dataset-specific folder.
+    joblib.dump(rf, os.path.join(binary_models_dir, 'rf_model_binary.pkl'))
+    joblib.dump(knn, os.path.join(binary_models_dir, 'knn_model_binary.pkl'))
+    joblib.dump(dt, os.path.join(binary_models_dir, 'dt_model_binary.pkl'))
+    joblib.dump(svm, os.path.join(binary_models_dir, 'svm_model_binary.pkl'))
+    joblib.dump(xgb_model, os.path.join(binary_models_dir, 'xgb_model_binary.pkl'))
+    joblib.dump(feedforward_model_bin, os.path.join(binary_models_dir, 'feedforward_model_binary.pkl'))
+    joblib.dump(scaler, os.path.join(binary_models_dir, 'scaler_binary.pkl'))
+    joblib.dump(pca, os.path.join(binary_models_dir, 'pca_binary.pkl'))
+    print("Binary models and transformation objects saved in", binary_models_dir)
+
+def run_multiclass_classification(aggregated_file: str):
+    """
+    Loads aggregated data, performs scaling and PCA, then trains and evaluates
+    several multi-class classifiers using the 'Label' column as the target.
+    Trained models and transformation objects are saved in the 'multi_class_models' folder.
+    """
+    data = pd.read_csv(aggregated_file)
+    # Prepare features and multi-class target
+    if 'BinLabel' not in data.columns and 'Label' in data.columns:
+        data['BinLabel'] = data['Label'].apply(lambda x: 0 if x == 'Benign' else 1)
+    X1 = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
+                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds'], errors='ignore')
+    y1 = data['Label']
+
+    print("Checking for NaN values in features:")
+    print(X1.isna().sum())
+    print("Any NaN in X:", X1.isna().any().any())
+
+    # Fill missing values with the mean for each column.
+    if X1.isna().any().any():
+        print("Found NaN values, filling with column means.")
+        X1 = X1.fillna(X1.mean())
+    
+    scaler1 = StandardScaler()
+    X1_scaled = scaler1.fit_transform(X1)
+    pca1 = PCA(n_components=0.95)
+    X1_pca = pca1.fit_transform(X1_scaled)
+    
+    # Random Forest (Multi)
+    rf_multi = RandomForestClassifier(random_state=42)
+    cv_scores = cross_val_score(rf_multi, X1_pca, y1, cv=5, scoring='accuracy')
+    print(f"Random Forest (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
+    X_train_multi, X_test_multi, y_train_multi, y_test_multi = train_test_split(X1_pca, y1, test_size=0.2, random_state=42)
+    rf_multi.fit(X_train_multi, y_train_multi)
+    y_pred_rf = rf_multi.predict(X_test_multi)
+    print("RF (multi) Confusion Matrix:")
+    print(confusion_matrix(y_test_multi, y_pred_rf))
+    print("RF (multi) Classification Report:")
+    print(classification_report(y_test_multi, y_pred_rf, target_names=['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']))
+    
+    # K-Nearest Neighbors (Multi)
+    knn_multi = KNeighborsClassifier(n_neighbors=4)
+    cv_scores = cross_val_score(knn_multi, X1_pca, y1, cv=5, scoring='accuracy')
+    print(f"KNN (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
+    knn_multi.fit(X_train_multi, y_train_multi)
+    y_pred_knn_multi = knn_multi.predict(X_test_multi)
+    print("KNN (multi) Confusion Matrix:")
+    print(confusion_matrix(y_test_multi, y_pred_knn_multi))
+    print("KNN (multi) Classification Report:")
+    print(classification_report(y_test_multi, y_pred_knn_multi, target_names=['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']))
+    
+    # Decision Tree (Multi)
+    dt_multi = DecisionTreeClassifier(max_depth=54)
+    cv_scores = cross_val_score(dt_multi, X1_pca, y1, cv=5, scoring='accuracy')
+    print(f"Decision Tree (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
+    dt_multi.fit(X_train_multi, y_train_multi)
+    y_pred_dt = dt_multi.predict(X_test_multi)
+    print("Decision Tree (multi) Confusion Matrix:")
+    print(confusion_matrix(y_test_multi, y_pred_dt))
+    print("Decision Tree (multi) Classification Report:")
+    print(classification_report(y_test_multi, y_pred_dt, target_names=['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']))
+    
+    # SVM (Multi)
+    svm_multi = SVC(kernel='rbf', C=1, gamma=0.1, random_state=0, probability=True)
+    cv_scores = cross_val_score(svm_multi, X1_pca, y1, cv=5, scoring='accuracy')
+    print(f"SVM (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
+    svm_multi.fit(X_train_multi, y_train_multi)
+    y_pred_svm_multi = svm_multi.predict(X_test_multi)
+    print("SVM (multi) Confusion Matrix:")
+    print(confusion_matrix(y_test_multi, y_pred_svm_multi))
+    print("SVM (multi) Classification Report:")
+    print(classification_report(y_test_multi, y_pred_svm_multi, target_names=['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']))
+    
+    # XGBoost (Multi)
+    label_encoder = LabelEncoder()
+    y1_encoded = label_encoder.fit_transform(y1)
+    X_train_multi, X_test_multi, y_train_multi, y_test_multi = train_test_split(X1_pca, y1_encoded, test_size=0.2, random_state=42)
+    xgb_multi = xgb.XGBClassifier(objective='multi:softmax', num_class=len(label_encoder.classes_),
+                                  eval_metric='mlogloss', random_state=42)
+    xgb_multi.fit(X_train_multi, y_train_multi)
+    cv_scores_xgb = cross_val_score(xgb_multi, X1_pca, y1_encoded, cv=5, scoring='accuracy')
+    print(f"XGBoost (multi) CV Accuracy: {cv_scores_xgb.mean():.4f} (+/- {cv_scores_xgb.std():.4f})")
+    y_pred_xgb = xgb_multi.predict(X_test_multi)
+    y_pred_labels = label_encoder.inverse_transform(y_pred_xgb)
+    y_test_labels = label_encoder.inverse_transform(y_test_multi)
+    print("XGBoost (multi) Classification Report:")
+    print(classification_report(y_test_labels, y_pred_labels, target_names=label_encoder.classes_))
+    print("XGBoost (multi) Confusion Matrix:")
+    print(confusion_matrix(y_test_labels, y_pred_labels, labels=label_encoder.classes_))
+    
+    # Feedforward Neural Network (Multi)
+    y1_encoded = label_encoder.fit_transform(y1)
+    y1_categorical = to_categorical(y1_encoded)
+    X_train_nn, X_test_nn, y_train_nn, y_test_nn = train_test_split(X1_pca, y1_categorical, test_size=0.2, random_state=42)
+    feedforward_model = Sequential([
+        Input(shape=(X_train_nn.shape[1],)),
+        Dense(128, activation='relu'),
+        Dropout(0.3),
+        Dense(64, activation='relu'),
+        Dropout(0.3),
+        Dense(y1_categorical.shape[1], activation='softmax')
+    ])
+    feedforward_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    feedforward_model.fit(X_train_nn, y_train_nn, epochs=20, batch_size=32, validation_data=(X_test_nn, y_test_nn), verbose=0)
+    y_pred_proba = feedforward_model.predict(X_test_nn)
+    y_pred_ff = np.argmax(y_pred_proba, axis=1)
+    y_test_ff = np.argmax(y_test_nn, axis=1)
+    print("Feedforward NN (multi) Confusion Matrix:")
+    print(confusion_matrix(y_test_ff, y_pred_ff))
+    print("Feedforward NN (multi) Classification Report:")
+    print(classification_report(y_test_ff, y_pred_ff, target_names=['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']))
+    
+    # Determine dataset name from aggregated file path.
+    dataset_name = os.path.basename(os.path.dirname(aggregated_file))
+    multi_models_dir = os.path.join(os.getcwd(), "multi_class_models", dataset_name)
+    if not os.path.exists(multi_models_dir):
+        os.makedirs(multi_models_dir)
+    
+    # Save multi-class models and transformation objects into the dataset-specific folder.
+    joblib.dump(rf_multi, os.path.join(multi_models_dir, 'random_forest_multi.pkl'))
+    joblib.dump(knn_multi, os.path.join(multi_models_dir, 'knearest_multi.pkl'))
+    joblib.dump(dt_multi, os.path.join(multi_models_dir, 'decision_tree_multi.pkl'))
+    joblib.dump(svm_multi, os.path.join(multi_models_dir, 'svm_multi.pkl'))
+    joblib.dump(xgb_multi, os.path.join(multi_models_dir, 'xgboost_multi.pkl'))
+    joblib.dump(feedforward_model, os.path.join(multi_models_dir, 'feedforward_multi.pkl'))
+    joblib.dump(scaler1, os.path.join(multi_models_dir, 'scaler_multi.pkl'))
+    joblib.dump(pca1, os.path.join(multi_models_dir, 'pca_multi.pkl'))
+    print("Multi-class models and transformation objects saved in", multi_models_dir)
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description="Model training pipeline for FIRE_codebase (Step 2)")
+    parser.add_argument("aggregated_file", type=str, help="Path to the aggregated data CSV file")
+    args = parser.parse_args()
+    
+    # Run binary classification, multi-class classification, and feature engineering functions.
+    run_binary_classification(args.aggregated_file)
+    run_multiclass_classification(args.aggregated_file)
+    run_feature_engineering(args.aggregated_file)

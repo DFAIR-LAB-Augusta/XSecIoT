@@ -1,5 +1,7 @@
 import argparse
 from FIRE_codebase.preprocessing import run_preprocessing
+from FIRE_codebase.models import run_binary_classification, run_multiclass_classification
+
 
 def parse_args():
     """
@@ -35,6 +37,8 @@ def main():
     # Run the preprocessing step.
     # The output file (aggregated_data.csv) will be saved in the dataset's folder by run_preprocessing.
     run_preprocessing(args.dataset_path, args.window_size, args.step_size)
+    run_binary_classification(aggregated_data_path) # Add automated creation of aggregated_data_path based on args.dataset_path
+    run_multiclass_classification(aggregated_data_path)
 
 if __name__ == '__main__':
     main()
