@@ -169,3 +169,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Project specific
+multi_class_models/*
+binary_models/*
+datasets/DFAIR/aggregated_data.csv
+Step by step details on FIRE Codebase.pdf
+test.txt
