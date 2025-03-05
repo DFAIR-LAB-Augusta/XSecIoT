@@ -1,6 +1,7 @@
 import argparse
+import os
 from FIRE_codebase.preprocessing import run_preprocessing
-from FIRE_codebase.models import run_binary_classification, run_multiclass_classification
+from FIRE_codebase.models import run_binary_classification, run_multiclass_classification, run_feature_engineering
 
 
 def parse_args():
@@ -28,7 +29,6 @@ def parse_args():
         help="Step size for sliding window aggregation (default: '1s')"
     )
     
-    # Future arguments for steps 2 and 3 will be added here.
     return parser.parse_args()
 
 def main():
@@ -37,8 +37,12 @@ def main():
     # Run the preprocessing step.
     # The output file (aggregated_data.csv) will be saved in the dataset's folder by run_preprocessing.
     run_preprocessing(args.dataset_path, args.window_size, args.step_size)
-    run_binary_classification(aggregated_data_path) # Add automated creation of aggregated_data_path based on args.dataset_path
+
+    aggregated_data_path = os.path.join(os.path.dirname(args.dataset_path), "aggregated_data.csv")
+
+    run_binary_classification(aggregated_data_path) 
     run_multiclass_classification(aggregated_data_path)
+    run_feature_engineering(aggregated_data_path)
 
 if __name__ == '__main__':
     main()

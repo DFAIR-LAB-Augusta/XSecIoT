@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import joblib
-import xgboost as xgb
+import xgboost as xgb # type: ignore
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.decomposition import PCA
@@ -11,9 +11,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Input
-from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import Sequential # type: ignore
+from tensorflow.keras.layers import Dense, Dropout, Input # type: ignore
+from tensorflow.keras.utils import to_categorical # type: ignore
 
 def run_feature_engineering(aggregated_file: str):
     """
@@ -25,6 +25,10 @@ def run_feature_engineering(aggregated_file: str):
     # Drop columns not used for feature engineering
     X = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
                         'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds'], errors='ignore')
+    
+    if X.isna().any().any():
+        X = X.fillna(X.mean())
+    
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     pca = PCA(n_components=0.95)
