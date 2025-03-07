@@ -1,8 +1,9 @@
 import argparse
 import os
+import time
 from FIRE_codebase.preprocessing import run_preprocessing
 from FIRE_codebase.models import run_binary_classification, run_multiclass_classification, run_feature_engineering
-
+from FIRE_codebase.simulations import sequential_simulation, continuous_simulation, parallel_simulation
 
 def parse_args():
     """
@@ -32,17 +33,103 @@ def parse_args():
     return parser.parse_args()
 
 def main():
+    # Start the timer for the full pipeline
+    start_time = time.time()
+    
     args = parse_args()
     
-    # Run the preprocessing step.
-    # The output file (aggregated_data.csv) will be saved in the dataset's folder by run_preprocessing.
+    # Step 1: Preprocessing
+    print("=== Running Preprocessing ===")
     run_preprocessing(args.dataset_path, args.window_size, args.step_size)
-
     aggregated_data_path = os.path.join(os.path.dirname(args.dataset_path), "aggregated_data.csv")
 
+    # Step 2: Model Training / Evaluation
+    print("\n=== Running Model Training/Evaluation ===")
     run_binary_classification(aggregated_data_path) 
     run_multiclass_classification(aggregated_data_path)
     run_feature_engineering(aggregated_data_path)
+
+    # Step 3: Simulations
+    variants = ["dt", "knn", "rf", "svm", "feedforward", "xgb"]
+    sim_modes = ["sequential", "continuous", "parallel"]
+
+    # Run simulations for binary classification
+    print("\n=== Running Binary Simulations ===")
+    for variant in variants:
+        print(f"\n--- Binary Model Variant: {variant} ---")
+        for mode in sim_modes:
+            print(f"\n*** Simulation Mode: {mode} ***")
+            if mode == "sequential":
+                sequential_simulation(
+                    aggregated_file=aggregated_data_path,
+                    model_type="binary",
+                    model_variant=variant,
+                    chunk_size=1000,
+                    delay=1,
+                    threshold=0.5
+                )
+            elif mode == "continuous":
+                continuous_simulation(
+                    aggregated_file=aggregated_data_path,
+                    model_type="binary",
+                    model_variant=variant,
+                    chunk_size=1000,
+                    window_duration=300,
+                    delay=1,
+                    threshold=0.5
+                )
+            elif mode == "parallel":
+                preds = parallel_simulation(
+                    aggregated_file=aggregated_data_path,
+                    model_type="binary",
+                    model_variant=variant,
+                    chunk_size=1000,
+                    num_processes=4,
+                    threshold=0.5
+                )
+                print("Parallel simulation predictions:")
+                print(preds)
+    
+    # Run simulations for multi-class classification
+    print("\n=== Running Multi-Class Simulations ===")
+    for variant in variants:
+        print(f"\n--- Multi-Class Model Variant: {variant} ---")
+        for mode in sim_modes:
+            print(f"\n*** Simulation Mode: {mode} ***")
+            if mode == "sequential":
+                sequential_simulation(
+                    aggregated_file=aggregated_data_path,
+                    model_type="multi",
+                    model_variant=variant,
+                    chunk_size=1000,
+                    delay=1,
+                    threshold=0.5
+                )
+            elif mode == "continuous":
+                continuous_simulation(
+                    aggregated_file=aggregated_data_path,
+                    model_type="multi",
+                    model_variant=variant,
+                    chunk_size=1000,
+                    window_duration=300,
+                    delay=1,
+                    threshold=0.5
+                )
+            # elif mode == "parallel":
+            #     preds = parallel_simulation(
+            #         aggregated_file=aggregated_data_path,
+            #         model_type="multi",
+            #         model_variant=variant,
+            #         chunk_size=1000,
+            #         num_processes=4,
+            #         threshold=0.5
+            #     )
+            #     print("Parallel simulation predictions:")
+            #     print(preds)
+    
+    # Compute and print the total elapsed time for the full pipeline.
+    total_time = time.time() - start_time
+    print(f"\nTotal elapsed time for full pipeline: {total_time:.2f} seconds")
 
 if __name__ == '__main__':
     main()
