@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import scipy.stats
+from tqdm import tqdm
 
 def load_data(file_path: str) -> pd.DataFrame:
     """
@@ -119,6 +120,7 @@ def aggregate_sessions(data: pd.DataFrame) -> pd.DataFrame:
         total_bytes_backward=('totlen_bwd_pkts', 'sum'),
         mean_packet_length_forward=('fwd_pkt_len_mean', 'mean'),
         fwd_pkt_len_mean=('fwd_pkt_len_mean', 'mean'),
+        flow_iat_mean=('flow_iat_mean', 'mean'),
         mean_packet_length_backward=('bwd_pkt_len_mean', 'mean'),
         packet_size_mean=('pkt_len_mean', 'mean'),
         down_up_ratio=('down_up_ratio', 'mean'),
@@ -149,24 +151,21 @@ def entropy(column: pd.Series) -> float:
 
 def sliding_window_aggregation(data: pd.DataFrame, window_size: pd.Timedelta, step_size: pd.Timedelta) -> pd.DataFrame:
     """
-    Apply time-based sliding window aggregation on the data.
-    For the new dataset we aggregate using our renamed columns.
+    Apply time-based sliding window aggregation on the UNSW dataset.
+    Aggregates are computed using the preprocessed column names.
     """
     window_aggregates = []
     start_times = pd.date_range(start=data.index.min(), end=data.index.max(), freq=step_size)
     
-    for start_time in start_times:
+    # Wrap the iteration in tqdm for a progress bar.
+    for start_time in tqdm(start_times, desc="Sliding Window Aggregation"):
         end_time = start_time + window_size
         window = data[(data.index >= start_time) & (data.index < end_time)]
         if window.empty:
             continue
         
-        # Make a copy and restore the 'start_time' as a column.
-        window = window.copy()
-        window['start_time'] = window.index
-        
-        # Duration of the window in seconds.
-        duration = (window['start_time'].max() - window['start_time'].min()).total_seconds() + 1e-9
+        # Calculate duration using the index (which is already datetime)
+        duration = (window.index.max() - window.index.min()).total_seconds() + 1e-9
         
         # Compute flow rate features
         flow_rate_features = {
@@ -174,32 +173,27 @@ def sliding_window_aggregation(data: pd.DataFrame, window_size: pd.Timedelta, st
             'flow_rate_bytes_window': window['totlen_fwd_pkts'].sum() / duration,
         }
         
-        # Compute directional features using forward and backward packets/bytes.
+        # Compute directional features
         directional_features = {
             'flow_direction_ratio_window': window['tot_fwd_pkts'].sum() / (window['tot_bwd_pkts'].sum() + 1),
             'byte_direction_ratio_window': window['totlen_fwd_pkts'].sum() / (window['totlen_bwd_pkts'].sum() + 1),
         }
         
-        # Entropy features of IP addresses in the window.
+        # Entropy features for IP addresses
         entropy_features = {
             'src_ip_entropy_window': entropy(window['src_ip']),
             'dst_ip_entropy_window': entropy(window['dst_ip']),
         }
         
-        tot_fwd_pkts = window['tot_fwd_pkts'].sum()
-        tot_bwd_pkts = window['tot_bwd_pkts'].sum()
-        tot_fwd_bytes = window['totlen_fwd_pkts'].sum()
-        tot_bwd_bytes = window['totlen_bwd_pkts'].sum()
-        
         aggregated = {
             'start_time': start_time,
             'end_time': end_time,
-            'total_forward_packets_window': tot_fwd_pkts,
-            'total_backward_packets_window': tot_bwd_pkts,
-            'total_forward_bytes_window': tot_fwd_bytes,
-            'total_backward_bytes_window': tot_bwd_bytes,
-            'average_packet_size_fwd_window': tot_fwd_bytes / tot_fwd_pkts if tot_fwd_pkts > 0 else np.nan,
-            'average_packet_size_bwd_window': tot_bwd_bytes / tot_bwd_pkts if tot_bwd_pkts > 0 else np.nan,
+            'total_forward_packets_window': window['tot_fwd_pkts'].sum(),
+            'total_backward_packets_window': window['tot_bwd_pkts'].sum(),
+            'total_forward_bytes_window': window['totlen_fwd_pkts'].sum(),
+            'total_backward_bytes_window': window['totlen_bwd_pkts'].sum(),
+            'average_packet_size_fwd_window': window['fwd_pkt_len_mean'].mean(),
+            'average_packet_size_bwd_window': window['bwd_pkt_len_mean'].mean(),
             'flow_duration_window': window['flow_duration'].sum(),
             'packet_count_window': len(window),
             'mean_iat_fwd_window': window['fwd_iat_mean'].mean(),
@@ -218,6 +212,7 @@ def sliding_window_aggregation(data: pd.DataFrame, window_size: pd.Timedelta, st
         window_aggregates.append(aggregated)
     
     return pd.DataFrame(window_aggregates)
+
 
 def merge_aggregated_data(sliding_data: pd.DataFrame, session_data: pd.DataFrame, original_data: pd.DataFrame) -> pd.DataFrame:
     """
@@ -256,13 +251,7 @@ def preprocess_pipeline(file_path: str, window_size_str: str = '5s', step_size_s
     print("DONE: 1. Load and clean the data.")
     session_data = aggregate_sessions(data)
     print("DONE: 2. Compute session-based aggregation.")
-
-
-    # Print the full data time range based on the index (start_time)
     print(f"Full data time range: {data.index.min()} to {data.index.max()}")
-
-
-
     window_size = pd.Timedelta(window_size_str)
     step_size = pd.Timedelta(step_size_str)
     sliding_data = sliding_window_aggregation(data, window_size, step_size)
