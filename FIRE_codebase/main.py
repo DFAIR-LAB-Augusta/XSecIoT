@@ -29,6 +29,12 @@ def parse_args():
         default="1s",
         help="Step size for sliding window aggregation (default: '1s')"
     )
+    parser.add_argument(
+        "--unsw",
+        type=str,
+        default="1s",
+        help="Use unsw preprocessing & multiclass labels"
+    )
     
     return parser.parse_args()
 
