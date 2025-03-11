@@ -16,6 +16,11 @@ This repository is divided into two main directories:
 
 ## 🚀 Quick Start
 
+### Test FIRE
+```bash
+python3 -m FIRE_codebase.main ./datasets/DFAIR/combined_data_with_okpVacc_modified.csv > test.txt 2>&1
+```
+
 ### **1️⃣ Install Dependencies**
 Ensure you have Python 3.8+ and the required libraries:
 
