@@ -57,7 +57,7 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     data.replace([np.inf, -np.inf], np.nan, inplace=True)
     
     # (Optional) Drop rows missing critical columns
-    data.dropna(subset=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'flow_duration'], inplace=True)
+    # data.dropna(subset=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'flow_duration'], inplace=True)
     
     return data
 
