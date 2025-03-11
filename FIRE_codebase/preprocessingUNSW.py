@@ -59,7 +59,7 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     data['fwd_pkt_len_mean'] = np.where(
         data['tot_fwd_pkts'] != 0,
         data['totlen_fwd_pkts'] / data['tot_fwd_pkts'],
-    0
+        0
     )
 
     data['bwd_pkt_len_mean'] = np.where(
@@ -85,6 +85,9 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
         data['tot_bwd_pkts'] / data['tot_fwd_pkts'],
         0
     )
+
+    data['fwd_iat_tot'] = data['fwd_iat_mean'] * (data['tot_fwd_pkts'] - 1)
+    data['bwd_iat_tot'] = data['bwd_iat_mean'] * (data['tot_bwd_pkts'] - 1)
 
 
     
@@ -114,30 +117,24 @@ def aggregate_sessions(data: pd.DataFrame) -> pd.DataFrame:
         total_backward_packets=('tot_bwd_pkts', 'sum'),
         total_bytes_forward=('totlen_fwd_pkts', 'sum'),
         total_bytes_backward=('totlen_bwd_pkts', 'sum'),
-        fwd_iat_mean=('fwd_iat_mean', 'mean'),
         mean_packet_length_forward=('fwd_pkt_len_mean', 'mean'),
         fwd_pkt_len_mean=('fwd_pkt_len_mean', 'mean'),
         mean_packet_length_backward=('bwd_pkt_len_mean', 'mean'),
-        bwd_pkt_len_mean=('bwd_pkt_len_mean', 'mean'),
         packet_size_mean=('pkt_len_mean', 'mean'),
         down_up_ratio=('down_up_ratio', 'mean'),
-
+        fwd_iat_max=('fwd_iat_max', 'max'),
+        fwd_iat_min=('fwd_iat_min', 'min'),
+        fwd_iat_mean=('fwd_iat_mean', 'mean'),
+        fwd_iat_tot=('fwd_iat_tot', 'sum'),
+        bwd_pkt_len_mean=('bwd_pkt_len_mean', 'mean'),
+        bwd_iat_mean=('bwd_iat_mean', 'mean'),
+        bwd_iat_max=('bwd_iat_max', 'max'),
+        bwd_iat_min=('bwd_iat_min', 'min'),
+        bwd_iat_tot=('bwd_iat_tot', 'sum'),
         start_time=('start_time', 'min'),
         end_time=('end_time', 'max')
     ).reset_index()
-    
-    # Derive additional session-level features.
-    session_data['mean_packet_size_forward'] = session_data.apply(
-        lambda row: row['total_bytes_forward'] / row['total_forward_packets']
-        if row['total_forward_packets'] > 0 else np.nan,
-        axis=1
-    )
-    session_data['mean_packet_size_backward'] = session_data.apply(
-        lambda row: row['total_bytes_backward'] / row['total_backward_packets']
-        if row['total_backward_packets'] > 0 else np.nan,
-        axis=1
-    )
-    session_data['down_up_ratio'] = session_data['total_bytes_forward'] / (session_data['total_bytes_backward'] + 1)
+
     session_data['total_packets'] = session_data['total_forward_packets'] + session_data['total_backward_packets']
     session_data['total_bytes'] = session_data['total_bytes_forward'] + session_data['total_bytes_backward']
     
