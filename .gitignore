@@ -177,3 +177,5 @@ datasets/DFAIR/aggregated_data.csv
 Step by step details on FIRE Codebase.pdf
 test.txt
 feature_engineering/*
+*DS_Store
+CICtest.txt
