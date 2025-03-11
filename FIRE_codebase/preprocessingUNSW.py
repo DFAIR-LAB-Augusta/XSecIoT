@@ -14,10 +14,9 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     """
     Clean and preprocess the new UNSW dataset:
       - Rename columns to match our downstream expectations.
-      - Convert the FLOW_START_MILLISECONDS (renamed to 'timestamp') column from milliseconds to datetime.
-      - Convert the flow_duration from milliseconds to microseconds.
-      - Set the datetime column as the index.
-      - Sort the index.
+      - Convert FLOW_START_MILLISECONDS and FLOW_END_MILLISECONDS to datetime (with millisecond precision).
+      - Convert flow_duration from milliseconds to microseconds.
+      - Set the start_time as the index and sort.
       - Replace infinite values with NaN.
     """
     # Mapping from UNSW dataset feature names to our internal names
@@ -27,7 +26,8 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
         'L4_SRC_PORT': 'src_port',
         'L4_DST_PORT': 'dst_port',
         'PROTOCOL': 'protocol',
-        'FLOW_START_MILLISECONDS': 'timestamp',
+        'FLOW_START_MILLISECONDS': 'start_time',
+        'FLOW_END_MILLISECONDS': 'end_time',
         'FLOW_DURATION_MILLISECONDS': 'flow_duration',
         'IN_PKTS': 'tot_bwd_pkts',
         'OUT_PKTS': 'tot_fwd_pkts',
@@ -44,31 +44,66 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     }
     data.rename(columns=mapping, inplace=True)
     
-    # Convert timestamp (in milliseconds) to datetime
-    data['timestamp'] = pd.to_datetime(data['timestamp'], unit='ms', errors='coerce')
+    # Convert start_time and end_time from milliseconds to datetime (with millisecond precision)
+    data['start_time'] = pd.to_datetime(data['start_time'], unit='ms', errors='coerce')
+    data['end_time'] = pd.to_datetime(data['end_time'], unit='ms', errors='coerce')
     
     # Convert flow_duration from milliseconds to microseconds
     data['flow_duration'] = data['flow_duration'] * 1000
-    
-    # Set timestamp as index and sort
-    data.set_index('timestamp', inplace=True)
+
+    # Set the start_time column as index and sort the DataFrame by index
+    data.set_index('start_time', inplace=True)
     data.sort_index(inplace=True)
+
+    # Calulations for features from UNSW to map to flowmeter features
+    data['fwd_pkt_len_mean'] = np.where(
+        data['tot_fwd_pkts'] != 0,
+        data['totlen_fwd_pkts'] / data['tot_fwd_pkts'],
+    0
+    )
+
+    data['bwd_pkt_len_mean'] = np.where(
+        data['tot_bwd_pkts'] != 0,
+        data['totlen_bwd_pkts'] / data['tot_bwd_pkts'],
+        0
+    )
+
+    data['pkt_len_mean'] = np.where(
+        (data['tot_fwd_pkts'] + data['tot_bwd_pkts']) != 0,
+        (data['totlen_fwd_pkts'] + data['totlen_bwd_pkts']) / (data['tot_fwd_pkts'] + data['tot_bwd_pkts']),
+        0
+    )
+
+    data['flow_iat_mean'] = np.where(
+        (data['tot_fwd_pkts'] + data['tot_bwd_pkts'] - 1) > 0,
+        data['flow_duration'] / (data['tot_fwd_pkts'] + data['tot_bwd_pkts'] - 1),
+        0
+    )
+
+    data['down_up_ratio'] = np.where(
+        data['tot_fwd_pkts'] > 0,
+        data['tot_bwd_pkts'] / data['tot_fwd_pkts'],
+        0
+    )
+
+
     
     data.replace([np.inf, -np.inf], np.nan, inplace=True)
     
     # (Optional) Drop rows missing critical columns
-    # data.dropna(subset=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'flow_duration'], inplace=True)
+    data.dropna(subset=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'flow_duration'], inplace=True)
     
     return data
 
 def aggregate_sessions(data: pd.DataFrame) -> pd.DataFrame:
     """
     Perform session-based aggregation on the new dataset.
-    We group by five-tuple (src_ip, dst_ip, src_port, dst_port, protocol) and
-    compute the sum of flow durations, total packets, and bytes.
-    We also derive the average packet sizes and download/upload ratio.
+    We group by the five-tuple (src_ip, dst_ip, src_port, dst_port, protocol) and compute:
+      - Sum of flow durations, total packets, and bytes.
+      - Mean packet sizes and download/upload ratio.
+      - Start and end times for the session.
     """
-    # Reset index so that 'timestamp' becomes a column
+    # Reset index so that start_time becomes a column.
     data_reset = data.reset_index()
     
     session_data = data_reset.groupby(
@@ -80,8 +115,15 @@ def aggregate_sessions(data: pd.DataFrame) -> pd.DataFrame:
         total_bytes_forward=('totlen_fwd_pkts', 'sum'),
         total_bytes_backward=('totlen_bwd_pkts', 'sum'),
         fwd_iat_mean=('fwd_iat_mean', 'mean'),
-        start_time=('timestamp', 'min'),
-        end_time=('timestamp', 'max')
+        mean_packet_length_forward=('fwd_pkt_len_mean', 'mean'),
+        fwd_pkt_len_mean=('fwd_pkt_len_mean', 'mean'),
+        mean_packet_length_backward=('bwd_pkt_len_mean', 'mean'),
+        bwd_pkt_len_mean=('bwd_pkt_len_mean', 'mean'),
+        packet_size_mean=('pkt_len_mean', 'mean'),
+        down_up_ratio=('down_up_ratio', 'mean'),
+
+        start_time=('start_time', 'min'),
+        end_time=('end_time', 'max')
     ).reset_index()
     
     # Derive additional session-level features.
@@ -122,12 +164,12 @@ def sliding_window_aggregation(data: pd.DataFrame, window_size: pd.Timedelta, st
         if window.empty:
             continue
         
-        # Make a copy and restore the 'timestamp' column from the index.
+        # Make a copy and restore the 'start_time' as a column.
         window = window.copy()
-        window['timestamp'] = window.index
+        window['start_time'] = window.index
         
         # Duration of the window in seconds.
-        duration = (window['timestamp'].max() - window['timestamp'].min()).total_seconds() + 1e-9
+        duration = (window['start_time'].max() - window['start_time'].min()).total_seconds() + 1e-9
         
         # Compute flow rate features
         flow_rate_features = {
@@ -198,9 +240,9 @@ def merge_aggregated_data(sliding_data: pd.DataFrame, session_data: pd.DataFrame
     original_subset = original_reset[['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'Label']].drop_duplicates()
     aggregated_data = aggregated_data.merge(original_subset, on=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol'], how='left')
     
-    # Create a new timestamp column based on the offset (in seconds) from the earliest sliding window start time.
+    # Create a new offset-based timestamp column based on the offset (in seconds) from the earliest sliding window start time.
     first_start = aggregated_data['start_time'].min()
-    aggregated_data['timestamp'] = (aggregated_data['start_time'] - first_start).dt.total_seconds()
+    aggregated_data['timestamp_offset_seconds'] = (aggregated_data['start_time'] - first_start).dt.total_seconds()
     
     return aggregated_data
 
@@ -214,12 +256,23 @@ def preprocess_pipeline(file_path: str, window_size_str: str = '5s', step_size_s
     """
     data = load_data(file_path)
     data = clean_data(data)
+    print("DONE: 1. Load and clean the data.")
     session_data = aggregate_sessions(data)
+    print("DONE: 2. Compute session-based aggregation.")
+
+
+    # Print the full data time range based on the index (start_time)
+    print(f"Full data time range: {data.index.min()} to {data.index.max()}")
+
+
+
     window_size = pd.Timedelta(window_size_str)
     step_size = pd.Timedelta(step_size_str)
     sliding_data = sliding_window_aggregation(data, window_size, step_size)
+    print("DONE: 3. Compute sliding window aggregation.")
     aggregated_data = merge_aggregated_data(sliding_data, session_data, data)
-    
+    print("DONE: 4. Merge the aggregated results.")
+
     return aggregated_data
 
 def run_preprocessing(file_path: str, window_size_str: str = '5s', step_size_str: str = '1s') -> pd.DataFrame:
