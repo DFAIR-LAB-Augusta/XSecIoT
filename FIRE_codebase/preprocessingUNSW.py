@@ -15,6 +15,7 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     Clean and preprocess the new UNSW dataset:
       - Rename columns to match our downstream expectations.
       - Convert the FLOW_START_MILLISECONDS (renamed to 'timestamp') column from milliseconds to datetime.
+      - Convert the flow_duration from milliseconds to microseconds.
       - Set the datetime column as the index.
       - Sort the index.
       - Replace infinite values with NaN.
@@ -28,10 +29,10 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
         'PROTOCOL': 'protocol',
         'FLOW_START_MILLISECONDS': 'timestamp',
         'FLOW_DURATION_MILLISECONDS': 'flow_duration',
-        'IN_PKTS': 'tot_fwd_pkts',
-        'OUT_PKTS': 'tot_bwd_pkts',
-        'IN_BYTES': 'totlen_fwd_pkts',
-        'OUT_BYTES': 'totlen_bwd_pkts',
+        'IN_PKTS': 'tot_bwd_pkts',
+        'OUT_PKTS': 'tot_fwd_pkts',
+        'IN_BYTES': 'totlen_bwd_pkts',
+        'OUT_BYTES': 'totlen_fwd_pkts',
         'SRC_TO_DST_IAT_MIN': 'fwd_iat_min',
         'SRC_TO_DST_IAT_MAX': 'fwd_iat_max',
         'SRC_TO_DST_IAT_AVG': 'fwd_iat_mean',
@@ -46,13 +47,16 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     # Convert timestamp (in milliseconds) to datetime
     data['timestamp'] = pd.to_datetime(data['timestamp'], unit='ms', errors='coerce')
     
+    # Convert flow_duration from milliseconds to microseconds
+    data['flow_duration'] = data['flow_duration'] * 1000
+    
     # Set timestamp as index and sort
     data.set_index('timestamp', inplace=True)
     data.sort_index(inplace=True)
     
     data.replace([np.inf, -np.inf], np.nan, inplace=True)
     
-    # (Verify w/ Bradl) Drop rows missing critical columns
+    # (Optional) Drop rows missing critical columns
     data.dropna(subset=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'flow_duration'], inplace=True)
     
     return data
