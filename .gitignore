@@ -180,3 +180,4 @@ feature_engineering/*
 *DS_Store
 CICtest.txt
 datasets/CIC_UNSW/NF-CICIDS2018-v3.csv
+*aggregated_data.csv
