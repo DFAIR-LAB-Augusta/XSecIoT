@@ -72,6 +72,8 @@ def _process_chunk(chunk, drop_cols, scaler, pca, model, model_variant, model_ty
     Process a single chunk: preprocess, scale, transform with PCA, and predict.
     """
     X_chunk = preprocess_chunk(chunk, drop_cols)
+    # Select only numeric columns to ensure feature names match
+    X_chunk = X_chunk.select_dtypes(include=[np.number])
     X_scaled = scaler.transform(X_chunk)
     X_pca = pca.transform(X_scaled)
     
@@ -106,6 +108,8 @@ def sequential_simulation(aggregated_file, model_type='binary', model_variant='d
         print("\nProcessing new data chunk...")
         start_time_chunk = time.time()
         X_chunk = preprocess_chunk(chunk, drop_cols)
+        # Select only numeric columns to ensure feature names match
+        X_chunk = X_chunk.select_dtypes(include=[np.number])
         X_scaled = scaler.transform(X_chunk)
         X_pca = pca.transform(X_scaled)
         
@@ -173,6 +177,7 @@ def continuous_simulation(aggregated_file, model_type='binary', model_variant='d
         print(sliding_window.head())
         
         X_chunk = sliding_window.drop(columns=drop_cols, errors='ignore')
+        # Select only numeric columns to ensure feature names match
         X_chunk = X_chunk.select_dtypes(include=[np.number])
         
         if X_chunk.isna().any().any():
