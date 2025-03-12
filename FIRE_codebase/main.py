@@ -4,7 +4,7 @@ import time
 from FIRE_codebase.preprocessing import run_preprocessing
 from FIRE_codebase.preprocessingUNSW import run_preprocessingUNSW
 from FIRE_codebase.models import run_binary_classification, run_multiclass_classification, run_feature_engineering
-from FIRE_codebase.simulations import sequential_simulation, continuous_simulation, parallel_simulation
+from FIRE_codebase.simulationsunsw import sequential_simulation, continuous_simulation, parallel_simulation
 
 def parse_args():
     """
