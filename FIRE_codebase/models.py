@@ -15,6 +15,10 @@ from tensorflow.keras.models import Sequential # type: ignore
 from tensorflow.keras.layers import Dense, Dropout, Input # type: ignore
 from tensorflow.keras.utils import to_categorical # type: ignore
 
+# Both only have binary values for each in label column but have same attacks
+unswMultiAttack = ['Benign', 'Fuzzers', 'Exploits', 'Backdoor', 'Reconnaissance', 'Generic', 'DoS', 'Shellcode', 'Analysis', 'Worms'] 
+# I can probably automate this w/ df['Attack'].unique().join(map(str, unique_label))
+
 def run_feature_engineering(aggregated_file: str):
     """
     Performs scaling and PCA on the aggregated data.
@@ -305,6 +309,12 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description="Model training pipeline for FIRE_codebase (Step 2)")
     parser.add_argument("aggregated_file", type=str, help="Path to the aggregated data CSV file")
+    parser.add_argument(
+        "--unsw",
+        type=bool,
+        default=False,
+        help="Use unsw preprocessing & multiclass labels"
+    )
     args = parser.parse_args()
     
     # Run binary classification, multi-class classification, and feature engineering functions.

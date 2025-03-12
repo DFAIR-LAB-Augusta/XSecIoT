@@ -31,8 +31,8 @@ def parse_args():
     )
     parser.add_argument(
         "--unsw",
-        type=str,
-        default="1s",
+        type=bool,
+        default=False,
         help="Use unsw preprocessing & multiclass labels"
     )
     

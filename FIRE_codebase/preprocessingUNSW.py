@@ -229,7 +229,7 @@ def merge_aggregated_data(sliding_data: pd.DataFrame, session_data: pd.DataFrame
     
     # Assume the original data has a 'Label' column.
     original_reset = original_data.reset_index()
-    original_subset = original_reset[['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'Label']].drop_duplicates()
+    original_subset = original_reset[['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'Label', 'Attack']].drop_duplicates()
     aggregated_data = aggregated_data.merge(original_subset, on=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol'], how='left')
     
     # Create a new offset-based timestamp column based on the offset (in seconds) from the earliest sliding window start time.
