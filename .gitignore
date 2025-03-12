@@ -173,11 +173,10 @@ cython_debug/
 # Project specific
 multi_class_models/*
 binary_models/*
-datasets/DFAIR/aggregated_data.csv
-Step by step details on FIRE Codebase.pdf
-test.txt
 feature_engineering/*
+Step by step details on FIRE Codebase.pdf
+*test.txt
 *DS_Store
-CICtest.txt
-datasets/CIC_UNSW/NF-CICIDS2018-v3.csv
 *aggregated_data.csv
+datasets/CIC_UNSW/NF-CICIDS2018-v3.csv
+datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv

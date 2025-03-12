@@ -35,7 +35,8 @@ def run_feature_engineering(aggregated_file: str):
     X_pca = pca.fit_transform(X_scaled)
     
     # Save scaler and PCA objects in a folder for feature engineering
-    fe_dir = os.path.join(os.getcwd(), "feature_engineering")
+    dataset_name = os.path.basename(os.path.dirname(aggregated_file))
+    fe_dir = os.path.join(os.getcwd(), "feature_engineering", dataset_name)
     if not os.path.exists(fe_dir):
         os.makedirs(fe_dir)
     joblib.dump(scaler, os.path.join(fe_dir, 'scaler.pkl'))
