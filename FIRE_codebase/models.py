@@ -26,7 +26,7 @@ def run_feature_engineering(aggregated_file: str):
     data = pd.read_csv(aggregated_file)
     # Drop columns not used for feature engineering
     X = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
-                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds'], errors='ignore')
+                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack'], errors='ignore')
     
     if X.isna().any().any():
         X = X.fillna(X.mean())
@@ -46,7 +46,7 @@ def run_feature_engineering(aggregated_file: str):
     print("Scaler and PCA objects saved in feature_engineering folder.")
     return scaler, pca, X_pca
 
-def run_binary_classification(aggregated_file: str):
+def run_binary_classification(aggregated_file: str, isUNSW: bool):
     """
     Loads aggregated data, performs scaling and PCA, then trains and evaluates
     multiple binary classifiers using the 'BinLabel' column as the target.
@@ -54,10 +54,13 @@ def run_binary_classification(aggregated_file: str):
     """
     data = pd.read_csv(aggregated_file)
     # Prepare features and binary target
+    print(f"IsUNSW: {isUNSW}")
+    if isUNSW:
+        data['BinLabel'] = data['Label']
     if 'BinLabel' not in data.columns and 'Label' in data.columns:
         data['BinLabel'] = data['Label'].apply(lambda x: 0 if x == 'Benign' else 1)
     X = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
-                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds'], errors='ignore')
+                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack'], errors='ignore')
     y = data['BinLabel']
     
     print("Checking for NaN values in features:")
@@ -185,7 +188,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     if 'BinLabel' not in data.columns and 'Label' in data.columns:
         data['BinLabel'] = data['Label'].apply(lambda x: 0 if x == 'Benign' else 1)
     X1 = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
-                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds'], errors='ignore')
+                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack'], errors='ignore')
     if not isUNSW:
         y1 = data['Label']
     else:
@@ -194,7 +197,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     
     unswMultiAttack = ['Benign', 'Fuzzers', 'Exploits', 'Backdoor', 'Reconnaissance', 'Generic', 'DoS', 'Shellcode', 'Analysis', 'Worms'] # Both only have binary values for each in label column but have same attacks
     dfairMultiAttack = ['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']
-    # I can probably automate this w/ df['Attack'].unique().join(map(str, unique_label))
+    # I can probably automate this w/ df['Attack'].unique().tolist()
     multiclassLabels = unswMultiAttack if isUNSW else dfairMultiAttack
 
     print("Checking for NaN values in features:")
@@ -324,6 +327,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     # Run binary classification, multi-class classification, and feature engineering functions.
-    run_binary_classification(args.aggregated_file)
+    run_binary_classification(args.aggregated_file, args.unsw)
     run_multiclass_classification(args.aggregated_file, args.unsw)
     run_feature_engineering(args.aggregated_file)

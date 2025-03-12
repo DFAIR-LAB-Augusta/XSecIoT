@@ -98,7 +98,7 @@ def sequential_simulation(aggregated_file, model_type='binary', model_variant='d
     Sequential simulation that processes the aggregated data in chunks.
     """
     drop_cols = ['Label', 'BinLabel', 'src_ip', 'dst_ip', 'start_time',
-                 'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds']
+                 'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack']
     scaler, pca, model = load_simulation_objects(aggregated_file, model_type, model_variant)
     total_start_time = time.time()
     
@@ -139,7 +139,7 @@ def continuous_simulation(aggregated_file, model_type='binary', model_variant='d
     Continuous simulation with a sliding window.
     """
     drop_cols = ['Label', 'BinLabel', 'src_ip', 'dst_ip', 'start_time',
-                 'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds']
+                 'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack']
     scaler, pca, model = load_simulation_objects(aggregated_file, model_type, model_variant)
     sliding_window = pd.DataFrame()
     all_true_labels = []
@@ -233,7 +233,7 @@ def parallel_simulation(aggregated_file, model_type='binary', model_variant='dt'
     Parallel simulation that splits the data into chunks and processes them concurrently.
     """
     drop_cols = ['Label', 'BinLabel', 'src_ip', 'dst_ip', 'start_time',
-                 'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds']
+                 'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack']
     scaler, pca, model = load_simulation_objects(aggregated_file, model_type, model_variant)
     data = pd.read_csv(aggregated_file)
     chunks = [data[i:i+chunk_size] for i in range(0, len(data), chunk_size)]
