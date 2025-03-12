@@ -15,9 +15,7 @@ from tensorflow.keras.models import Sequential # type: ignore
 from tensorflow.keras.layers import Dense, Dropout, Input # type: ignore
 from tensorflow.keras.utils import to_categorical # type: ignore
 
-# Both only have binary values for each in label column but have same attacks
-unswMultiAttack = ['Benign', 'Fuzzers', 'Exploits', 'Backdoor', 'Reconnaissance', 'Generic', 'DoS', 'Shellcode', 'Analysis', 'Worms'] 
-# I can probably automate this w/ df['Attack'].unique().join(map(str, unique_label))
+
 
 def run_feature_engineering(aggregated_file: str):
     """
@@ -176,7 +174,7 @@ def run_binary_classification(aggregated_file: str):
     joblib.dump(pca, os.path.join(binary_models_dir, 'pca_binary.pkl'))
     print("Binary models and transformation objects saved in", binary_models_dir)
 
-def run_multiclass_classification(aggregated_file: str):
+def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     """
     Loads aggregated data, performs scaling and PCA, then trains and evaluates
     several multi-class classifiers using the 'Label' column as the target.
@@ -188,7 +186,16 @@ def run_multiclass_classification(aggregated_file: str):
         data['BinLabel'] = data['Label'].apply(lambda x: 0 if x == 'Benign' else 1)
     X1 = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
                         'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds'], errors='ignore')
-    y1 = data['Label']
+    if not isUNSW:
+        y1 = data['Label']
+    else:
+        y1 = data['Attack']
+    
+    
+    unswMultiAttack = ['Benign', 'Fuzzers', 'Exploits', 'Backdoor', 'Reconnaissance', 'Generic', 'DoS', 'Shellcode', 'Analysis', 'Worms'] # Both only have binary values for each in label column but have same attacks
+    dfairMultiAttack = ['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']
+    # I can probably automate this w/ df['Attack'].unique().join(map(str, unique_label))
+    multiclassLabels = unswMultiAttack if isUNSW else dfairMultiAttack
 
     print("Checking for NaN values in features:")
     print(X1.isna().sum())
@@ -214,7 +221,7 @@ def run_multiclass_classification(aggregated_file: str):
     print("RF (multi) Confusion Matrix:")
     print(confusion_matrix(y_test_multi, y_pred_rf))
     print("RF (multi) Classification Report:")
-    print(classification_report(y_test_multi, y_pred_rf, target_names=['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']))
+    print(classification_report(y_test_multi, y_pred_rf, target_names=multiclassLabels))
     
     # K-Nearest Neighbors (Multi)
     knn_multi = KNeighborsClassifier(n_neighbors=4)
@@ -225,8 +232,8 @@ def run_multiclass_classification(aggregated_file: str):
     print("KNN (multi) Confusion Matrix:")
     print(confusion_matrix(y_test_multi, y_pred_knn_multi))
     print("KNN (multi) Classification Report:")
-    print(classification_report(y_test_multi, y_pred_knn_multi, target_names=['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']))
-    
+    print(classification_report(y_test_multi, y_pred_knn_multi, target_names=multiclassLabels))
+
     # Decision Tree (Multi)
     dt_multi = DecisionTreeClassifier(max_depth=54)
     cv_scores = cross_val_score(dt_multi, X1_pca, y1, cv=5, scoring='accuracy')
@@ -236,7 +243,7 @@ def run_multiclass_classification(aggregated_file: str):
     print("Decision Tree (multi) Confusion Matrix:")
     print(confusion_matrix(y_test_multi, y_pred_dt))
     print("Decision Tree (multi) Classification Report:")
-    print(classification_report(y_test_multi, y_pred_dt, target_names=['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']))
+    print(classification_report(y_test_multi, y_pred_dt, target_names=multiclassLabels))
     
     # SVM (Multi)
     svm_multi = SVC(kernel='rbf', C=1, gamma=0.1, random_state=0, probability=True)
@@ -247,7 +254,7 @@ def run_multiclass_classification(aggregated_file: str):
     print("SVM (multi) Confusion Matrix:")
     print(confusion_matrix(y_test_multi, y_pred_svm_multi))
     print("SVM (multi) Classification Report:")
-    print(classification_report(y_test_multi, y_pred_svm_multi, target_names=['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']))
+    print(classification_report(y_test_multi, y_pred_svm_multi, target_names=multiclassLabels))
     
     # XGBoost (Multi)
     label_encoder = LabelEncoder()
@@ -286,7 +293,7 @@ def run_multiclass_classification(aggregated_file: str):
     print("Feedforward NN (multi) Confusion Matrix:")
     print(confusion_matrix(y_test_ff, y_pred_ff))
     print("Feedforward NN (multi) Classification Report:")
-    print(classification_report(y_test_ff, y_pred_ff, target_names=['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']))
+    print(classification_report(y_test_ff, y_pred_ff, target_names=multiclassLabels))
     
     # Determine dataset name from aggregated file path.
     dataset_name = os.path.basename(os.path.dirname(aggregated_file))
@@ -311,13 +318,12 @@ if __name__ == '__main__':
     parser.add_argument("aggregated_file", type=str, help="Path to the aggregated data CSV file")
     parser.add_argument(
         "--unsw",
-        type=bool,
-        default=False,
-        help="Use unsw preprocessing & multiclass labels"
+        action="store_true",
+        help="Use multiclass labels"
     )
     args = parser.parse_args()
     
     # Run binary classification, multi-class classification, and feature engineering functions.
     run_binary_classification(args.aggregated_file)
-    run_multiclass_classification(args.aggregated_file)
+    run_multiclass_classification(args.aggregated_file, args.unsw)
     run_feature_engineering(args.aggregated_file)

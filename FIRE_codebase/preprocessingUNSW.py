@@ -261,7 +261,7 @@ def preprocess_pipeline(file_path: str, window_size_str: str = '5s', step_size_s
 
     return aggregated_data
 
-def run_preprocessing(file_path: str, window_size_str: str = '5s', step_size_str: str = '1s') -> pd.DataFrame:
+def run_preprocessingUNSW(file_path: str, window_size_str: str = '5s', step_size_str: str = '1s') -> pd.DataFrame:
     """
     Run the full preprocessing pipeline for the UNSW dataset and save the output file to the dataset directory.
     The output file (aggregated_data.csv) is saved in the same folder as the input file.
@@ -284,4 +284,4 @@ if __name__ == '__main__':
     parser.add_argument("--step_size", type=str, default="1s", help="Step size (e.g., '1s')")
     args = parser.parse_args()
     
-    run_preprocessing(args.file_path, args.window_size, args.step_size)
+    run_preprocessingUNSW(args.file_path, args.window_size, args.step_size)
