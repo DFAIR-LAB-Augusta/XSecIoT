@@ -78,8 +78,16 @@ def _process_chunk(chunk, drop_cols, scaler, pca, model, model_variant, model_ty
     X_pca = pca.transform(X_scaled)
     
     if model_variant.startswith('xgb'):
-        # Directly use the NumPy array instead of wrapping it in a DMatrix
-        preds = model.predict(X_pca)
+        # If the model is a scikit-learn wrapper, predict directly.
+        if isinstance(model, xgb.XGBClassifier):
+            preds = model.predict(X_pca)
+        else:
+            # Assume it's a Booster; get training feature names if available.
+            trained_feature_names = (model.feature_names 
+                                     if hasattr(model, 'feature_names') and model.feature_names is not None 
+                                     else [f"f_{i}" for i in range(pca.n_components_)])
+            dtest = xgb.DMatrix(X_pca, feature_names=trained_feature_names)
+            preds = model.predict(dtest)
     else:
         preds = model.predict(X_pca)
         if model_variant == 'feedforward':
@@ -112,8 +120,14 @@ def sequential_simulation(aggregated_file, model_type='binary', model_variant='d
         X_pca = pca.transform(X_scaled)
         
         if model_variant.startswith('xgb'):
-            # Directly predict using the NumPy array
-            predictions = model.predict(X_pca)
+            if isinstance(model, xgb.XGBClassifier):
+                predictions = model.predict(X_pca)
+            else:
+                trained_feature_names = (model.feature_names 
+                                         if hasattr(model, 'feature_names') and model.feature_names is not None 
+                                         else [f"f_{i}" for i in range(pca.n_components_)])
+                dtest = xgb.DMatrix(X_pca, feature_names=trained_feature_names)
+                predictions = model.predict(dtest)
         else:
             predictions = model.predict(X_pca)
             if model_variant == 'feedforward':
@@ -197,7 +211,14 @@ def continuous_simulation(aggregated_file, model_type='binary', model_variant='d
         X_pca = pca.transform(X_scaled)
         
         if model_variant.startswith('xgb'):
-            predictions = model.predict(X_pca)
+            if isinstance(model, xgb.XGBClassifier):
+                predictions = model.predict(X_pca)
+            else:
+                trained_feature_names = (model.feature_names 
+                                         if hasattr(model, 'feature_names') and model.feature_names is not None 
+                                         else [f"f_{i}" for i in range(pca.n_components_)])
+                dtest = xgb.DMatrix(X_pca, feature_names=trained_feature_names)
+                predictions = model.predict(dtest)
         else:
             predictions = model.predict(X_pca)
             if model_variant == 'feedforward':

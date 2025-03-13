@@ -4,6 +4,7 @@ import time
 from FIRE_codebase.preprocessing import run_preprocessing
 from FIRE_codebase.preprocessingUNSW import run_preprocessingUNSW
 from FIRE_codebase.models import run_binary_classification, run_multiclass_classification, run_feature_engineering
+
 from FIRE_codebase.simulationsunsw import sequential_simulation, continuous_simulation, parallel_simulation
 
 def parse_args():
@@ -46,17 +47,17 @@ def main():
     
     # Step 1: Preprocessing
     print("=== Running Preprocessing ===")
-    # if not args.unsw:
-    #     run_preprocessing(args.dataset_path, args.window_size, args.step_size)
-    # else:
-    #     run_preprocessingUNSW(args.dataset_path, args.window_size, args.step_size)
+    if not args.unsw:
+        run_preprocessing(args.dataset_path, args.window_size, args.step_size)
+    else:
+        run_preprocessingUNSW(args.dataset_path, args.window_size, args.step_size)
     aggregated_data_path = os.path.join(os.path.dirname(args.dataset_path), "aggregated_data.csv")
 
     # Step 2: Model Training / Evaluation
     print("\n=== Running Model Training/Evaluation ===")
-    # run_binary_classification(aggregated_data_path, args.unsw) 
-    # run_multiclass_classification(args.aggregated_file, args.unsw)
-    # run_feature_engineering(aggregated_data_path)
+    run_binary_classification(aggregated_data_path, args.unsw) 
+    run_multiclass_classification(args.aggregated_file, args.unsw)
+    run_feature_engineering(aggregated_data_path)
 
     # Step 3: Simulations
     variants = ["dt", "knn", "rf", "svm", "feedforward", "xgb"]
