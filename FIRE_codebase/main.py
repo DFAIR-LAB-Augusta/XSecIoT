@@ -175,14 +175,24 @@ def main():
                         threshold=0.5
                     )
             # elif mode == "parallel":
-            #     preds = parallel_simulation(
-            #         aggregated_file=aggregated_data_path,
-            #         model_type="multi",
-            #         model_variant=variant,
-            #         chunk_size=1000,
-            #         num_processes=4,
-            #         threshold=0.5
-            #     )
+            #     if args.unsw:
+            #         preds = parallel_simulationUNSW(
+            #             aggregated_file=aggregated_data_path,
+            #             model_type="multi",
+            #             model_variant=variant,
+            #             chunk_size=1000,
+            #             num_processes=4,
+            #             threshold=0.5
+            #         )
+            #     else:
+            #         preds = parallel_simulation(
+            #             aggregated_file=aggregated_data_path,
+            #             model_type="multi",
+            #             model_variant=variant,
+            #             chunk_size=1000,
+            #             num_processes=4,
+            #             threshold=0.5
+            #         )
             #     print("Parallel simulation predictions:")
             #     print(preds)
             # Does not currently work; need to fix
