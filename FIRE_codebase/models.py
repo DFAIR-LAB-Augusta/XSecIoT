@@ -14,7 +14,10 @@ from sklearn.svm import SVC
 from tensorflow.keras.models import Sequential # type: ignore
 from tensorflow.keras.layers import Dense, Dropout, Input # type: ignore
 from tensorflow.keras.utils import to_categorical # type: ignore
+from tensorflow import random as tfr
 
+np.random.seed(42)
+tfr.set_seed(42)
 
 
 def run_feature_engineering(aggregated_file: str):

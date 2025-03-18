@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 
+np.random.seed(42)
+
 def load_data(file_path: str) -> pd.DataFrame:
     """
     Load the CSV file into a DataFrame.

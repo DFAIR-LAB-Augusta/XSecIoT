@@ -4,6 +4,8 @@ import pandas as pd
 import scipy.stats
 from tqdm import tqdm
 
+np.random.seed(42)
+
 def load_data(file_path: str) -> pd.DataFrame:
     """
     Load the CSV file into a DataFrame.

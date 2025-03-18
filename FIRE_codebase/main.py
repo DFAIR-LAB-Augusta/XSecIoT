@@ -4,8 +4,8 @@ import time
 from FIRE_codebase.preprocessing import run_preprocessing
 from FIRE_codebase.preprocessingUNSW import run_preprocessingUNSW
 from FIRE_codebase.models import run_binary_classification, run_multiclass_classification, run_feature_engineering
-
-from FIRE_codebase.simulationsunsw import sequential_simulation, continuous_simulation, parallel_simulation
+from FIRE_codebase.simulations import sequential_simulation, continuous_simulation, parallel_simulation
+from FIRE_codebase.simulationsunsw import sequential_simulationUNSW, continuous_simulationUNSW, parallel_simulationUNSW
 
 def parse_args():
     """
@@ -70,33 +70,64 @@ def main():
         for mode in sim_modes:
             print(f"\n*** Simulation Mode: {mode} ***")
             if mode == "sequential":
-                sequential_simulation(
-                    aggregated_file=aggregated_data_path,
-                    model_type="binary",
-                    model_variant=variant,
-                    chunk_size=1000,
-                    delay=1,
-                    threshold=0.5
-                )
+                if args.unsw:
+                    sequential_simulationUNSW(
+                        aggregated_file=aggregated_data_path,
+                        model_type="binary",
+                        model_variant=variant,
+                        chunk_size=1000,
+                        delay=1,
+                        threshold=0.5
+                    )
+                else:
+                    sequential_simulation(
+                        aggregated_file=aggregated_data_path,
+                        model_type="binary",
+                        model_variant=variant,
+                        chunk_size=1000,
+                        delay=1,
+                        threshold=0.5
+                    )
             elif mode == "continuous":
-                continuous_simulation(
-                    aggregated_file=aggregated_data_path,
-                    model_type="binary",
-                    model_variant=variant,
-                    chunk_size=1000,
-                    window_duration=300,
-                    delay=1,
-                    threshold=0.5
-                )
+                if args.unsw:
+                    continuous_simulationUNSW(
+                        aggregated_file=aggregated_data_path,
+                        model_type="binary",
+                        model_variant=variant,
+                        chunk_size=1000,
+                        window_duration=300,
+                        delay=1,
+                        threshold=0.5
+                    )
+                else:
+                    continuous_simulation(
+                        aggregated_file=aggregated_data_path,
+                        model_type="binary",
+                        model_variant=variant,
+                        chunk_size=1000,
+                        window_duration=300,
+                        delay=1,
+                        threshold=0.5
+                    )
             elif mode == "parallel":
-                preds = parallel_simulation(
-                    aggregated_file=aggregated_data_path,
-                    model_type="binary",
-                    model_variant=variant,
-                    chunk_size=1000,
-                    num_processes=4,
-                    threshold=0.5
-                )
+                if args.UNSW:
+                    preds = parallel_simulationUNSW(
+                        aggregated_file=aggregated_data_path,
+                        model_type="binary",
+                        model_variant=variant,
+                        chunk_size=1000,
+                        num_processes=4,
+                        threshold=0.5
+                    )
+                else:
+                    preds = parallel_simulation(
+                        aggregated_file=aggregated_data_path,
+                        model_type="binary",
+                        model_variant=variant,
+                        chunk_size=1000,
+                        num_processes=4,
+                        threshold=0.5
+                    )
                 print("Parallel simulation predictions:")
                 print(preds)
     
@@ -107,24 +138,45 @@ def main():
         for mode in sim_modes:
             print(f"\n*** Simulation Mode: {mode} ***")
             if mode == "sequential":
-                sequential_simulation(
-                    aggregated_file=aggregated_data_path,
-                    model_type="multi",
-                    model_variant=variant,
-                    chunk_size=1000,
-                    delay=1,
-                    threshold=0.5
-                )
+                if args.unsw:
+                    sequential_simulationUNSW(
+                        aggregated_file=aggregated_data_path,
+                        model_type="multi",
+                        model_variant=variant,
+                        chunk_size=1000,
+                        delay=1,
+                        threshold=0.5
+                    )
+                else:
+                    sequential_simulation(
+                        aggregated_file=aggregated_data_path,
+                        model_type="multi",
+                        model_variant=variant,
+                        chunk_size=1000,
+                        delay=1,
+                        threshold=0.5
+                    )
             elif mode == "continuous":
-                continuous_simulation(
-                    aggregated_file=aggregated_data_path,
-                    model_type="multi",
-                    model_variant=variant,
-                    chunk_size=1000,
-                    window_duration=300,
-                    delay=1,
-                    threshold=0.5
-                )
+                if args.unsw:
+                    continuous_simulationUNSW(
+                        aggregated_file=aggregated_data_path,
+                        model_type="multi",
+                        model_variant=variant,
+                        chunk_size=1000,
+                        window_duration=300,
+                        delay=1,
+                        threshold=0.5
+                    )
+                else:
+                    continuous_simulation(
+                        aggregated_file=aggregated_data_path,
+                        model_type="multi",
+                        model_variant=variant,
+                        chunk_size=1000,
+                        window_duration=300,
+                        delay=1,
+                        threshold=0.5
+                    )
             # elif mode == "parallel":
             #     preds = parallel_simulation(
             #         aggregated_file=aggregated_data_path,

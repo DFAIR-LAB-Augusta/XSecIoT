@@ -8,9 +8,7 @@ import joblib
 import xgboost as xgb  # type: ignore
 from functools import partial
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+np.random.seed(42)
 
 # ------------------------------
 # Helper Functions
@@ -100,7 +98,7 @@ def _process_chunk(chunk, drop_cols, scaler, pca, model, model_variant, model_ty
 # Simulation Functions
 # ------------------------------
 
-def sequential_simulation(aggregated_file, model_type='binary', model_variant='dt',
+def sequential_simulationUNSW(aggregated_file, model_type='binary', model_variant='dt',
                           chunk_size=1000, delay=1, threshold=0.5):
     """
     Sequential simulation that processes the aggregated data in chunks.
@@ -147,7 +145,7 @@ def sequential_simulation(aggregated_file, model_type='binary', model_variant='d
     total_time = time.time() - total_start_time
     print(f"Total processing time (sequential): {total_time:.4f} seconds")
 
-def continuous_simulation(aggregated_file, model_type='binary', model_variant='dt',
+def continuous_simulationUNSW(aggregated_file, model_type='binary', model_variant='dt',
                           chunk_size=1000, window_duration=300, delay=1, threshold=0.5):
     """
     Continuous simulation with a sliding window.
@@ -247,7 +245,7 @@ def continuous_simulation(aggregated_file, model_type='binary', model_variant='d
     
     return all_true_labels, all_predictions
 
-def parallel_simulation(aggregated_file, model_type='binary', model_variant='dt',
+def parallel_simulationUNSW(aggregated_file, model_type='binary', model_variant='dt',
                         chunk_size=1000, num_processes=4, threshold=0.5):
     """
     Parallel simulation that splits the data into chunks and processes them concurrently.
@@ -300,14 +298,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.mode == "sequential":
-        sequential_simulation(args.aggregated_file,
+        sequential_simulationUNSW(args.aggregated_file,
                               model_type=args.model_type,
                               model_variant=args.model_variant,
                               chunk_size=args.chunk_size,
                               delay=args.delay,
                               threshold=args.threshold)
     elif args.mode == "continuous":
-        continuous_simulation(args.aggregated_file,
+        continuous_simulationUNSW(args.aggregated_file,
                               model_type=args.model_type,
                               model_variant=args.model_variant,
                               chunk_size=args.chunk_size,
@@ -315,7 +313,7 @@ if __name__ == '__main__':
                               delay=args.delay,
                               threshold=args.threshold)
     elif args.mode == "parallel":
-        preds = parallel_simulation(args.aggregated_file,
+        preds = parallel_simulationUNSW(args.aggregated_file,
                                     model_type=args.model_type,
                                     model_variant=args.model_variant,
                                     chunk_size=args.chunk_size,

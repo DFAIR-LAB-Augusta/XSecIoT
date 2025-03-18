@@ -8,9 +8,7 @@ import joblib
 import xgboost as xgb  # type: ignore
 from functools import partial
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+np.random.seed(42)
 
 # ------------------------------
 # Helper Functions
