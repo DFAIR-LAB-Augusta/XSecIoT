@@ -204,7 +204,6 @@ def run_preprocessing(file_path: str, window_size_str: str = '5s', step_size_str
     return aggregated_data
 
 if __name__ == '__main__':
-    # For testing purposes, this module can be run directly.
     import argparse
     parser = argparse.ArgumentParser(description="Preprocessing pipeline for FIRE_codebase")
     parser.add_argument("file_path", type=str, help="Path to the dataset CSV file")

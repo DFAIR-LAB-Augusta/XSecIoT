@@ -27,7 +27,6 @@ def run_feature_engineering(aggregated_file: str):
     Returns the scaler, PCA object, and the PCA-transformed features.
     """
     data = pd.read_csv(aggregated_file)
-    # Drop columns not used for feature engineering
     X = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
                         'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack'], errors='ignore')
     
@@ -39,7 +38,6 @@ def run_feature_engineering(aggregated_file: str):
     pca = PCA(n_components=0.95)
     X_pca = pca.fit_transform(X_scaled)
     
-    # Save scaler and PCA objects in a folder for feature engineering
     dataset_name = os.path.basename(os.path.dirname(aggregated_file))
     fe_dir = os.path.join(os.getcwd(), "feature_engineering", dataset_name)
     if not os.path.exists(fe_dir):
@@ -56,7 +54,6 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     Trained models and transformation objects are saved in the 'binary_models' folder.
     """
     data = pd.read_csv(aggregated_file)
-    # Prepare features and binary target
     print(f"IsUNSW: {isUNSW}")
     if isUNSW:
         data['BinLabel'] = data['Label']
@@ -70,12 +67,10 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     print(X.isna().sum())
     print("Any NaN in X:", X.isna().any().any())
 
-    # Fill missing values with the mean for each column.
     if X.isna().any().any():
         print("Found NaN values, filling with column means.")
         X = X.fillna(X.mean())
     
-    # Feature Engineering: Scale and apply PCA
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     pca = PCA(n_components=0.95)
@@ -83,7 +78,6 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     
     print("PCA Explained Variance Ratio:", pca.explained_variance_ratio_)
     
-    # Split data for evaluation
     X_train, X_test, y_train, y_test = train_test_split(X_pca, y, test_size=0.2, random_state=42)
     
     # ------------------
@@ -163,13 +157,11 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     loss, acc = feedforward_model_bin.evaluate(X_test, y_test, verbose=0)
     print(f"Feedforward NN - Loss: {loss:.4f}, Accuracy: {acc:.4f}")
     
-    # Determine dataset name from aggregated file path.
     dataset_name = os.path.basename(os.path.dirname(aggregated_file))
     binary_models_dir = os.path.join(os.getcwd(), "binary_models", dataset_name)
     if not os.path.exists(binary_models_dir):
         os.makedirs(binary_models_dir)
     
-    # Save binary models and transformation objects into the dataset-specific folder.
     joblib.dump(rf, os.path.join(binary_models_dir, 'rf_model_binary.pkl'))
     joblib.dump(knn, os.path.join(binary_models_dir, 'knn_model_binary.pkl'))
     joblib.dump(dt, os.path.join(binary_models_dir, 'dt_model_binary.pkl'))
@@ -187,7 +179,6 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     Trained models and transformation objects are saved in the 'multi_class_models' folder.
     """
     data = pd.read_csv(aggregated_file)
-    # Prepare features and multi-class target
     if 'BinLabel' not in data.columns and 'Label' in data.columns:
         data['BinLabel'] = data['Label'].apply(lambda x: 0 if x == 'Benign' else 1)
     X1 = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
@@ -207,7 +198,6 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     print(X1.isna().sum())
     print("Any NaN in X:", X1.isna().any().any())
 
-    # Fill missing values with the mean for each column.
     if X1.isna().any().any():
         print("Found NaN values, filling with column means.")
         X1 = X1.fillna(X1.mean())
@@ -301,13 +291,11 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     print("Feedforward NN (multi) Classification Report:")
     print(classification_report(y_test_ff, y_pred_ff, target_names=multiclassLabels))
     
-    # Determine dataset name from aggregated file path.
     dataset_name = os.path.basename(os.path.dirname(aggregated_file))
     multi_models_dir = os.path.join(os.getcwd(), "multi_class_models", dataset_name)
     if not os.path.exists(multi_models_dir):
         os.makedirs(multi_models_dir)
     
-    # Save multi-class models and transformation objects into the dataset-specific folder.
     joblib.dump(rf_multi, os.path.join(multi_models_dir, 'random_forest_multi.pkl'))
     joblib.dump(knn_multi, os.path.join(multi_models_dir, 'knearest_multi.pkl'))
     joblib.dump(dt_multi, os.path.join(multi_models_dir, 'decision_tree_multi.pkl'))
@@ -329,7 +317,6 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     
-    # Run binary classification, multi-class classification, and feature engineering functions.
     run_binary_classification(args.aggregated_file, args.unsw)
     run_multiclass_classification(args.aggregated_file, args.unsw)
     run_feature_engineering(args.aggregated_file)

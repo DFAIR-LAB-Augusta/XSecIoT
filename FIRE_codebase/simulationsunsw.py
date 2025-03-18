@@ -64,23 +64,19 @@ def load_simulation_objects(aggregated_file, model_type, model_variant):
     model = joblib.load(model_file)
     return scaler, pca, model
 
-# Separated out due to pickling not liking nested functions using mp
 def _process_chunk(chunk, drop_cols, scaler, pca, model, model_variant, model_type, threshold):
     """
     Process a single chunk: preprocess, scale, transform with PCA, and predict.
     """
     X_chunk = preprocess_chunk(chunk, drop_cols)
-    # Select only numeric columns to ensure feature names match
     X_chunk = X_chunk.select_dtypes(include=[np.number])
     X_scaled = scaler.transform(X_chunk)
     X_pca = pca.transform(X_scaled)
     
     if model_variant.startswith('xgb'):
-        # If the model is a scikit-learn wrapper, predict directly.
         if isinstance(model, xgb.XGBClassifier):
             preds = model.predict(X_pca)
         else:
-            # Assume it's a Booster; get training feature names if available.
             trained_feature_names = (model.feature_names 
                                      if hasattr(model, 'feature_names') and model.feature_names is not None 
                                      else [f"f_{i}" for i in range(pca.n_components_)])
@@ -112,7 +108,6 @@ def sequential_simulationUNSW(aggregated_file, model_type='binary', model_varian
         print("\nProcessing new data chunk...")
         start_time_chunk = time.time()
         X_chunk = preprocess_chunk(chunk, drop_cols)
-        # Select only numeric columns to ensure feature names match
         X_chunk = X_chunk.select_dtypes(include=[np.number])
         X_scaled = scaler.transform(X_chunk)
         X_pca = pca.transform(X_scaled)
@@ -185,7 +180,6 @@ def continuous_simulationUNSW(aggregated_file, model_type='binary', model_varian
         print(sliding_window.head())
         
         X_chunk = sliding_window.drop(columns=drop_cols, errors='ignore')
-        # Select only numeric columns to ensure feature names match
         X_chunk = X_chunk.select_dtypes(include=[np.number])
         
         if X_chunk.isna().any().any():

@@ -22,7 +22,6 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
       - Set the start_time as the index and sort.
       - Replace infinite values with NaN.
     """
-    # Mapping from UNSW dataset feature names to our internal names
     mapping = {
         'IPV4_SRC_ADDR': 'src_ip',
         'IPV4_DST_ADDR': 'dst_ip',
@@ -47,18 +46,14 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     }
     data.rename(columns=mapping, inplace=True)
     
-    # Convert start_time and end_time from milliseconds to datetime (with millisecond precision)
     data['start_time'] = pd.to_datetime(data['start_time'], unit='ms', errors='coerce')
     data['end_time'] = pd.to_datetime(data['end_time'], unit='ms', errors='coerce')
     
-    # Convert flow_duration from milliseconds to microseconds
     data['flow_duration'] = data['flow_duration'] * 1000
 
-    # Set the start_time column as index and sort the DataFrame by index
     data.set_index('start_time', inplace=True)
     data.sort_index(inplace=True)
 
-    # Calulations for features from UNSW to map to flowmeter features
     data['fwd_pkt_len_mean'] = np.where(
         data['tot_fwd_pkts'] != 0,
         data['totlen_fwd_pkts'] / data['tot_fwd_pkts'],
@@ -96,7 +91,6 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     
     data.replace([np.inf, -np.inf], np.nan, inplace=True)
     
-    # (Optional) Drop rows missing critical columns
     data.dropna(subset=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'flow_duration'], inplace=True)
     
     return data
@@ -109,7 +103,6 @@ def aggregate_sessions(data: pd.DataFrame) -> pd.DataFrame:
       - Mean packet sizes and download/upload ratio.
       - Start and end times for the session.
     """
-    # Reset index so that start_time becomes a column.
     data_reset = data.reset_index()
     
     session_data = data_reset.groupby(
@@ -159,29 +152,24 @@ def sliding_window_aggregation(data: pd.DataFrame, window_size: pd.Timedelta, st
     window_aggregates = []
     start_times = pd.date_range(start=data.index.min(), end=data.index.max(), freq=step_size)
     
-    # Wrap the iteration in tqdm for a progress bar.
     for start_time in tqdm(start_times, desc="Sliding Window Aggregation"):
         end_time = start_time + window_size
         window = data[(data.index >= start_time) & (data.index < end_time)]
         if window.empty:
             continue
         
-        # Calculate duration using the index (which is already datetime)
         duration = (window.index.max() - window.index.min()).total_seconds() + 1e-9
         
-        # Compute flow rate features
         flow_rate_features = {
             'flow_rate_packets_window': len(window) / duration,
             'flow_rate_bytes_window': window['totlen_fwd_pkts'].sum() / duration,
         }
         
-        # Compute directional features
         directional_features = {
             'flow_direction_ratio_window': window['tot_fwd_pkts'].sum() / (window['tot_bwd_pkts'].sum() + 1),
             'byte_direction_ratio_window': window['totlen_fwd_pkts'].sum() / (window['totlen_bwd_pkts'].sum() + 1),
         }
         
-        # Entropy features for IP addresses
         entropy_features = {
             'src_ip_entropy_window': entropy(window['src_ip']),
             'dst_ip_entropy_window': entropy(window['dst_ip']),
@@ -229,12 +217,10 @@ def merge_aggregated_data(sliding_data: pd.DataFrame, session_data: pd.DataFrame
         direction='backward'
     )
     
-    # Assume the original data has a 'Label' column.
     original_reset = original_data.reset_index()
     original_subset = original_reset[['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'Label', 'Attack']].drop_duplicates()
     aggregated_data = aggregated_data.merge(original_subset, on=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol'], how='left')
     
-    # Create a new offset-based timestamp column based on the offset (in seconds) from the earliest sliding window start time.
     first_start = aggregated_data['start_time'].min()
     aggregated_data['timestamp_offset_seconds'] = (aggregated_data['start_time'] - first_start).dt.total_seconds()
     
@@ -278,7 +264,6 @@ def run_preprocessingUNSW(file_path: str, window_size_str: str = '5s', step_size
     return aggregated_data
 
 if __name__ == '__main__':
-    # For testing purposes, this module can be run directly.
     import argparse
     parser = argparse.ArgumentParser(description="Preprocessing pipeline for UNSW dataset using FIRE_codebase framework")
     parser.add_argument("file_path", type=str, help="Path to the UNSW dataset CSV file")

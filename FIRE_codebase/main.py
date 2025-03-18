@@ -40,7 +40,6 @@ def parse_args():
     return parser.parse_args()
 
 def main():
-    # Start the timer for the full pipeline
     start_time = time.time()
     
     args = parse_args()
@@ -63,7 +62,6 @@ def main():
     variants = ["dt", "knn", "rf", "svm", "feedforward", "xgb"]
     sim_modes = ["sequential", "continuous", "parallel"]
 
-    # Run simulations for binary classification
     print("\n=== Running Binary Simulations ===")
     for variant in variants:
         print(f"\n--- Binary Model Variant: {variant} ---")
@@ -131,7 +129,6 @@ def main():
                 print("Parallel simulation predictions:")
                 print(preds)
     
-    # Run simulations for multi-class classification
     print("\n=== Running Multi-Class Simulations ===")
     for variant in variants:
         print(f"\n--- Multi-Class Model Variant: {variant} ---")
@@ -188,8 +185,8 @@ def main():
             #     )
             #     print("Parallel simulation predictions:")
             #     print(preds)
+            # Does not currently work; need to fix
     
-    # Compute and print the total elapsed time for the full pipeline.
     total_time = time.time() - start_time
     print(f"\nTotal elapsed time for full pipeline: {total_time:.2f} seconds")
 

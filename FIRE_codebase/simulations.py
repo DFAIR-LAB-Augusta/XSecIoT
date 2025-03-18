@@ -64,19 +64,16 @@ def load_simulation_objects(aggregated_file, model_type, model_variant):
     model = joblib.load(model_file)
     return scaler, pca, model
 
-# Separated out due to pickling not liking nested functions using mp
 def _process_chunk(chunk, drop_cols, scaler, pca, model, model_variant, model_type, threshold):
     """
     Process a single chunk: preprocess, scale, transform with PCA, and predict.
     """
     X_chunk = preprocess_chunk(chunk, drop_cols)
-    # Select only numeric columns to ensure feature names match
     X_chunk = X_chunk.select_dtypes(include=[np.number])
     X_scaled = scaler.transform(X_chunk)
     X_pca = pca.transform(X_scaled)
     
     if model_variant.startswith('xgb'):
-        # Use training feature naming ("f_i") for consistency
         feature_names = [f"f_{i}" for i in range(X_pca.shape[1])]
         dtest = xgb.DMatrix(X_pca, feature_names=feature_names)
         preds = model.predict(dtest)
@@ -106,13 +103,11 @@ def sequential_simulation(aggregated_file, model_type='binary', model_variant='d
         print("\nProcessing new data chunk...")
         start_time_chunk = time.time()
         X_chunk = preprocess_chunk(chunk, drop_cols)
-        # Select only numeric columns to ensure feature names match
         X_chunk = X_chunk.select_dtypes(include=[np.number])
         X_scaled = scaler.transform(X_chunk)
         X_pca = pca.transform(X_scaled)
         
         if model_variant.startswith('xgb'):
-            # Use feature names matching training: f_0, f_1, ...
             feature_names = [f"f_{i}" for i in range(X_pca.shape[1])]
             dtest = xgb.DMatrix(X_pca, feature_names=feature_names)
             predictions = model.predict(dtest)
@@ -175,7 +170,6 @@ def continuous_simulation(aggregated_file, model_type='binary', model_variant='d
         print(sliding_window.head())
         
         X_chunk = sliding_window.drop(columns=drop_cols, errors='ignore')
-        # Select only numeric columns to ensure feature names match
         X_chunk = X_chunk.select_dtypes(include=[np.number])
         
         if X_chunk.isna().any().any():
