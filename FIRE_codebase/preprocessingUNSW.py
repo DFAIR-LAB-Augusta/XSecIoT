@@ -1,7 +1,12 @@
-import os
+import dask
+import dask.dataframe as dd
 import numpy as np
+import os
 import pandas as pd
 import scipy.stats
+import sys
+
+from dask.diagnostics import ProgressBar
 from tqdm import tqdm
 
 np.random.seed(42)
@@ -146,35 +151,30 @@ def entropy(column: pd.Series) -> float:
 
 def sliding_window_aggregation(data: pd.DataFrame, window_size: pd.Timedelta, step_size: pd.Timedelta) -> pd.DataFrame:
     """
-    Apply time-based sliding window aggregation on the UNSW dataset.
-    Aggregates are computed using the preprocessed column names.
+    Apply time-based sliding window aggregation on the dataset using Dask for parallel processing.
     """
-    window_aggregates = []
-    start_times = pd.date_range(start=data.index.min(), end=data.index.max(), freq=step_size)
-    
-    for start_time in tqdm(start_times, desc="Sliding Window Aggregation"):
+
+    def compute_aggregation(start_time):
         end_time = start_time + window_size
         window = data[(data.index >= start_time) & (data.index < end_time)]
+        
         if window.empty:
-            continue
-        
+            return pd.DataFrame(columns=meta.columns).astype(meta.dtypes.to_dict())
+
         duration = (window.index.max() - window.index.min()).total_seconds() + 1e-9
-        
+
         flow_rate_features = {
             'flow_rate_packets_window': len(window) / duration,
             'flow_rate_bytes_window': window['totlen_fwd_pkts'].sum() / duration,
         }
-        
         directional_features = {
             'flow_direction_ratio_window': window['tot_fwd_pkts'].sum() / (window['tot_bwd_pkts'].sum() + 1),
             'byte_direction_ratio_window': window['totlen_fwd_pkts'].sum() / (window['totlen_bwd_pkts'].sum() + 1),
         }
-        
         entropy_features = {
             'src_ip_entropy_window': entropy(window['src_ip']),
             'dst_ip_entropy_window': entropy(window['dst_ip']),
         }
-        
         aggregated = {
             'start_time': start_time,
             'end_time': end_time,
@@ -198,11 +198,43 @@ def sliding_window_aggregation(data: pd.DataFrame, window_size: pd.Timedelta, st
         aggregated.update(flow_rate_features)
         aggregated.update(directional_features)
         aggregated.update(entropy_features)
-        
-        window_aggregates.append(aggregated)
-    
-    return pd.DataFrame(window_aggregates)
 
+        return pd.DataFrame([aggregated])
+
+    meta = pd.DataFrame(columns=[
+        'start_time', 'end_time', 'total_forward_packets_window', 'total_backward_packets_window',
+        'total_forward_bytes_window', 'total_backward_bytes_window', 'average_packet_size_fwd_window',
+        'average_packet_size_bwd_window', 'flow_duration_window', 'packet_count_window',
+        'mean_iat_fwd_window', 'stddev_iat_fwd_window', 'min_iat_fwd_window', 'max_iat_fwd_window',
+        'mean_iat_bwd_window', 'stddev_iat_bwd_window', 'min_iat_bwd_window', 'max_iat_bwd_window',
+        'flow_rate_packets_window', 'flow_rate_bytes_window', 'flow_direction_ratio_window',
+        'byte_direction_ratio_window', 'src_ip_entropy_window', 'dst_ip_entropy_window'
+    ]).astype({
+        'start_time': 'datetime64[ns]', 'end_time': 'datetime64[ns]', 'total_forward_packets_window': 'int64',
+        'total_backward_packets_window': 'int64', 'total_forward_bytes_window': 'int64',
+        'total_backward_bytes_window': 'int64', 'average_packet_size_fwd_window': 'float64',
+        'average_packet_size_bwd_window': 'float64', 'flow_duration_window': 'int64',
+        'packet_count_window': 'int64', 'mean_iat_fwd_window': 'float64', 'stddev_iat_fwd_window': 'float64',
+        'min_iat_fwd_window': 'int64', 'max_iat_fwd_window': 'int64', 'mean_iat_bwd_window': 'float64',
+        'stddev_iat_bwd_window': 'float64', 'min_iat_bwd_window': 'int64', 'max_iat_bwd_window': 'int64',
+        'flow_rate_packets_window': 'float64', 'flow_rate_bytes_window': 'float64',
+        'flow_direction_ratio_window': 'float64', 'byte_direction_ratio_window': 'float64',
+        'src_ip_entropy_window': 'float64', 'dst_ip_entropy_window': 'float64'
+    })
+
+    start_times = pd.date_range(start=data.index.min(), end=data.index.max(), freq=step_size)
+
+    delayed_dfs = []
+    for st in tqdm(start_times, desc="Computing Window Aggregations"):
+        agg = dask.delayed(compute_aggregation)(st)
+        delayed_dfs.append(agg)
+
+    ddf = dd.from_delayed(delayed_dfs, meta=meta)
+
+    with ProgressBar():
+        result = ddf.compute()
+    
+    return result
 
 def merge_aggregated_data(sliding_data: pd.DataFrame, session_data: pd.DataFrame, original_data: pd.DataFrame) -> pd.DataFrame:
     """
