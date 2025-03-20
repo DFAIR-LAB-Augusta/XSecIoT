@@ -181,3 +181,4 @@ Step by step details on FIRE Codebase.pdf
 datasets/CIC_UNSW/NF-CICIDS2018-v3.csv
 datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv
 *.pkl
+*.gz

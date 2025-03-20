@@ -175,51 +175,61 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
 def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     """
     Loads aggregated data, performs scaling and PCA, then trains and evaluates
-    several multi-class classifiers using the 'Label' column as the target.
-    Trained models and transformation objects are saved in the 'multi_class_models' folder.
+    several multi-class classifiers using the 'Label' column as the target (or
+    'Attack' for UNSW). Trained models and transformation objects are saved in the
+    'multi_class_models' folder.
     """
     data = pd.read_csv(aggregated_file)
     if 'BinLabel' not in data.columns and 'Label' in data.columns:
         data['BinLabel'] = data['Label'].apply(lambda x: 0 if x == 'Benign' else 1)
-    X1 = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
-                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack'], errors='ignore')
+    
+    # Drop columns that are not used for features.
+    X1 = data.drop(
+        columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
+                 'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack'],
+        errors='ignore'
+    )
+    # Select target column based on isUNSW flag.
     if not isUNSW:
         y1 = data['Label']
     else:
         y1 = data['Attack']
     
-    
-    unswMultiAttack = ['Benign', 'Fuzzers', 'Exploits', 'Backdoor', 'Reconnaissance', 'Generic', 'DoS', 'Shellcode', 'Analysis', 'Worms'] # Both only have binary values for each in label column but have same attacks
-    dfairMultiAttack = ['Benign', 'HTTPAttack', 'TCPAttack', 'UDPAttack', 'XMasAttack']
-    # I can probably automate this w/ df['Attack'].unique().tolist()
-    multiclassLabels = unswMultiAttack if isUNSW else dfairMultiAttack
+    # Dynamically compute and sort the unique target classes.
+    multiclassLabels = sorted(y1.unique().tolist())
+    print("Unique classes in target:", multiclassLabels)
 
     print("Checking for NaN values in features:")
     print(X1.isna().sum())
     print("Any NaN in X:", X1.isna().any().any())
-
     if X1.isna().any().any():
         print("Found NaN values, filling with column means.")
         X1 = X1.fillna(X1.mean())
-    
+
     scaler1 = StandardScaler()
     X1_scaled = scaler1.fit_transform(X1)
     pca1 = PCA(n_components=0.95)
     X1_pca = pca1.fit_transform(X1_scaled)
-    
-    # Random Forest (Multi)
+
+    # ----- Random Forest (Multi) -----
     rf_multi = RandomForestClassifier(random_state=42)
     cv_scores = cross_val_score(rf_multi, X1_pca, y1, cv=5, scoring='accuracy')
     print(f"Random Forest (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
-    X_train_multi, X_test_multi, y_train_multi, y_test_multi = train_test_split(X1_pca, y1, test_size=0.2, random_state=42)
+    X_train_multi, X_test_multi, y_train_multi, y_test_multi = train_test_split(
+        X1_pca, y1, test_size=0.2, random_state=42
+    )
     rf_multi.fit(X_train_multi, y_train_multi)
     y_pred_rf = rf_multi.predict(X_test_multi)
     print("RF (multi) Confusion Matrix:")
     print(confusion_matrix(y_test_multi, y_pred_rf))
     print("RF (multi) Classification Report:")
-    print(classification_report(y_test_multi, y_pred_rf, target_names=multiclassLabels))
-    
-    # K-Nearest Neighbors (Multi)
+    print(classification_report(
+        y_test_multi, y_pred_rf,
+        labels=multiclassLabels,
+        target_names=multiclassLabels
+    ))
+
+    # ----- K-Nearest Neighbors (Multi) -----
     knn_multi = KNeighborsClassifier(n_neighbors=4)
     cv_scores = cross_val_score(knn_multi, X1_pca, y1, cv=5, scoring='accuracy')
     print(f"KNN (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
@@ -228,9 +238,13 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     print("KNN (multi) Confusion Matrix:")
     print(confusion_matrix(y_test_multi, y_pred_knn_multi))
     print("KNN (multi) Classification Report:")
-    print(classification_report(y_test_multi, y_pred_knn_multi, target_names=multiclassLabels))
+    print(classification_report(
+        y_test_multi, y_pred_knn_multi,
+        labels=multiclassLabels,
+        target_names=multiclassLabels
+    ))
 
-    # Decision Tree (Multi)
+    # ----- Decision Tree (Multi) -----
     dt_multi = DecisionTreeClassifier(max_depth=54)
     cv_scores = cross_val_score(dt_multi, X1_pca, y1, cv=5, scoring='accuracy')
     print(f"Decision Tree (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
@@ -239,9 +253,13 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     print("Decision Tree (multi) Confusion Matrix:")
     print(confusion_matrix(y_test_multi, y_pred_dt))
     print("Decision Tree (multi) Classification Report:")
-    print(classification_report(y_test_multi, y_pred_dt, target_names=multiclassLabels))
-    
-    # SVM (Multi)
+    print(classification_report(
+        y_test_multi, y_pred_dt,
+        labels=multiclassLabels,
+        target_names=multiclassLabels
+    ))
+
+    # ----- SVM (Multi) -----
     svm_multi = SVC(kernel='rbf', C=1, gamma=0.1, random_state=0, probability=True)
     cv_scores = cross_val_score(svm_multi, X1_pca, y1, cv=5, scoring='accuracy')
     print(f"SVM (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
@@ -250,29 +268,46 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     print("SVM (multi) Confusion Matrix:")
     print(confusion_matrix(y_test_multi, y_pred_svm_multi))
     print("SVM (multi) Classification Report:")
-    print(classification_report(y_test_multi, y_pred_svm_multi, target_names=multiclassLabels))
-    
-    # XGBoost (Multi)
+    print(classification_report(
+        y_test_multi, y_pred_svm_multi,
+        labels=multiclassLabels,
+        target_names=multiclassLabels
+    ))
+
+    # ----- XGBoost (Multi) -----
     label_encoder = LabelEncoder()
     y1_encoded = label_encoder.fit_transform(y1)
-    X_train_multi, X_test_multi, y_train_multi, y_test_multi = train_test_split(X1_pca, y1_encoded, test_size=0.2, random_state=42)
-    xgb_multi = xgb.XGBClassifier(objective='multi:softmax', num_class=len(label_encoder.classes_),
-                                  eval_metric='mlogloss', random_state=42)
+    X_train_multi, X_test_multi, y_train_multi, y_test_multi = train_test_split(
+        X1_pca, y1_encoded, test_size=0.2, random_state=42
+    )
+    xgb_multi = xgb.XGBClassifier(
+        objective='multi:softmax',
+        num_class=len(label_encoder.classes_),
+        eval_metric='mlogloss', random_state=42
+    )
     xgb_multi.fit(X_train_multi, y_train_multi)
     cv_scores_xgb = cross_val_score(xgb_multi, X1_pca, y1_encoded, cv=5, scoring='accuracy')
     print(f"XGBoost (multi) CV Accuracy: {cv_scores_xgb.mean():.4f} (+/- {cv_scores_xgb.std():.4f})")
     y_pred_xgb = xgb_multi.predict(X_test_multi)
     y_pred_labels = label_encoder.inverse_transform(y_pred_xgb)
     y_test_labels = label_encoder.inverse_transform(y_test_multi)
+    # Compute only the labels present in the test set.
+    present_labels = np.unique(y_test_labels)
     print("XGBoost (multi) Classification Report:")
-    print(classification_report(y_test_labels, y_pred_labels, target_names=label_encoder.classes_))
+    print(classification_report(
+        y_test_labels, y_pred_labels,
+        labels=present_labels,
+        target_names=[str(label) for label in present_labels]
+    ))
     print("XGBoost (multi) Confusion Matrix:")
-    print(confusion_matrix(y_test_labels, y_pred_labels, labels=label_encoder.classes_))
-    
-    # Feedforward Neural Network (Multi)
+    print(confusion_matrix(y_test_labels, y_pred_labels, labels=present_labels))
+
+    # ----- Feedforward Neural Network (Multi) -----
     y1_encoded = label_encoder.fit_transform(y1)
     y1_categorical = to_categorical(y1_encoded)
-    X_train_nn, X_test_nn, y_train_nn, y_test_nn = train_test_split(X1_pca, y1_categorical, test_size=0.2, random_state=42)
+    X_train_nn, X_test_nn, y_train_nn, y_test_nn = train_test_split(
+        X1_pca, y1_categorical, test_size=0.2, random_state=42
+    )
     feedforward_model = Sequential([
         Input(shape=(X_train_nn.shape[1],)),
         Dense(128, activation='relu'),
@@ -286,11 +321,18 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     y_pred_proba = feedforward_model.predict(X_test_nn)
     y_pred_ff = np.argmax(y_pred_proba, axis=1)
     y_test_ff = np.argmax(y_test_nn, axis=1)
+    # Dynamically compute target names from the test labels.
+    target_names_ff = sorted(np.unique(y_test_ff.astype(str)))
     print("Feedforward NN (multi) Confusion Matrix:")
     print(confusion_matrix(y_test_ff, y_pred_ff))
     print("Feedforward NN (multi) Classification Report:")
-    print(classification_report(y_test_ff, y_pred_ff, target_names=multiclassLabels))
-    
+    print(classification_report(
+        y_test_ff, y_pred_ff,
+        labels=sorted(np.unique(y_test_ff)),
+        target_names=target_names_ff
+    ))
+
+    # Save all models and transformation objects.
     dataset_name = os.path.basename(os.path.dirname(aggregated_file))
     multi_models_dir = os.path.join(os.getcwd(), "multi_class_models", dataset_name)
     if not os.path.exists(multi_models_dir):
