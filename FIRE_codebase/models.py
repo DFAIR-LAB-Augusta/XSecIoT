@@ -28,7 +28,7 @@ def run_feature_engineering(aggregated_file: str):
     """
     data = pd.read_csv(aggregated_file)
     X = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
-                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack'], errors='ignore')
+                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack', 'start_time_x', 'start_time_y'], errors='ignore')
     
     if X.isna().any().any():
         X = X.fillna(X.mean())
@@ -60,7 +60,7 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     if 'BinLabel' not in data.columns and 'Label' in data.columns:
         data['BinLabel'] = data['Label'].apply(lambda x: 0 if x == 'Benign' else 1)
     X = data.drop(columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
-                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack'], errors='ignore')
+                        'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack', 'start_time_x', 'start_time_y'], errors='ignore')
     y = data['BinLabel']
     
     print("Checking for NaN values in features:")
@@ -186,7 +186,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     # Drop columns that are not used for features.
     X1 = data.drop(
         columns=['BinLabel', 'Label', 'src_ip', 'dst_ip', 'start_time',
-                 'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack'],
+                 'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack', 'start_time_x', 'start_time_y'],
         errors='ignore'
     )
     # Select target column based on isUNSW flag.

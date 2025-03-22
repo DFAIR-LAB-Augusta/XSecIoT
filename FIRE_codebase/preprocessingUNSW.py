@@ -269,12 +269,10 @@ def merge_aggregated_data(sliding_data: pd.DataFrame, session_data: pd.DataFrame
     print(f"[{time.strftime('%H:%M:%S')}] Starting merge_aggregated_data...", file=sys.stderr, flush=True)
     t0 = time.time()
 
-    # Convert to Dask DataFrames for parallel merging
     npartitions = 20  # tune based on your M1 Max setup
     sliding_ddf = dd.from_pandas(sliding_data, npartitions=npartitions)
     session_ddf = dd.from_pandas(session_data, npartitions=npartitions)
 
-    # Merge on 5-tuple (flow/session-level)
     merged_ddf = sliding_ddf.merge(
         session_ddf,
         on=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol'],
@@ -285,11 +283,9 @@ def merge_aggregated_data(sliding_data: pd.DataFrame, session_data: pd.DataFrame
     merged = merged_ddf.compute()
     print(f"[{time.strftime('%H:%M:%S')}] Session merge done in {time.time() - t0:.2f}s", file=sys.stderr, flush=True)
 
-    # Prepare original labels
     original_reset = original_data.reset_index()
     original_subset = original_reset[['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'Label', 'Attack']].drop_duplicates()
 
-    # Merge with label data
     print(f"[{time.strftime('%H:%M:%S')}] Merging with label columns...", file=sys.stderr, flush=True)
     merged = merged.merge(
         original_subset,
@@ -298,7 +294,6 @@ def merge_aggregated_data(sliding_data: pd.DataFrame, session_data: pd.DataFrame
     )
     print(f"[{time.strftime('%H:%M:%S')}] Label merge done in {time.time() - t0:.2f}s", file=sys.stderr, flush=True)
 
-    # Use start_time_x for timestamp offset calculation
     if 'start_time_x' in merged.columns:
         first_start = merged['start_time_x'].min()
         merged['timestamp_offset_seconds'] = (merged['start_time_x'] - first_start).dt.total_seconds()
