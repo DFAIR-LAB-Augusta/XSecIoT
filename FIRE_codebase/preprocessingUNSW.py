@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import scipy.stats
 import sys
+import time
 
 from dask.diagnostics import ProgressBar
 from tqdm import tqdm
@@ -157,7 +158,7 @@ def sliding_window_aggregation(data: pd.DataFrame, window_size: pd.Timedelta, st
     def compute_aggregation(start_time):
         end_time = start_time + window_size
         window = data[(data.index >= start_time) & (data.index < end_time)]
-        
+
         if window.empty:
             return pd.DataFrame(columns=meta.columns).astype(meta.dtypes.to_dict())
 
@@ -175,6 +176,14 @@ def sliding_window_aggregation(data: pd.DataFrame, window_size: pd.Timedelta, st
             'src_ip_entropy_window': entropy(window['src_ip']),
             'dst_ip_entropy_window': entropy(window['dst_ip']),
         }
+
+        # Assume a single session per window for now (most cases)
+        protocol = window['protocol'].iloc[0]
+        src_ip = window['src_ip'].iloc[0]
+        dst_ip = window['dst_ip'].iloc[0]
+        src_port = window['src_port'].iloc[0]
+        dst_port = window['dst_port'].iloc[0]
+
         aggregated = {
             'start_time': start_time,
             'end_time': end_time,
@@ -194,13 +203,21 @@ def sliding_window_aggregation(data: pd.DataFrame, window_size: pd.Timedelta, st
             'stddev_iat_bwd_window': window['bwd_iat_std'].mean(),
             'min_iat_bwd_window': window['bwd_iat_min'].min(),
             'max_iat_bwd_window': window['bwd_iat_max'].max(),
+            'protocol': protocol,
+            'src_ip': src_ip,
+            'dst_ip': dst_ip,
+            'src_port': src_port,
+            'dst_port': dst_port
         }
+
         aggregated.update(flow_rate_features)
         aggregated.update(directional_features)
         aggregated.update(entropy_features)
 
-        return pd.DataFrame([aggregated])
+        return pd.DataFrame([aggregated])[meta.columns]
 
+
+    # Extended meta to include 5-tuple fields
     meta = pd.DataFrame(columns=[
         'start_time', 'end_time', 'total_forward_packets_window', 'total_backward_packets_window',
         'total_forward_bytes_window', 'total_backward_bytes_window', 'average_packet_size_fwd_window',
@@ -208,55 +225,89 @@ def sliding_window_aggregation(data: pd.DataFrame, window_size: pd.Timedelta, st
         'mean_iat_fwd_window', 'stddev_iat_fwd_window', 'min_iat_fwd_window', 'max_iat_fwd_window',
         'mean_iat_bwd_window', 'stddev_iat_bwd_window', 'min_iat_bwd_window', 'max_iat_bwd_window',
         'flow_rate_packets_window', 'flow_rate_bytes_window', 'flow_direction_ratio_window',
-        'byte_direction_ratio_window', 'src_ip_entropy_window', 'dst_ip_entropy_window'
+        'byte_direction_ratio_window', 'src_ip_entropy_window', 'dst_ip_entropy_window',
+        'protocol', 'src_ip', 'dst_ip', 'src_port', 'dst_port'
     ]).astype({
-        'start_time': 'datetime64[ns]', 'end_time': 'datetime64[ns]', 'total_forward_packets_window': 'int64',
-        'total_backward_packets_window': 'int64', 'total_forward_bytes_window': 'int64',
-        'total_backward_bytes_window': 'int64', 'average_packet_size_fwd_window': 'float64',
-        'average_packet_size_bwd_window': 'float64', 'flow_duration_window': 'int64',
-        'packet_count_window': 'int64', 'mean_iat_fwd_window': 'float64', 'stddev_iat_fwd_window': 'float64',
-        'min_iat_fwd_window': 'int64', 'max_iat_fwd_window': 'int64', 'mean_iat_bwd_window': 'float64',
-        'stddev_iat_bwd_window': 'float64', 'min_iat_bwd_window': 'int64', 'max_iat_bwd_window': 'int64',
+        'start_time': 'datetime64[ns]', 'end_time': 'datetime64[ns]',
+        'total_forward_packets_window': 'int64', 'total_backward_packets_window': 'int64',
+        'total_forward_bytes_window': 'int64', 'total_backward_bytes_window': 'int64',
+        'average_packet_size_fwd_window': 'float64', 'average_packet_size_bwd_window': 'float64',
+        'flow_duration_window': 'int64', 'packet_count_window': 'int64',
+        'mean_iat_fwd_window': 'float64', 'stddev_iat_fwd_window': 'float64',
+        'min_iat_fwd_window': 'int64', 'max_iat_fwd_window': 'int64',
+        'mean_iat_bwd_window': 'float64', 'stddev_iat_bwd_window': 'float64',
+        'min_iat_bwd_window': 'int64', 'max_iat_bwd_window': 'int64',
         'flow_rate_packets_window': 'float64', 'flow_rate_bytes_window': 'float64',
         'flow_direction_ratio_window': 'float64', 'byte_direction_ratio_window': 'float64',
-        'src_ip_entropy_window': 'float64', 'dst_ip_entropy_window': 'float64'
+        'src_ip_entropy_window': 'float64', 'dst_ip_entropy_window': 'float64',
+        'protocol': 'int64', 'src_ip': 'object', 'dst_ip': 'object',
+        'src_port': 'int64', 'dst_port': 'int64'
     })
 
     start_times = pd.date_range(start=data.index.min(), end=data.index.max(), freq=step_size)
 
     delayed_dfs = []
-    for st in tqdm(start_times, desc="Computing Window Aggregations"):
+    for st in tqdm(start_times, desc="Computing Window Aggregations", file=sys.stderr):
         agg = dask.delayed(compute_aggregation)(st)
         delayed_dfs.append(agg)
 
     ddf = dd.from_delayed(delayed_dfs, meta=meta)
 
-    with ProgressBar():
-        result = ddf.compute()
-    
+    print(f"[{time.strftime('%H:%M:%S')}] Starting ddf.compute()...", file=sys.stderr, flush=True)
+    t0 = time.time()
+    result = ddf.compute()
+    print(f"[{time.strftime('%H:%M:%S')}] Finished ddf.compute() in {time.time() - t0:.2f} seconds", file=sys.stderr, flush=True)
+
     return result
+
 
 def merge_aggregated_data(sliding_data: pd.DataFrame, session_data: pd.DataFrame, original_data: pd.DataFrame) -> pd.DataFrame:
     """
-    Merge the sliding window aggregation and session data.
-    Also merge with a subset of the original data to include additional columns (e.g., Label).
+    Merge the sliding window aggregation and session data using Dask for performance.
+    Also merge with a subset of the original data to include labels (e.g., 'Label', 'Attack').
     """
-    aggregated_data = pd.merge_asof(
-        sliding_data.sort_values('start_time'),
-        session_data.sort_values('start_time'),
-        left_on='start_time',
-        right_on='start_time',
-        direction='backward'
+    print(f"[{time.strftime('%H:%M:%S')}] Starting merge_aggregated_data...", file=sys.stderr, flush=True)
+    t0 = time.time()
+
+    # Convert to Dask DataFrames for parallel merging
+    npartitions = 20  # tune based on your M1 Max setup
+    sliding_ddf = dd.from_pandas(sliding_data, npartitions=npartitions)
+    session_ddf = dd.from_pandas(session_data, npartitions=npartitions)
+
+    # Merge on 5-tuple (flow/session-level)
+    merged_ddf = sliding_ddf.merge(
+        session_ddf,
+        on=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol'],
+        how='left'
     )
-    
+
+    print(f"[{time.strftime('%H:%M:%S')}] Computing session-merged Dask DataFrame...", file=sys.stderr, flush=True)
+    merged = merged_ddf.compute()
+    print(f"[{time.strftime('%H:%M:%S')}] Session merge done in {time.time() - t0:.2f}s", file=sys.stderr, flush=True)
+
+    # Prepare original labels
     original_reset = original_data.reset_index()
     original_subset = original_reset[['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol', 'Label', 'Attack']].drop_duplicates()
-    aggregated_data = aggregated_data.merge(original_subset, on=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol'], how='left')
-    
-    first_start = aggregated_data['start_time'].min()
-    aggregated_data['timestamp_offset_seconds'] = (aggregated_data['start_time'] - first_start).dt.total_seconds()
-    
-    return aggregated_data
+
+    # Merge with label data
+    print(f"[{time.strftime('%H:%M:%S')}] Merging with label columns...", file=sys.stderr, flush=True)
+    merged = merged.merge(
+        original_subset,
+        on=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol'],
+        how='left'
+    )
+    print(f"[{time.strftime('%H:%M:%S')}] Label merge done in {time.time() - t0:.2f}s", file=sys.stderr, flush=True)
+
+    # Use start_time_x for timestamp offset calculation
+    if 'start_time_x' in merged.columns:
+        first_start = merged['start_time_x'].min()
+        merged['timestamp_offset_seconds'] = (merged['start_time_x'] - first_start).dt.total_seconds()
+    else:
+        raise KeyError("Expected 'start_time_x' in merged data but it was not found.")
+
+    print(f"[{time.strftime('%H:%M:%S')}] DONE merge_aggregated_data total time: {time.time() - t0:.2f}s", file=sys.stderr, flush=True)
+    return merged
+
 
 def preprocess_pipeline(file_path: str, window_size_str: str = '5s', step_size_str: str = '1s') -> pd.DataFrame:
     """
@@ -274,10 +325,12 @@ def preprocess_pipeline(file_path: str, window_size_str: str = '5s', step_size_s
     print(f"Full data time range: {data.index.min()} to {data.index.max()}")
     window_size = pd.Timedelta(window_size_str)
     step_size = pd.Timedelta(step_size_str)
+    print(f"[{time.strftime('%H:%M:%S')}] Calling sliding_window_aggregation...", file=sys.stderr, flush=True)
     sliding_data = sliding_window_aggregation(data, window_size, step_size)
-    print("DONE: 3. Compute sliding window aggregation.")
+    print(f"[{time.strftime('%H:%M:%S')}] DONE: 3. Compute sliding window aggregation.", file=sys.stderr, flush=True)
+    print("DONE: 3. Compute sliding window aggregation.", file=sys.stderr, flush=True)
     aggregated_data = merge_aggregated_data(sliding_data, session_data, data)
-    print("DONE: 4. Merge the aggregated results.")
+    print("DONE: 4. Merge the aggregated results.", file=sys.stderr, flush=True)
 
     return aggregated_data
 
