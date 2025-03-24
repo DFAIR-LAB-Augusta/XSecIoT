@@ -1,0 +1,41 @@
+# .ruff.toml
+
+# Core settings (top‐level)
+line-length    = 120
+cache-dir      = ".ruff_cache"
+target-version = "py310"
+unsafe-fixes   = true
+show-fixes     = true
+
+[lint]
+select = [
+  "E", "F", "I", "TC",
+  "W505",
+  "PT018",
+  "SIM101", "SIM114",
+  "PGH004",
+  "PLE1142",
+  "RUF100",
+  "UP007",
+]
+ignore  = ["FURB101", "E116"]
+preview = true
+
+[lint.flake8-pytest-style]
+mark-parentheses            = false
+parametrize-names-type      = "list"
+parametrize-values-row-type = "list"
+parametrize-values-type     = "tuple"
+
+[lint.flake8-unused-arguments]
+ignore-variadic-names = true
+
+[lint.isort]
+lines-between-types = 1
+order-by-type       = true
+
+[format]
+preview                   = true
+quote-style               = "single"
+docstring-code-format     = true
+skip-magic-trailing-comma = false

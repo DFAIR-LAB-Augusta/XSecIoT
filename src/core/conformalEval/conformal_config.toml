@@ -1,0 +1,15 @@
+[adaptive_significance]
+decay = 0.9
+min_alpha = 0.05
+max_alpha = 0.3
+window_size = 100
+alpha_step = 0.02
+increase_threshold = 0.5
+decrease_threshold = 0.15
+
+
+[conformal_eval_config]
+n_jobs = -1
+folds = 10
+significance = 0.05
+calibration_split = 0.2 # Note: calibration_split applies to ICE only.
