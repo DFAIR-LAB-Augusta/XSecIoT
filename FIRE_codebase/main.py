@@ -46,11 +46,11 @@ def main():
     args = parse_args()
     
     # Step 1: Preprocessing
-    # print("=== Running Preprocessing ===")
-    # if not args.unsw:
-    #     run_preprocessing(args.dataset_path, args.window_size, args.step_size)
-    # else:
-    #     run_preprocessingUNSW(args.dataset_path, args.window_size, args.step_size)
+    print("=== Running Preprocessing ===")
+    if not args.unsw:
+        run_preprocessing(args.dataset_path, args.window_size, args.step_size)
+    else:
+        run_preprocessingUNSW(args.dataset_path, args.window_size, args.step_size)
     aggregated_data_path = os.path.join(os.path.dirname(args.dataset_path), "aggregated_data.csv")
 
     # Step 2: Model Training / Evaluation
@@ -59,13 +59,12 @@ def main():
     run_binary_classification(aggregated_data_path, args.unsw) 
     print("Starting Multi Class", file=sys.stderr, flush=True)
     run_multiclass_classification(aggregated_data_path, args.unsw)
-    # print("Starting Feature Engineering", file=sys.stderr, flush=True)
-    # run_feature_engineering(aggregated_data_path)
+    print("Starting Feature Engineering", file=sys.stderr, flush=True)
+    run_feature_engineering(aggregated_data_path)
 
     # Step 3: Simulations
     # variants = ["dt", "knn", "rf", "svm", "feedforward", "xgb"]
-    # variants = ["dt", "knn", "rf", "feedforward", "xgb"]
-    variants = ["svm"]
+    variants = ["dt", "knn", "rf", "feedforward", "xgb"] # w/o svm
     sim_modes = ["sequential", "continuous", "parallel"]
 
     print("\n=== Running Binary Simulations ===")
