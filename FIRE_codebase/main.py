@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 import time
 from FIRE_codebase.preprocessing import run_preprocessing
 from FIRE_codebase.preprocessingUNSW import run_preprocessingUNSW
@@ -54,8 +55,11 @@ def main():
 
     # Step 2: Model Training / Evaluation
     print("\n=== Running Model Training/Evaluation ===")
+    print("Starting Binary Class", file=sys.stderr, flush=True)
     run_binary_classification(aggregated_data_path, args.unsw) 
+    print("Starting Multi Class", file=sys.stderr, flush=True)
     run_multiclass_classification(aggregated_data_path, args.unsw)
+    print("Starting Feature Engineering", file=sys.stderr, flush=True)
     run_feature_engineering(aggregated_data_path)
 
     # Step 3: Simulations

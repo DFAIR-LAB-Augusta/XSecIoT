@@ -2,7 +2,9 @@ import os
 import numpy as np
 import pandas as pd
 import joblib
+import sys
 import xgboost as xgb # type: ignore
+
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.decomposition import PCA
@@ -53,8 +55,9 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     multiple binary classifiers using the 'BinLabel' column as the target.
     Trained models and transformation objects are saved in the 'binary_models' folder.
     """
+    print(f"Agg Data Path: {aggregated_file}") # caffeinate python3 -m FIRE_codebase.main datasets/CIC_UNSW/NF-CICIDS2018-v3.csv --unsw --window_size 5s --step_size 3s >> output/WS5_SS3/CICtest.txt
     data = pd.read_csv(aggregated_file)
-    print(f"IsUNSW: {isUNSW}")
+    print(f"IsUNSW: {isUNSW}", file=sys.stderr, flush=True)
     if isUNSW:
         data['BinLabel'] = data['Label']
     if 'BinLabel' not in data.columns and 'Label' in data.columns:
@@ -63,14 +66,15 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
                         'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack', 'start_time_x', 'start_time_y'], errors='ignore')
     y = data['BinLabel']
     
-    print("Checking for NaN values in features:")
+    print("Checking for NaN values in features:", file=sys.stderr, flush=True)
     print(X.isna().sum())
-    print("Any NaN in X:", X.isna().any().any())
+    print("Any NaN in X:", X.isna().any().any(), file=sys.stderr, flush=True)
 
     if X.isna().any().any():
         print("Found NaN values, filling with column means.")
         X = X.fillna(X.mean())
     
+    print("Starting PCA", file=sys.stderr, flush=True)
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     pca = PCA(n_components=0.95)
@@ -82,6 +86,7 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     
     # ------------------
     # Random Forest
+    print("Starting Random Forest", file=sys.stderr, flush=True)
     rf = RandomForestClassifier(random_state=42)
     cv_scores = cross_val_score(rf, X_pca, y, cv=5, scoring='accuracy')
     print(f"Random Forest CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
@@ -94,6 +99,7 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     
     # ------------------
     # K-Nearest Neighbors
+    print("Starting KNN", file=sys.stderr, flush=True)
     knn = KNeighborsClassifier(n_neighbors=5)
     cv_scores = cross_val_score(knn, X_pca, y, cv=5, scoring='accuracy')
     print(f"KNN CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
@@ -106,6 +112,7 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     
     # ------------------
     # Decision Tree
+    print("Starting DT", file=sys.stderr, flush=True)
     dt = DecisionTreeClassifier(random_state=42)
     cv_scores = cross_val_score(dt, X_pca, y, cv=5, scoring='accuracy')
     print(f"Decision Tree CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
@@ -118,7 +125,9 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     
     # ------------------
     # Support Vector Machine
+    print("Starting SVM", file=sys.stderr, flush=True)
     svm = SVC(kernel='poly', C=1, random_state=0, probability=True)
+    # svm = SVC(kernel='linear', C=1, random_state=0, probability=True) # Testing w/ liberal
     cv_scores = cross_val_score(svm, X_pca, y, cv=5, scoring='accuracy')
     print(f"SVM CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
     svm.fit(X_train, y_train)
@@ -130,6 +139,7 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     
     # ------------------
     # XGBoost
+    print("Starting XGBoost", file=sys.stderr, flush=True)
     dtrain = xgb.DMatrix(X_train, label=y_train, feature_names=[f"f_{i}" for i in range(X_train.shape[1])])
     params = {'objective': 'binary:logistic', 'learning_rate': 0.1, 'max_depth': 8, 'random_state': 42}
     xgb_model = xgb.train(params, dtrain=dtrain)
@@ -144,6 +154,7 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     
     # ------------------
     # Feedforward Neural Network
+    print("Starting FNN", file=sys.stderr, flush=True)
     feedforward_model_bin = Sequential([
         Input(shape=(X_train.shape[1],)),
         Dense(64, activation='relu'),
@@ -179,6 +190,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     'Attack' for UNSW). Trained models and transformation objects are saved in the
     'multi_class_models' folder.
     """
+    print("Starting Multiclass", file=sys.stderr, flush=True)
     data = pd.read_csv(aggregated_file)
     if 'BinLabel' not in data.columns and 'Label' in data.columns:
         data['BinLabel'] = data['Label'].apply(lambda x: 0 if x == 'Benign' else 1)
@@ -212,6 +224,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     X1_pca = pca1.fit_transform(X1_scaled)
 
     # ----- Random Forest (Multi) -----
+    print("Starting RF Multiclass", file=sys.stderr, flush=True)
     rf_multi = RandomForestClassifier(random_state=42)
     cv_scores = cross_val_score(rf_multi, X1_pca, y1, cv=5, scoring='accuracy')
     print(f"Random Forest (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
@@ -230,6 +243,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     ))
 
     # ----- K-Nearest Neighbors (Multi) -----
+    print("Starting KNN Multiclass", file=sys.stderr, flush=True)
     knn_multi = KNeighborsClassifier(n_neighbors=4)
     cv_scores = cross_val_score(knn_multi, X1_pca, y1, cv=5, scoring='accuracy')
     print(f"KNN (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
@@ -245,6 +259,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     ))
 
     # ----- Decision Tree (Multi) -----
+    print("Starting DT Multiclass", file=sys.stderr, flush=True)
     dt_multi = DecisionTreeClassifier(max_depth=54)
     cv_scores = cross_val_score(dt_multi, X1_pca, y1, cv=5, scoring='accuracy')
     print(f"Decision Tree (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
@@ -260,6 +275,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     ))
 
     # ----- SVM (Multi) -----
+    print("Starting SVM Multiclass", file=sys.stderr, flush=True)
     svm_multi = SVC(kernel='rbf', C=1, gamma=0.1, random_state=0, probability=True)
     cv_scores = cross_val_score(svm_multi, X1_pca, y1, cv=5, scoring='accuracy')
     print(f"SVM (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
@@ -275,6 +291,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     ))
 
     # ----- XGBoost (Multi) -----
+    print("Starting XGBoost Multiclass", file=sys.stderr, flush=True)
     label_encoder = LabelEncoder()
     y1_encoded = label_encoder.fit_transform(y1)
     X_train_multi, X_test_multi, y_train_multi, y_test_multi = train_test_split(
@@ -303,6 +320,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool):
     print(confusion_matrix(y_test_labels, y_pred_labels, labels=present_labels))
 
     # ----- Feedforward Neural Network (Multi) -----
+    print("Starting FNN Multiclass", file=sys.stderr, flush=True)
     y1_encoded = label_encoder.fit_transform(y1)
     y1_categorical = to_categorical(y1_encoded)
     X_train_nn, X_test_nn, y_train_nn, y_test_nn = train_test_split(
