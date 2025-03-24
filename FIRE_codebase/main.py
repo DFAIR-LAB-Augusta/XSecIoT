@@ -59,11 +59,13 @@ def main():
     run_binary_classification(aggregated_data_path, args.unsw) 
     print("Starting Multi Class", file=sys.stderr, flush=True)
     run_multiclass_classification(aggregated_data_path, args.unsw)
-    print("Starting Feature Engineering", file=sys.stderr, flush=True)
-    run_feature_engineering(aggregated_data_path)
+    # print("Starting Feature Engineering", file=sys.stderr, flush=True)
+    # run_feature_engineering(aggregated_data_path)
 
     # Step 3: Simulations
-    variants = ["dt", "knn", "rf", "svm", "feedforward", "xgb"]
+    # variants = ["dt", "knn", "rf", "svm", "feedforward", "xgb"]
+    # variants = ["dt", "knn", "rf", "feedforward", "xgb"]
+    variants = ["svm"]
     sim_modes = ["sequential", "continuous", "parallel"]
 
     print("\n=== Running Binary Simulations ===")
