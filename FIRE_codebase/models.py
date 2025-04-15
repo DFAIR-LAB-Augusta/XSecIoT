@@ -55,7 +55,7 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool):
     multiple binary classifiers using the 'BinLabel' column as the target.
     Trained models and transformation objects are saved in the 'binary_models' folder.
     """
-    print(f"Agg Data Path: {aggregated_file}") # caffeinate python3 -m FIRE_codebase.main datasets/CIC_UNSW/NF-CICIDS2018-v3.csv --unsw --window_size 5s --step_size 1s >> output/WS5_SS1/CICtest.txt
+    print(f"Agg Data Path: {aggregated_file}") # caffeinate python3 -m FIRE_codebase.main datasets/CIC_UNSW/NF-CICIDS2018-v3.csv --unsw --window_size 3s --step_size 5s >> output/WS3_SS5/CICtest.txt
     data = pd.read_csv(aggregated_file)
     print(f"IsUNSW: {isUNSW}", file=sys.stderr, flush=True)
     if isUNSW:
