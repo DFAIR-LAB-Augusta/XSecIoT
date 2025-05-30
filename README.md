@@ -74,9 +74,13 @@ This tool is for **research purposes only**. Please use responsibly in controlle
 
 ---
 
-## 📫 Contact
-For questions, reach out via GitHub issues or email **sebarrett@augusta.edu**.
+## 📢 Contact: 
 
+- Seth Barrett | [GitHub](https://github.com/sethbarrett50) | [sebarrett@augusta.edu](mailto:sebarrett@augusta.edu)
+- Bradley Boswell | [GitHub](https://github.com/bradleyboswell) | [brboswell@augusta.edu](mailto:brboswell@augusta.edu)
+- Swarnamugi Rajaganapathy, PhD | [GitHub](https://github.com/swarna6384) | [swarnamugi@dfairlab.com](mailto:swarnamugi@dfairlab.com)
+- Lin Li, PhD | [GitHub](https://github.com/linli786) | [lli1@augusta.edu](mailto:lli1@augusta.edu)
+- Gokila Dorai, PhD | [GitHub](https://github.com/gdorai) | [gdorai@augusta.edu](mailto:gdorai@augusta.edu)
 ---
 
 🔒 **Securing IoT, One Flow at a Time.** 🚀  
