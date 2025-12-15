@@ -15,6 +15,7 @@ The model outputs raw logits, intended for use with
 ``torch.nn.BCEWithLogitsLoss`` during training. A sigmoid activation
 should be applied at inference to obtain probabilities.
 """
+
 import torch
 import torch.nn as nn
 
@@ -59,7 +60,5 @@ class FeedForwardBinary(nn.Module):
         return self.net(x).squeeze(1)
 
 
-if __name__ == "__main__":
-    raise NotImplementedError(
-        "This module is not intended to be run directly. "
-    )
+if __name__ == '__main__':
+    raise NotImplementedError('This module is not intended to be run directly. ')

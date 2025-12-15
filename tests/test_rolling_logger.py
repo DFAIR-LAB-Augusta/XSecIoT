@@ -11,7 +11,7 @@ def read_all_rows(path):
 
 
 def test_init_no_file(tmp_path):
-    path = tmp_path / "log.csv.gz"
+    path = tmp_path / 'log.csv.gz'
     logger = RollingCSV(str(path), max_rows=100)
     assert logger.count == 0
     assert logger.buffer == []
@@ -19,9 +19,9 @@ def test_init_no_file(tmp_path):
 
 
 def test_init_with_existing_file(tmp_path):
-    path = tmp_path / "log.csv.gz"
+    path = tmp_path / 'log.csv.gz'
     # Precreate 3 rows
-    rows = [["a", "1"], ["b", "2"], ["c", "3"]]
+    rows = [['a', '1'], ['b', '2'], ['c', '3']]
     with gzip.open(path, 'wt') as f:
         writer = csv.writer(f)
         writer.writerows(rows)
@@ -30,11 +30,11 @@ def test_init_with_existing_file(tmp_path):
 
 
 def test_append_and_manual_flush(tmp_path):
-    path = tmp_path / "log.csv.gz"
+    path = tmp_path / 'log.csv.gz'
     logger = RollingCSV(str(path), max_rows=100)
     # Append 10 rows (below auto-flush threshold)
     for i in range(10):
-        logger.append([f"row{i}", str(i)])
+        logger.append([f'row{i}', str(i)])
     assert not path.exists()
     assert logger.count == 10
 
@@ -42,13 +42,13 @@ def test_append_and_manual_flush(tmp_path):
     logger.flush()
     assert path.exists()
     rows = read_all_rows(str(path))
-    expected = [[f"row{i}", str(i)] for i in range(10)]
+    expected = [[f'row{i}', str(i)] for i in range(10)]
     assert rows == expected
     assert logger.buffer == []
 
 
 def test_auto_flush_threshold(tmp_path):
-    path = tmp_path / "log.csv.gz"
+    path = tmp_path / 'log.csv.gz'
     logger = RollingCSV(str(path), max_rows=100)
     # Append exactly 50 rows → should auto-flush and clear buffer
     for i in range(50):
@@ -59,7 +59,7 @@ def test_auto_flush_threshold(tmp_path):
 
 
 def test_truncate_direct(tmp_path):
-    path = tmp_path / "log.csv.gz"
+    path = tmp_path / 'log.csv.gz'
     # Create a 20-row file
     rows = [[str(i)] for i in range(20)]
     with gzip.open(path, 'wt') as f:
@@ -78,7 +78,7 @@ def test_truncate_direct(tmp_path):
 
 
 def test_close_flushes_remaining(tmp_path):
-    path = tmp_path / "log.csv.gz"
+    path = tmp_path / 'log.csv.gz'
     logger = RollingCSV(str(path), max_rows=100)
     # Append fewer than threshold
     for i in range(5):

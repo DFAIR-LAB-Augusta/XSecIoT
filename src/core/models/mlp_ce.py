@@ -13,6 +13,7 @@ Key features:
 - `get_params`/`set_params` so cloning utilities can re-instantiate models.
 - `save`/`load` checkpoint helpers.
 """
+
 import logging
 import threading
 
@@ -75,8 +76,7 @@ class MLP_CE(nn.Module):
         layers: list[nn.Module] = []
         d = self.input_dim
         for w in self.widths:
-            layers += [nn.Linear(d, w), nn.GELU(),
-                       nn.LayerNorm(w), nn.Dropout(self.p_drop)]
+            layers += [nn.Linear(d, w), nn.GELU(), nn.LayerNorm(w), nn.Dropout(self.p_drop)]
             d = w
         layers += [nn.Linear(d, 1)]
         self.net = nn.Sequential(*layers)
@@ -90,7 +90,7 @@ class MLP_CE(nn.Module):
         self.n_features_in_: Optional[int] = None
         self.is_fitted_: bool = False
 
-    def fit(self, X: np.ndarray, y: np.ndarray) -> "MLP_CE":
+    def fit(self, X: np.ndarray, y: np.ndarray) -> 'MLP_CE':
         """
         Train or retrain the CE model on labeled data.
 
@@ -104,16 +104,15 @@ class MLP_CE(nn.Module):
         Returns:
             The fitted model (``self``).
         """
-        X = np.asarray(X, dtype=np.float32, order="C")
+        X = np.asarray(X, dtype=np.float32, order='C')
         y = np.asarray(y).astype(np.float32, copy=False)
 
         if X.ndim != 2 or X.shape[1] != self.input_dim:
-            raise ValueError(
-                f"Expected X shape (N, {self.input_dim}), got {X.shape}")
+            raise ValueError(f'Expected X shape (N, {self.input_dim}), got {X.shape}')
 
         self.train()
         torch.manual_seed(self.random_state)
-        if self._device.type == "cuda":
+        if self._device.type == 'cuda':
             torch.cuda.manual_seed_all(self.random_state)
 
         X_tensor = torch.from_numpy(X)
@@ -126,22 +125,18 @@ class MLP_CE(nn.Module):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         criterion = nn.BCEWithLogitsLoss()
 
-        logger.debug(
-            f"[mlp_ce.fit] device={self._device}, N={N}, bs={bs}, epochs={self.epochs}, lr={self.lr}")
+        logger.debug(f'[mlp_ce.fit] device={self._device}, N={N}, bs={bs}, epochs={self.epochs}, lr={self.lr}')
 
         for epoch in range(self.epochs):
             rng = np.random.default_rng(self.random_state + epoch)
             idx = rng.permutation(N).tolist()
             subset = Subset(ds, idx)
-            loader = DataLoader(subset, batch_size=bs,
-                                shuffle=False, num_workers=0)
+            loader = DataLoader(subset, batch_size=bs, shuffle=False, num_workers=0)
 
             running = 0.0
             for b, (xb, yb) in enumerate(loader):
-                xb = xb.to(self._device, dtype=torch.float32,
-                           non_blocking=False)
-                yb = yb.to(self._device, dtype=torch.float32,
-                           non_blocking=False).view(-1)
+                xb = xb.to(self._device, dtype=torch.float32, non_blocking=False)
+                yb = yb.to(self._device, dtype=torch.float32, non_blocking=False).view(-1)
                 optimizer.zero_grad(set_to_none=True)
                 logits = self.net(xb).squeeze(1)
                 loss = criterion(logits, yb)
@@ -150,8 +145,7 @@ class MLP_CE(nn.Module):
                 running += float(loss.item()) * xb.size(0)
 
             epoch_loss = running / N
-            logger.debug(
-                f"[mlp_ce.fit] epoch {epoch + 1}/{self.epochs} loss={epoch_loss:.6f}")
+            logger.debug(f'[mlp_ce.fit] epoch {epoch + 1}/{self.epochs} loss={epoch_loss:.6f}')
 
         self.eval()
         self.classes_ = np.unique(y.astype(int))
@@ -159,8 +153,7 @@ class MLP_CE(nn.Module):
             self.classes_ = np.array(sorted(self.classes_.tolist()))
         self.n_features_in_ = X.shape[1]
         self.is_fitted_ = True
-        logger.debug(
-            f"[mlp_ce.fit] fitted: classes_={self.classes_}, n_features_in_={self.n_features_in_}")
+        logger.debug(f'[mlp_ce.fit] fitted: classes_={self.classes_}, n_features_in_={self.n_features_in_}')
         return self
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -197,14 +190,13 @@ class MLP_CE(nn.Module):
             n = X.shape[0] if X.ndim == 2 else 1
             D = X.shape[1] if X.ndim == 2 else X.shape[0]
         else:
-            X = np.asarray(X, dtype=np.float32, order="C")
+            X = np.asarray(X, dtype=np.float32, order='C')
             if X.ndim == 1:
                 X = X.reshape(1, -1)
             n, D = X.shape
 
         if self.n_features_in_ is not None and D != self.n_features_in_:
-            logger.debug(
-                f"[mlp_ce.predict_proba] expected D={self.n_features_in_}, got D={D}")
+            logger.debug(f'[mlp_ce.predict_proba] expected D={self.n_features_in_}, got D={D}')
 
         dev = device if device is not None else self._device
 
@@ -226,14 +218,11 @@ class MLP_CE(nn.Module):
         with self._lock:
             self.eval()
             for i, xb in enumerate(it):
-                xb = xb.to(dev, dtype=torch.float32,
-                           non_blocking=False).contiguous()
-                logger.debug(
-                    f"[mlp_ce.predict_proba] batch {i} xb.shape={tuple(xb.shape)} device={xb.device}")
+                xb = xb.to(dev, dtype=torch.float32, non_blocking=False).contiguous()
+                logger.debug(f'[mlp_ce.predict_proba] batch {i} xb.shape={tuple(xb.shape)} device={xb.device}')
                 logits = self.forward(xb)
-                pb = torch.sigmoid(logits).to("cpu").numpy().reshape(-1)
-                logger.debug(
-                    f"[mlp_ce.predict_proba] batch {i} probs.shape={pb.shape}")
+                pb = torch.sigmoid(logits).to('cpu').numpy().reshape(-1)
+                logger.debug(f'[mlp_ce.predict_proba] batch {i} probs.shape={pb.shape}')
                 probs.append(pb)
 
         p1 = np.concatenate(probs, axis=0).reshape(-1)
@@ -260,11 +249,9 @@ class MLP_CE(nn.Module):
             Integer labels of shape ``(N,)`` with values in ``{0, 1}``.
         """
         thr = self.threshold if threshold is None else float(threshold)
-        proba = self.predict_proba(
-            X, batch_size=batch_size, device=device)[:, 1]
+        proba = self.predict_proba(X, batch_size=batch_size, device=device)[:, 1]
         y = (proba > thr).astype(np.int32, copy=False)
-        logger.debug(
-            f"[mlp_ce.predict] shape={y.shape}, mean_prob={float(proba.mean()):.6f}, thr={thr}")
+        logger.debug(f'[mlp_ce.predict] shape={y.shape}, mean_prob={float(proba.mean()):.6f}, thr={thr}')
         return y
 
     def get_params(self, deep: bool = True) -> dict:
@@ -278,18 +265,18 @@ class MLP_CE(nn.Module):
             A dictionary with keys matching the constructor signature.
         """
         return {
-            "input_dim": self.input_dim,
-            "widths": self.widths,
-            "p_drop": self.p_drop,
-            "threshold": self.threshold,
-            "lr": self.lr,
-            "epochs": self.epochs,
-            "batch_size": self.batch_size,
-            "random_state": self.random_state,
-            "device": self._device,
+            'input_dim': self.input_dim,
+            'widths': self.widths,
+            'p_drop': self.p_drop,
+            'threshold': self.threshold,
+            'lr': self.lr,
+            'epochs': self.epochs,
+            'batch_size': self.batch_size,
+            'random_state': self.random_state,
+            'device': self._device,
         }
 
-    def set_params(self, **params: Any) -> "MLP_CE":
+    def set_params(self, **params: Any) -> 'MLP_CE':
         """
         Set parameters; rebuild layers if architecture-affecting values change.
 
@@ -298,11 +285,11 @@ class MLP_CE(nn.Module):
         """
         arch_changed = False
         for k, v in params.items():
-            if k == "device":
-                setattr(self, "_device", v)
+            if k == 'device':
+                setattr(self, '_device', v)
                 continue
             if hasattr(self, k):
-                if k in ("input_dim", "widths", "p_drop") and getattr(self, k) != v:
+                if k in ('input_dim', 'widths', 'p_drop') and getattr(self, k) != v:
                     arch_changed = True
                 setattr(self, k, v)
 
@@ -310,8 +297,7 @@ class MLP_CE(nn.Module):
             layers: list[nn.Module] = []
             d = int(self.input_dim)
             for w in tuple(self.widths):
-                layers += [nn.Linear(d, int(w)), nn.GELU(),
-                           nn.LayerNorm(int(w)), nn.Dropout(float(self.p_drop))]
+                layers += [nn.Linear(d, int(w)), nn.GELU(), nn.LayerNorm(int(w)), nn.Dropout(float(self.p_drop))]
                 d = int(w)
             layers += [nn.Linear(d, 1)]
             self.net = nn.Sequential(*layers)
@@ -319,7 +305,7 @@ class MLP_CE(nn.Module):
             self.eval()
         return self
 
-    def clone(self) -> "MLP_CE":
+    def clone(self) -> 'MLP_CE':
         """
         Create a fresh, untrained copy with the same hyperparameters.
 
@@ -343,21 +329,21 @@ class MLP_CE(nn.Module):
             path: Destination file path (e.g., ``.pt`` file).
         """
         ckpt = {
-            "state_dict": self.state_dict(),
-            "params": self.get_params(deep=True),
-            "classes_": None if self.classes_ is None else self.classes_.tolist(),
-            "n_features_in_": self.n_features_in_,
+            'state_dict': self.state_dict(),
+            'params': self.get_params(deep=True),
+            'classes_': None if self.classes_ is None else self.classes_.tolist(),
+            'n_features_in_': self.n_features_in_,
         }
         torch.save(ckpt, path)
-        logger.debug(f"[mlp_ce.save] wrote checkpoint to {path}")
+        logger.debug(f'[mlp_ce.save] wrote checkpoint to {path}')
 
     @classmethod
     def load(
         cls,
         path: str,
-        map_location: str | torch.device = "cpu",
+        map_location: str | torch.device = 'cpu',
         device: Optional[torch.device] = None,
-    ) -> "MLP_CE":
+    ) -> 'MLP_CE':
         """
         Load a model checkpoint created by :meth:`save`.
 
@@ -370,28 +356,24 @@ class MLP_CE(nn.Module):
             An evaluation-ready :class:`MLP_CE` instance.
         """
         ckpt = torch.load(path, map_location=map_location)
-        params = ckpt.get("params", {})
+        params = ckpt.get('params', {})
         if device is not None:
-            params["device"] = device
+            params['device'] = device
         else:
-            params["device"] = params.get("device", pick_device())
+            params['device'] = params.get('device', pick_device())
         model = cls(**params)
-        missing, unexpected = model.load_state_dict(
-            ckpt["state_dict"], strict=False)
+        missing, unexpected = model.load_state_dict(ckpt['state_dict'], strict=False)
         if missing:
-            logger.debug(f"[mlp_ce.load] missing keys: {missing}")
+            logger.debug(f'[mlp_ce.load] missing keys: {missing}')
         if unexpected:
-            logger.debug(f"[mlp_ce.load] unexpected keys: {unexpected}")
-        if ckpt.get("classes_") is not None:
-            model.classes_ = np.array(ckpt["classes_"])
-        model.n_features_in_ = ckpt.get("n_features_in_")
+            logger.debug(f'[mlp_ce.load] unexpected keys: {unexpected}')
+        if ckpt.get('classes_') is not None:
+            model.classes_ = np.array(ckpt['classes_'])
+        model.n_features_in_ = ckpt.get('n_features_in_')
         model.eval()
-        logger.debug(
-            f"[mlp_ce.load] loaded on device={next(model.parameters()).device}")
+        logger.debug(f'[mlp_ce.load] loaded on device={next(model.parameters()).device}')
         return model
 
 
-if __name__ == "__main__":
-    raise NotImplementedError(
-        "This module is not intended to be run directly. "
-    )
+if __name__ == '__main__':
+    raise NotImplementedError('This module is not intended to be run directly. ')

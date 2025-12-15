@@ -20,6 +20,7 @@ class ModelStats:
         recalls (List[float]): List of recall scores.
         f1s (List[float]): List of F1 scores.
     """
+
     accuracies: List[float] = field(default_factory=list)
     precisions: List[float] = field(default_factory=list)
     recalls: List[float] = field(default_factory=list)
@@ -30,18 +31,18 @@ class ModelStats:
         self.precisions.append(prec)
         self.recalls.append(rec)
         self.f1s.append(f1)
-    
+
     def summarize_metrics(self) -> None:
         if not self.accuracies:
-            logger.warning("No CE training metrics available.")
+            logger.warning('No CE training metrics available.')
             return
 
-        logger.info(f"[==OVERALL SIM STATS==] Calibrations: {len(self.accuracies)}")
-        logger.info(f"[==OVERALL SIM STATS==] Avg Accuracy: {np.mean(self.accuracies):.4f}")
-        logger.info(f"[==OVERALL SIM STATS==] Avg Precision: {np.mean(self.precisions):.4f}")
-        logger.info(f"[==OVERALL SIM STATS==] Avg Recall: {np.mean(self.recalls):.4f}")
-        logger.info(f"[==OVERALL SIM STATS==] Avg F1 Score: {np.mean(self.f1s):.4f}")
-        logger.info(f"[==OVERALL SIM STATS==] Std Accuracy: {np.std(self.accuracies):.4f}")
+        logger.info(f'[==OVERALL SIM STATS==] Calibrations: {len(self.accuracies)}')
+        logger.info(f'[==OVERALL SIM STATS==] Avg Accuracy: {np.mean(self.accuracies):.4f}')
+        logger.info(f'[==OVERALL SIM STATS==] Avg Precision: {np.mean(self.precisions):.4f}')
+        logger.info(f'[==OVERALL SIM STATS==] Avg Recall: {np.mean(self.recalls):.4f}')
+        logger.info(f'[==OVERALL SIM STATS==] Avg F1 Score: {np.mean(self.f1s):.4f}')
+        logger.info(f'[==OVERALL SIM STATS==] Std Accuracy: {np.std(self.accuracies):.4f}')
 
 
 @dataclass
@@ -58,8 +59,9 @@ class PerformanceStats:
             during simulation matched the ground truth label.
         drift_detected_indices (List[int]): Indices (chunk numbers) where drift was detected.
         drift_intervals (List[int]): Intervals (in chunks) between successive drift detections.
-        
+
     """
+
     iteration_times: List[float] = field(default_factory=list)
     drift_times: List[float] = field(default_factory=list)
     correct_log: List[bool] = field(default_factory=list)
@@ -80,20 +82,18 @@ class PerformanceStats:
 
     def log_ce_metrics(self, acc: float, prec: float, rec: float, f1: float) -> None:
         self.ce_stats.log_metrics(acc, prec, rec, f1)
-    
+
     def log_classifier_metrics(self, acc: float, prec: float, rec: float, f1: float) -> None:
         self.classifier_stats.log_metrics(acc, prec, rec, f1)
 
     def summarize_ce_metrics(self) -> None:
-        logger.info("=== CE Model Calibration Summary ===")
+        logger.info('=== CE Model Calibration Summary ===')
         self.ce_stats.summarize_metrics()
-    
+
     def summarize_classifier_metrics(self) -> None:
-        logger.info("=== Classifier Model Performance Summary ===")
+        logger.info('=== Classifier Model Performance Summary ===')
         self.classifier_stats.summarize_metrics()
 
 
-if __name__ == "__main__":
-    raise NotImplementedError(
-        "This module is not intended to be run directly. "
-    )
+if __name__ == '__main__':
+    raise NotImplementedError('This module is not intended to be run directly. ')

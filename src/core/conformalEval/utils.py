@@ -36,11 +36,11 @@ def clone_model(model: Any) -> Any:
         ValueError: If cloning fails and a deep copy cannot be created.
     """
     # 1) Custom clone method
-    if hasattr(model, "clone") and callable(getattr(model, "clone")):
+    if hasattr(model, 'clone') and callable(getattr(model, 'clone')):
         try:
             return model.clone()
         except Exception as e:
-            logger.debug(f"[clone_model] model.clone() failed: {e!r}")
+            logger.debug(f'[clone_model] model.clone() failed: {e!r}')
 
     # 2) Special handling for XGBClassifier
     if XGBClassifier is not None and isinstance(model, XGBClassifier):
@@ -48,33 +48,32 @@ def clone_model(model: Any) -> Any:
             params = model.get_params()
             return XGBClassifier(**params)
         except Exception as e:
-            logger.debug(f"[clone_model] XGBClassifier reinit failed: {e!r}")
+            logger.debug(f'[clone_model] XGBClassifier reinit failed: {e!r}')
 
     # 3) scikit-learn clone (when available/compatible)
     try:
         from sklearn.base import clone as sk_clone  # type: ignore
+
         return sk_clone(model)
     except Exception as e:
-        logger.debug(f"[clone_model] sklearn.clone failed: {e!r}")
+        logger.debug(f'[clone_model] sklearn.clone failed: {e!r}')
 
     # 4) Reconstruct via get_params + constructor signature
-    if hasattr(model, "get_params") and callable(getattr(model, "get_params")):
+    if hasattr(model, 'get_params') and callable(getattr(model, 'get_params')):
         try:
             params = model.get_params(deep=True)
             sig = inspect.signature(model.__class__)
-            ctor_kwargs = {k: v for k,
-                           v in params.items() if k in sig.parameters}
+            ctor_kwargs = {k: v for k, v in params.items() if k in sig.parameters}
             return model.__class__(**ctor_kwargs)
         except Exception as e:
-            logger.debug(f"[clone_model] get_params reinit failed: {e!r}")
+            logger.debug(f'[clone_model] get_params reinit failed: {e!r}')
 
     # 5) Last resort: deepcopy
     try:
         return copy.deepcopy(model)
     except Exception as e:
-        logger.debug(f"[clone_model] deepcopy failed: {e!r}")
-        raise ValueError(
-            f"Unsupported model type for cloning: {type(model)!r}") from e
+        logger.debug(f'[clone_model] deepcopy failed: {e!r}')
+        raise ValueError(f'Unsupported model type for cloning: {type(model)!r}') from e
 
 
 def compute_nonconformity_scores(probas, true_labels, class_list):
@@ -89,9 +88,7 @@ def compute_nonconformity_scores(probas, true_labels, class_list):
     Returns:
         np.ndarray: Array of nonconformity scores
     """
-    label_indices = np.array([
-        np.where(class_list == label)[0][0] for label in true_labels
-    ])
+    label_indices = np.array([np.where(class_list == label)[0][0] for label in true_labels])
     return 1.0 - probas[np.arange(len(probas)), label_indices]
 
 
@@ -125,13 +122,10 @@ def compute_class_thresholds(calibration_scores, significance):
     Returns:
         Dict[Any, float]: Per-class thresholds
     """
-    return {
-        cls: float(np.quantile(scores, 1 - significance))
-        for cls, scores in calibration_scores.items()
-    }
+    return {cls: float(np.quantile(scores, 1 - significance)) for cls, scores in calibration_scores.items()}
 
 
-def load_conformal_config(path: Path = Path("src/core/conformalEval/conformal_config.toml")) -> dict:
+def load_conformal_config(path: Path = Path('src/core/conformalEval/conformal_config.toml')) -> dict:
     """
     Load conformal evaluator configuration from TOML file.
 
@@ -142,12 +136,10 @@ def load_conformal_config(path: Path = Path("src/core/conformalEval/conformal_co
         dict[str, Any]: Dictionary of loaded configuration parameters.
     """
     if not path.exists():
-        raise FileNotFoundError(f"Missing TOML config at {path}")
+        raise FileNotFoundError(f'Missing TOML config at {path}')
 
     return toml.load(path)
 
 
-if __name__ == "__main__":
-    raise NotImplementedError(
-        "This module is not intended to be run directly. "
-    )
+if __name__ == '__main__':
+    raise NotImplementedError('This module is not intended to be run directly. ')

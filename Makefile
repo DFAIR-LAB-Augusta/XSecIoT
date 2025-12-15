@@ -3,6 +3,7 @@ SHELL := /usr/bin/env bash
 
 UV  ?= uv
 PY  ?= python
+RUFF ?= ruff
 
 DATASET_PATH ?= ./datasets/CEFlows/unlabeled/
 LOG_DIR      ?=
@@ -70,3 +71,17 @@ overall-scrape:
 	else \
 		$(UV) run $(PY) -m src.utils.overall_stats_scraper; \
 	fi
+
+fmt: ## Format code with ruff
+	uv run $(RUFF) format .
+
+lint: ## Lint with ruff (no fixes)
+	uv run $(RUFF) check .
+
+lint-fix: ## Lint with ruff and apply safe auto-fixes
+	uv run $(RUFF) check . --fix
+
+lint-fix-unsafe: 
+	uv run $(RUFF) check . --fix --unsafe-fixes
+
+style: fmt lint
