@@ -24,11 +24,11 @@ for cs in "${CHUNK_SIZES[@]}"; do
       log "Running simulation: modelVariant=$model, ceType=$ce, chunk_size=$cs"
 
       # --- MLP CE Chunk Size ---
-      COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/CETrain/combined_data.csv datasets/CEFlows2/CEFlows2_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --chunk_size $cs " # DFAIR
+      COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/CETrain/combined_data.csv datasets/CEFlows/CE_MC_Flows_labeled_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --chunk_size $cs " # DFAIR
 
-      # COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv datasets/CEFlows2/CEFlows2_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --chunk_size $cs --unsw" # UNSW_NB15
+      # COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv datasets/CEFlows/CE_MC_Flows_labeled_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --chunk_size $cs --unsw" # UNSW_NB15
 
-      # COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/CIC_UNSW/NF-CICIDS2018-v3.csv datasets/CEFlows2/CEFlows2_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --chunk_size $cs --unsw" # CICIDS2018
+      # COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/CIC_UNSW/NF-CICIDS2018-v3.csv datasets/CEFlows/CE_MC_Flows_labeled_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --chunk_size $cs --unsw" # CICIDS2018
 
       if eval "$COMMAND"; then
         SUCCEEDED+=("$model + $ce + $cs")
@@ -45,11 +45,11 @@ for cs in "${CHUNK_SIZES[@]}"; do
       # --- MLP CE ACC ---
       # log "Running simulation: modelVariant=$model, ceType=$ce, Adaptive Chunking"
 
-      # COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/CETrain/combined_data.csv datasets/CEFlows2/CEFlows2_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --useAC " # DFAIR
+      # COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/CETrain/combined_data.csv datasets/CEFlows/CE_MC_Flows_labeled_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --useAC " # DFAIR
 
-      # COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv datasets/CEFlows2/CEFlows2_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --useAC --unsw" # UNSW_NB15
+      # COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv datasets/CEFlows/CE_MC_Flows_labeled_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --useAC --unsw" # UNSW_NB15
 
-      # COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/CIC_UNSW/NF-CICIDS2018-v3.csv datasets/CEFlows2/CEFlows2_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --useAC --unsw" # CICIDS2018
+      # COMMAND="PYTHONPATH='.' caffeinate uv run src/core/ce_simulation.py datasets/CIC_UNSW/NF-CICIDS2018-v3.csv datasets/CEFlows/CE_MC_Flows_labeled_merged.csv --log2File --modelVariant $model --ceType $ce --max_rows 100000 --useCircularLogger --debug --useMLP --useAC --unsw" # CICIDS2018
 
       # --- ACC --- 
       # if eval "$COMMAND"; then

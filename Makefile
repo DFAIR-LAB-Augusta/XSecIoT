@@ -5,7 +5,8 @@ UV  ?= uv
 PY  ?= python
 RUFF ?= ruff
 
-DATASET_PATH ?= ./datasets/CEFlows/unlabeled/
+LABELED_DATASET_PATH ?= ./datasets/CEFlows/mc_labeled/
+UNLABELED_DATASET_PATH ?= ./datasets/CEFlows/unlabeled/
 LOG_DIR      ?=
 
 .PHONY: help sync test clean \
@@ -23,8 +24,8 @@ help:
 	@echo "  make sim-bin"
 	@echo "  make sim-mc"
 	@echo "  make xseciot"
-	@echo "  make bin-label DATASET_PATH=datasets/CEFlows/CEFlows2_merged.csv"
-	@echo "  make merge     DATASET_PATH=datasets/CEFlows/indiv"
+	@echo "  make bin-label UNLABELED_DATASET_PATH=datasets/CEFlows/CEFlows2_merged.csv"
+	@echo "  make merge     LABELED_DATASET_PATH=datasets/CEFlows/indiv"
 	@echo "  make overall-perf   LOG_DIR=logs"
 	@echo "  make overall-scrape LOG_DIR=logs"
 
@@ -47,16 +48,16 @@ xseciot:
 	bash src/core/run_xseciot.sh
 
 bin-label: 
-	@if [ -z "$(DATASET_PATH)" ]; then echo "ERROR: set DATASET_PATH=..."; exit 1; fi
-	$(UV) run $(PY) -m src.utils.bin_labeling --dataset_path "$(DATASET_PATH)"
+	@if [ -z "$(UNLABELED_DATASET_PATH)" ]; then echo "ERROR: set UNLABELED_DATASET_PATH=..."; exit 1; fi
+	$(UV) run $(PY) -m src.utils.bin_labeling --dataset_path "$(UNLABELED_DATASET_PATH)"
 
 mc-label: 
-	@if [ -z "$(DATASET_PATH)" ]; then echo "ERROR: set DATASET_PATH=..."; exit 1; fi
-	$(UV) run $(PY) -m src.utils.mc_labeling --dataset_path "$(DATASET_PATH)" 
+	@if [ -z "$(UNLABELED_DATASET_PATH)" ]; then echo "ERROR: set UNLABELED_DATASET_PATH=..."; exit 1; fi
+	$(UV) run $(PY) -m src.utils.mc_labeling --dataset_path "$(UNLABELED_DATASET_PATH)" 
 
 merge:
-	@if [ -z "$(DATASET_PATH)" ]; then echo "ERROR: set DATASET_PATH=..."; exit 1; fi
-	$(UV) run $(PY) -m src.utils.merge --dataset_path "$(DATASET_PATH)"
+	@if [ -z "$(LABELED_DATASET_PATH)" ]; then echo "ERROR: set LABELED_DATASET_PATH=..."; exit 1; fi
+	$(UV) run $(PY) -m src.utils.merge --dataset_path "$(LABELED_DATASET_PATH)"
 
 overall-perf: 
 	@if [ -n "$(LOG_DIR)" ]; then \
@@ -72,10 +73,10 @@ overall-scrape:
 		$(UV) run $(PY) -m src.utils.overall_stats_scraper; \
 	fi
 
-fmt: ## Format code with ruff
+fmt: 
 	uv run $(RUFF) format .
 
-lint: ## Lint with ruff (no fixes)
+lint: 
 	uv run $(RUFF) check .
 
 lint-fix: ## Lint with ruff and apply safe auto-fixes

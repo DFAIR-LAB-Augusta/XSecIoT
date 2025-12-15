@@ -52,8 +52,14 @@ def _parse_args() -> argparse.Namespace:
     """
     Parse command-line arguments.
     """
-    parser = argparse.ArgumentParser(description='Merge and sort CSV files by timestamp from a given directory.')
-    parser.add_argument('directory', type=str, help='Path to the directory containing CSV files to merge.')
+    parser = argparse.ArgumentParser(
+        description='Merge and sort CSV files by timestamp from a given directory.')
+    parser.add_argument(
+        '--dataset_path',
+        required=True,
+        type=str,
+        help='Path to the dataset containing CSV files to merge.'
+    )
     return parser.parse_args()
 
 
@@ -62,7 +68,7 @@ def main() -> None:
     Main function to handle argument parsing and merge execution.
     """
     args = _parse_args()
-    input_dir = Path(args.directory)
+    input_dir = Path(args.dataset_path)
 
     try:
         _validate_directory(input_dir)
