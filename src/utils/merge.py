@@ -52,13 +52,9 @@ def _parse_args() -> argparse.Namespace:
     """
     Parse command-line arguments.
     """
-    parser = argparse.ArgumentParser(
-        description='Merge and sort CSV files by timestamp from a given directory.')
+    parser = argparse.ArgumentParser(description='Merge and sort CSV files by timestamp from a given directory.')
     parser.add_argument(
-        '--dataset_path',
-        required=True,
-        type=str,
-        help='Path to the dataset containing CSV files to merge.'
+        '--dataset_path', required=True, type=str, help='Path to the dataset containing CSV files to merge.'
     )
     return parser.parse_args()
 

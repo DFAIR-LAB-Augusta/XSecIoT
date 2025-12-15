@@ -352,7 +352,7 @@ def _simulate(
     df_train = df_train.drop(columns='Unnamed: 0', errors='ignore')
 
     if config.is_unsw:
-        df_train = _unsw_clean(clean_data(df_train, config.is_unsw))
+        df_train = _unsw_clean(clean_data(df_train, config.is_unsw), config.model_type == ModelType.MULTI)
         extra_features = set(df_train.columns) - set(FINAL_LOG_COLUMNS)
         logger.debug(f'UNSW features extra ontop of mandatory: {extra_features}')
         if len(extra_features) > 0:
@@ -556,11 +556,12 @@ def _ensure_models_exist(config: SimulationConfig, perf_stats: PerformanceStats)
         train_ce_binary(config, str(config.aggregated_path), perf_stats)
         logger.info('Binary CE training completed in %.4fs', time.perf_counter() - t0)
 
-    if config.model_variant != ModelVariant.FEEDFORWARD and config.model_type == ModelType.MULTI:
+    elif config.model_type == ModelType.MULTI:
+        # if config.model_variant != ModelVariant.FEEDFORWARD and config.model_type == ModelType.MULTI:
         logger.info(f"CE-multiclass artifacts missing for '{ds}'; training now…")
         t0 = time.perf_counter()
         try:
-            train_ce_multiclass(str(config.aggregated_path), variant=config.model_variant, use_pca=config.use_pca)
+            train_ce_multiclass(config, perf_stats, str(config.aggregated_path))
             logger.info(
                 f'Multiclass CE training completed in {time.perf_counter() - t0:.4f}s',
             )

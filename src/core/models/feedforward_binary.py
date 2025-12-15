@@ -1,4 +1,3 @@
-# src/core/models/feedforward_binary
 """
 feedforward_binary
 ==================
@@ -61,4 +60,5 @@ class FeedForwardBinary(nn.Module):
 
 
 if __name__ == '__main__':
-    raise NotImplementedError('This module is not intended to be run directly. ')
+    raise NotImplementedError(
+        'This module is not intended to be run directly. ')

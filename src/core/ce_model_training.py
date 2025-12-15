@@ -32,19 +32,21 @@ import shortuuid
 import torch
 import torch.mps
 import torch.nn as nn
+import torch.nn.functional as F
 import xgboost as xgb
 
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from torch.utils.data import DataLoader, Subset, TensorDataset
 
 from src.core.config import ModelVariant, SimulationConfig
 from src.core.models.feedforward_binary import FeedForwardBinary
+from src.core.models.feedforward_multiclass import FeedForwardMulticlass
 from src.core.perf_stats import PerformanceStats
 from src.FIRE.preprocessing import clean_data
 
@@ -149,6 +151,8 @@ FINAL_LOG_COLUMNS: List[str] = [
     'subflow_bwd_byts',
     'BinLabel',
 ]
+FINAL_MC_LOG_COLUMNS: List[str] = ['MC_Label' if c ==
+                                   'BinLabel' else c for c in FINAL_LOG_COLUMNS]
 UNSW_DROP_COLS: List[str] = [
     'end_time',
     'NUM_PKTS_UP_TO_128_BYTES',
@@ -187,6 +191,7 @@ UNSW_DROP_COLS: List[str] = [
     'MAX_TTL',
     'Label',
 ]
+UNSW_MC_DROP_COLS: List[str] = [c for c in UNSW_DROP_COLS if c != 'Label']
 
 RANDOM_STATE: int = 42
 
@@ -196,9 +201,10 @@ class SupportsPredict(Protocol):
         raise NotImplementedError
 
 
-def _unsw_clean(df: pd.DataFrame) -> pd.DataFrame:
+def _unsw_clean(df: pd.DataFrame, isMC: bool) -> pd.DataFrame:
     logging.debug('Removing UNSW-specific columns from the dataset')
-    return df.drop(columns=UNSW_DROP_COLS, errors='ignore')
+    drop_cols = UNSW_MC_DROP_COLS if isMC else UNSW_DROP_COLS
+    return df.drop(columns=drop_cols, errors='ignore')
 
 
 def train_ce_binary(
@@ -247,15 +253,18 @@ def train_ce_binary(
             / f'Model_{config.model_variant.value}_Retraining_{shortuuid.ShortUUID().random(length=8)}'
         )
         outdir.mkdir(parents=True, exist_ok=True)
-        logger.info(f'Output directory for binary model retraining artifacts: {outdir}')
+        logger.info(
+            f'Output directory for binary model retraining artifacts: {outdir}')
 
     if config.is_unsw:
         if 'BinLabel' not in df.columns:
             if 'Label' in df.columns:
-                logger.info("Using UNSW dataset format: mapping 'Label' to binary 'BinLabel'")
+                logger.info(
+                    "Using UNSW dataset format: mapping 'Label' to binary 'BinLabel'")
                 df['BinLabel'] = df['Label']
             elif 'Bin_Label' in df.columns:
-                logger.info("Normalizing column name: renaming 'Bin_Label' -> 'BinLabel'")
+                logger.info(
+                    "Normalizing column name: renaming 'Bin_Label' -> 'BinLabel'")
                 df.rename(columns={'Bin_Label': 'BinLabel'}, inplace=True)
             else:
                 logger.warning(
@@ -263,27 +272,33 @@ def train_ce_binary(
                     f'Columns sample: {list(df.columns)[:10]}{" ..." if df.shape[1] > 10 else ""}'
                 )
         else:
-            logger.debug("'BinLabel' already present; skipping mapping from 'Label'.")
-        df = _unsw_clean(df)
+            logger.debug(
+                "'BinLabel' already present; skipping mapping from 'Label'.")
+        df = _unsw_clean(df, False)
         extra_features = set(df.columns) - set(FINAL_LOG_COLUMNS)
-        logger.debug(f'UNSW features extra ontop of mandatory: {extra_features}')
+        logger.debug(
+            f'UNSW features extra ontop of mandatory: {extra_features}')
         if len(extra_features) > 0:
-            raise RuntimeError('Diagnose this for retraining to work properly.')
+            raise RuntimeError(
+                'Diagnose this for retraining to work properly.')
 
     else:
         if 'Label' in df.columns:
-            df['BinLabel'] = df['Label'].map({'Benign': 0}).fillna(1).astype(int)
+            df['BinLabel'] = df['Label'].map(
+                {'Benign': 0}).fillna(1).astype(int)
         elif 'BinLabel' in df.columns:
             if df['BinLabel'].dtype == object:
                 df['BinLabel'] = df['BinLabel'].map({'Benign': 0}).fillna(1)
                 logger.debug('')
             non_finite_mask = ~np.isfinite(df['BinLabel'])
             if non_finite_mask.any():
-                offending_vals = df.loc[non_finite_mask, 'BinLabel'].head(5).tolist()
+                offending_vals = df.loc[non_finite_mask,
+                                        'BinLabel'].head(5).tolist()
                 logger.error(
                     f"[train_ce_binary] Non-finite values found in 'BinLabel' before casting to int: {offending_vals}"
                 )
-                raise ValueError(f"Non-finite values in 'BinLabel': {offending_vals}")
+                raise ValueError(
+                    f"Non-finite values in 'BinLabel': {offending_vals}")
 
             df['BinLabel'] = df['BinLabel'].astype(int)
         else:
@@ -291,16 +306,19 @@ def train_ce_binary(
                 f"Dataset must contain either 'Label' or 'BinLabel' column.Columns found: {df.columns.tolist()}"
             )
 
-    df = df.drop(columns=[c for c in df.columns if c.startswith('Unnamed')], errors='ignore')
+    df = df.drop(
+        columns=[c for c in df.columns if c.startswith('Unnamed')], errors='ignore')
     df = df.drop(columns=CE_DROP_COLS, errors='ignore')
 
     if config.is_unsw:
         logger.debug(f'UNSW training features: {df.columns.tolist() = }')
 
     # Start New Code
-    label_col = 'BinLabel' if 'BinLabel' in df.columns else ('Label' if 'Label' in df.columns else None)
+    label_col = 'BinLabel' if 'BinLabel' in df.columns else (
+        'Label' if 'Label' in df.columns else None)
     if label_col is None:
-        raise ValueError(f"Dataset must contain either 'Label' or 'BinLabel'. Columns found: {df.columns.tolist()}")
+        raise ValueError(
+            f"Dataset must contain either 'Label' or 'BinLabel'. Columns found: {df.columns.tolist()}")
 
     y_series = df[label_col]
 
@@ -329,14 +347,16 @@ def train_ce_binary(
     if invalid.any():
         n_bad = int(invalid.sum())
         examples = y_series[invalid].head(5).tolist()
-        logger.warning(f'Dropping {n_bad} rows with invalid labels before training; {examples = }')
+        logger.warning(
+            f'Dropping {n_bad} rows with invalid labels before training; {examples = }')
         df = df.loc[~invalid].copy()
         y_series = y_series.loc[~invalid]
 
     df['BinLabel'] = y_series.astype(int)
     # End new code
 
-    X = df.select_dtypes(include=[np.number]).drop(columns=['BinLabel'], errors='ignore')
+    X = df.select_dtypes(include=[np.number]).drop(
+        columns=['BinLabel'], errors='ignore')
 
     y = df['BinLabel']
     logger.debug(f"Label column 'BinLabel' {y.unique() = }")
@@ -357,7 +377,8 @@ def train_ce_binary(
 
     y_pred: NDArray[np.int_] | None = None
 
-    logger.debug(f"Training binary classifier model with variant '{config.model_variant.value}'")
+    logger.debug(
+        f"Training binary classifier model with variant '{config.model_variant.value}'")
     match config.model_variant:
         case ModelVariant.DT:
             model = DecisionTreeClassifier(random_state=RANDOM_STATE)
@@ -369,10 +390,12 @@ def train_ce_binary(
             model = RandomForestClassifier(random_state=RANDOM_STATE)
             model.fit(Xf, y)
         case ModelVariant.SVM:
-            model = SVC(kernel='rbf', probability=True, random_state=RANDOM_STATE)
+            model = SVC(kernel='rbf', probability=True,
+                        random_state=RANDOM_STATE)
             model.fit(Xf, y)
         case ModelVariant.XGB:
-            model = xgb.XGBClassifier(objective='binary:logistic', random_state=RANDOM_STATE)
+            model = xgb.XGBClassifier(
+                objective='binary:logistic', random_state=RANDOM_STATE)
             model.fit(Xf, y)
         case ModelVariant.FEEDFORWARD:
             Xf = np.asarray(Xf, dtype=np.float32)
@@ -402,24 +425,28 @@ def train_ce_binary(
             model = FeedForwardBinary(input_dim=Xf.shape[1]).to(device)
             optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
             criterion = nn.BCEWithLogitsLoss()
-            logger.info('FFN Model Training Starting (bs=%d, epochs=%d)', batch_size, epochs)
+            logger.info(
+                'FFN Model Training Starting (bs=%d, epochs=%d)', batch_size, epochs)
 
             model.train()
-            logger.debug('FFN Model Train begin')
             for epoch in range(epochs):
                 logger.debug('Epoch %d start', epoch)
                 rng = np.random.default_rng(RANDOM_STATE + epoch)
                 idx = rng.permutation(N).tolist()
                 subset = Subset(ds, idx)
-                loader = DataLoader(subset, batch_size=batch_size, shuffle=False, num_workers=0)
-                logger.debug('Epoch %d loader ready: batches=%d', epoch, len(loader))
+                loader = DataLoader(
+                    subset, batch_size=batch_size, shuffle=False, num_workers=0)
+                logger.debug('Epoch %d loader ready: batches=%d',
+                             epoch, len(loader))
                 it = iter(loader)
                 xb0, yb0 = next(it)
-                logger.debug('Epoch %d first batch shapes: %s %s', epoch, tuple(xb0.shape), tuple(yb0.shape))
+                logger.debug('Epoch %d first batch shapes: %s %s',
+                             epoch, tuple(xb0.shape), tuple(yb0.shape))
 
                 running_loss = 0.0
                 for b, (xb, yb) in enumerate(loader):
-                    logger.debug('Epoch %d batch %d start: xb=%s yb=%s', epoch, b, tuple(xb.shape), tuple(yb.shape))
+                    logger.debug('Epoch %d batch %d start: xb=%s yb=%s',
+                                 epoch, b, tuple(xb.shape), tuple(yb.shape))
                     xb = xb.to(device, non_blocking=False)
                     yb = yb.to(device, non_blocking=False).view(-1).float()
                     optimizer.zero_grad(set_to_none=True)
@@ -429,7 +456,8 @@ def train_ce_binary(
                     optimizer.step()
                     running_loss += float(loss.item()) * xb.size(0)
 
-                logger.debug('[feedforward][epoch %02d] loss=%.6f', epoch + 1, running_loss / N)
+                logger.debug('[feedforward][epoch %02d] loss=%.6f',
+                             epoch + 1, running_loss / N)
 
             try:
                 if device.type == 'mps':
@@ -442,8 +470,10 @@ def train_ce_binary(
             model.eval()
 
             eval_bs = 4096
-            eval_loader = DataLoader(ds, batch_size=eval_bs, shuffle=False, num_workers=0)
-            logger.debug(f'Eval loader ready: batches={len(eval_loader)}, eval_bs={eval_bs}')
+            eval_loader = DataLoader(
+                ds, batch_size=eval_bs, shuffle=False, num_workers=0)
+            logger.debug(
+                f'Eval loader ready: batches={len(eval_loader)}, eval_bs={eval_bs}')
 
             probs_chunks = []
 
@@ -451,12 +481,15 @@ def train_ce_binary(
                 logger.debug('Eval on MPS (per-batch sigmoid on MPS)')
                 with torch.no_grad():
                     for i, (xb, _) in enumerate(eval_loader):
-                        logger.debug(f'Eval batch {i} start: xb_device={xb.device}, xb_shape={tuple(xb.shape)}')
+                        logger.debug(
+                            f'Eval batch {i} start: xb_device={xb.device}, xb_shape={tuple(xb.shape)}')
                         xb = xb.to(device, non_blocking=False)
                         logits_i = model(xb)  # (B,)
-                        logger.debug(f'Eval batch {i} logits shape={tuple(logits_i.shape)}')
+                        logger.debug(
+                            f'Eval batch {i} logits shape={tuple(logits_i.shape)}')
                         probs_i = torch.sigmoid(logits_i).to('cpu')
-                        logger.debug(f'Eval batch {i} probs shape={tuple(probs_i.shape)}')
+                        logger.debug(
+                            f'Eval batch {i} probs shape={tuple(probs_i.shape)}')
                         probs_chunks.append(probs_i.numpy())
             else:
                 logger.debug('Eval on CPU (per-batch sigmoid on CPU)')
@@ -467,19 +500,23 @@ def train_ce_binary(
                     logger.debug(f'set_num_threads failed: {e}')
                 with torch.no_grad():
                     for i, (xb, _) in enumerate(eval_loader):
-                        logger.debug(f'Eval batch {i} start: xb_device={xb.device}, xb_shape={tuple(xb.shape)}')
+                        logger.debug(
+                            f'Eval batch {i} start: xb_device={xb.device}, xb_shape={tuple(xb.shape)}')
                         xb = xb.to(dtype=torch.float32).contiguous()
                         logger.debug(
                             f'Eval batch {i} after cast/contig: xb_device={xb.device}, xb_dtype={xb.dtype}, xb_is_contig={xb.is_contiguous()}'  # noqa: E501
                         )
                         logits_i = model(xb)  # (B,)
-                        logger.debug(f'Eval batch {i} logits shape={tuple(logits_i.shape)}')
+                        logger.debug(
+                            f'Eval batch {i} logits shape={tuple(logits_i.shape)}')
                         probs_i = torch.sigmoid(logits_i)  # (B,)
-                        logger.debug(f'Eval batch {i} probs shape={tuple(probs_i.shape)}')
+                        logger.debug(
+                            f'Eval batch {i} probs shape={tuple(probs_i.shape)}')
                         probs_chunks.append(probs_i.cpu().numpy())
 
             y_pred_prob = np.concatenate(probs_chunks, axis=0).reshape(-1)
-            logger.debug(f'Eval concat complete: y_pred_prob shape={y_pred_prob.shape}')
+            logger.debug(
+                f'Eval concat complete: y_pred_prob shape={y_pred_prob.shape}')
 
             y_pred = (y_pred_prob > 0.5).astype(int)
 
@@ -494,7 +531,8 @@ def train_ce_binary(
         y_pred = y_pred_np.astype(np.int_, copy=False).reshape(-1)
 
     if y_pred is None:
-        raise RuntimeError(f'Internal error: y_pred not computed for variant {config.model_variant.value!r}')
+        raise RuntimeError(
+            f'Internal error: y_pred not computed for variant {config.model_variant.value!r}')
 
     acc = float(accuracy_score(y, y_pred))
     prec = float(precision_score(y, y_pred, zero_division=0))
@@ -522,13 +560,17 @@ def train_ce_binary(
             outdir / 'feedforward_model_binary.pt',
         )
     else:
-        joblib.dump(model, outdir / f'{config.model_variant.value}_model_binary.pkl')
+        joblib.dump(model, outdir /
+                    f'{config.model_variant.value}_model_binary.pkl')
 
-    logging.info(f"[ce_models] Trained '{config.model_variant.value}' binary CE model and wrote artifacts to {outdir}/")
+    logging.info(
+        f"[ce_models] Trained '{config.model_variant.value}' binary CE model and wrote artifacts to {outdir}/")
     return outdir
 
 
-def train_ce_multiclass(flows_csv: str, variant: ModelVariant, use_pca: bool = True) -> None:
+def train_ce_multiclass(
+    config: SimulationConfig, perf_stats: PerformanceStats, flow_path: str, df_log: pd.DataFrame | None = None
+) -> Path:
     """
     Train a multiclass CE model and persist preprocessing artifacts and model.
 
@@ -550,66 +592,293 @@ def train_ce_multiclass(flows_csv: str, variant: ModelVariant, use_pca: bool = T
         ValueError: If an unsupported variant is given.
         NotImplementedError: If "feedforward" is selected.
     """
-    raise NotImplementedError('Multiclass CE model training is currently disabled.')
+    if df_log is None:
+        logger.info(f'Training with {flow_path} dataset')
+        logger.debug(f'Dataset type for UNSW is set to {config.is_unsw = }')
+        df = clean_data(pd.read_csv(flow_path), config.is_unsw)
+        dataset = Path(flow_path).parent.name
+        outdir = Path('multi_class_models') / dataset
+        outdir.mkdir(parents=True, exist_ok=True)
+    else:
+        df = df_log
+        pattern = f'multi_class_models/Model_{config.model_variant.value}_Retraining_*'
+        for path in glob.glob(pattern):
+            if Path(path).is_dir():
+                logger.info(f'Removing old retraining directory: {path}')
+                shutil.rmtree(path)
+        outdir = (
+            Path('multi_class_models')
+            / f'Model_{config.model_variant.value}_Retraining_{shortuuid.ShortUUID().random(length=8)}'
+        )
+        outdir.mkdir(parents=True, exist_ok=True)
+        logger.info(
+            f'Output directory for binary model retraining artifacts: {outdir}')
 
-    if variant == 'feedforward':
-        raise NotImplementedError('Feedforward is not supported for multiclass CE models.')
-    df = pd.read_csv(flows_csv)
-    dataset = Path(flows_csv).parent.name
-    outdir = Path('multi_class_models') / dataset
-    outdir.mkdir(parents=True, exist_ok=True)
+    if config.is_unsw:
+        df = _unsw_clean(df, True)
+        extra_features = set(df.columns) - set(FINAL_LOG_COLUMNS)
+        logger.debug(
+            f'UNSW features extra ontop of mandatory: {extra_features}')
+        if len(extra_features) > 0:
+            raise RuntimeError(
+                'Diagnose this for retraining to work properly.')
 
-    X = df.drop(columns=CE_DROP_COLS, errors='ignore')
-    y = df['Label']
+    else:
+        if 'Label' in df.columns:
+            df['MC_Label'] = df['Label']
+        elif 'MC_Label' not in df.columns:
+            raise ValueError(
+                f"Dataset must contain either 'MC_Label' column.Columns found: {df.columns.tolist()}"
+            )
+
+    df = df.drop(
+        columns=[c for c in df.columns if c.startswith('Unnamed')], errors='ignore')
+    df = df.drop(columns=CE_DROP_COLS, errors='ignore')
+
+    if config.is_unsw:
+        logger.debug(f'UNSW training features: {df.columns.tolist() = }')
+
+    label_col = 'MC_Label' if 'MC_Label' in df.columns else None
+    if label_col is None:
+        raise ValueError(
+            f"Dataset must contain 'MC_Label'. Columns found: {df.columns.tolist()}")
+
+    X = df.select_dtypes(include=[np.number]).drop(
+        columns=['MC_Label'], errors='ignore')
+
+    y = df['MC_Label']
+    logger.debug(f"Label column 'MC_Label' {y.unique() = }")
 
     if X.isna().any().any():
         X = X.fillna(X.mean())
 
     scaler = StandardScaler().fit(X)
     Xs = scaler.transform(X)
-    joblib.dump(scaler, outdir / 'scaler_multi.pkl')
+    joblib.dump(scaler, outdir / 'scaler_binary.pkl')
 
-    if use_pca:
+    if config.use_pca:
         pca = PCA(n_components=0.95).fit(Xs)
         Xf = pca.transform(Xs)
-        joblib.dump(pca, outdir / 'pca_multi.pkl')
+        joblib.dump(pca, outdir / 'pca_binary.pkl')
     else:
         Xf = Xs
 
-    if variant == 'dt':
-        model = DecisionTreeClassifier(random_state=RANDOM_STATE)
-    elif variant == 'knn':
-        model = KNeighborsClassifier()
-    elif variant == 'rf':
-        model = RandomForestClassifier(random_state=RANDOM_STATE)
-    elif variant == 'svm':
-        model = SVC(kernel='rbf', probability=True, random_state=RANDOM_STATE)
-    elif variant == 'xgb':
-        model = xgb.XGBClassifier(objective='multi:softmax', random_state=RANDOM_STATE)
+    y_pred: NDArray[np.object_] | None = None
+    le = LabelEncoder()
+    y_enc = le.fit_transform(y)
+    joblib.dump(le, outdir / "label_encoder_mc.pkl")
+    num_classes = int(len(le.classes_))
+    logger.info("MC classes (%d): %s", num_classes, le.classes_.tolist())
+
+    logger.debug(
+        f"Training binary classifier model with variant '{config.model_variant.value}'")
+    match config.model_variant:
+        case ModelVariant.DT:
+            model = DecisionTreeClassifier(random_state=RANDOM_STATE)
+            model.fit(Xf, y)
+
+        case ModelVariant.KNN:
+            model = KNeighborsClassifier()
+            model.fit(Xf, y)
+
+        case ModelVariant.RF:
+            model = RandomForestClassifier(random_state=RANDOM_STATE)
+            model.fit(Xf, y)
+
+        case ModelVariant.SVM:
+            model = SVC(kernel='rbf', probability=True,
+                        random_state=RANDOM_STATE)
+            model.fit(Xf, y)
+
+        case ModelVariant.XGB:
+            model = xgb.XGBClassifier(
+                objective="multi:softprob",
+                num_class=num_classes,
+                random_state=RANDOM_STATE,
+            )
+            model.fit(Xf, y_enc)
+            y_pred = le.inverse_transform(model.predict(Xf))
+
+        case ModelVariant.FEEDFORWARD:
+            Xf = np.asarray(Xf, dtype=np.float32)
+            y_arr = np.asarray(y_enc, dtype=np.int64)
+
+            device = config.device
+            logger.info(
+                f'[feedforward] Using device: {device}',
+            )
+
+            torch.manual_seed(RANDOM_STATE)
+            if device.type == 'cuda':
+                torch.cuda.manual_seed_all(RANDOM_STATE)
+
+            X_tensor = torch.from_numpy(Xf)
+            Y_tensor = torch.from_numpy(y_arr)
+            ds = TensorDataset(X_tensor, Y_tensor)
+            logger.debug(
+                f'[feedforward] Converted data to tensors: X_tensor.shape={tuple(X_tensor.shape)}, Y_tensor.shape={tuple(Y_tensor.shape)}'  # noqa: E501
+            )
+
+            epochs = 20
+            N = X_tensor.shape[0]
+            batch_size = 2048 if N >= 8192 else 512
+            ds = TensorDataset(X_tensor, Y_tensor)
+            logger.debug('Dataset ready: N=%d, batch_size=%d', N, batch_size)
+
+            model = FeedForwardMulticlass(
+                input_dim=Xf.shape[1], num_classes=num_classes).to(device)
+            optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+            criterion = nn.CrossEntropyLoss()
+            logger.info(
+                'FFN Model Training Starting (bs=%d, epochs=%d)', batch_size, epochs)
+
+            model.train()
+            for epoch in range(epochs):
+                logger.debug('Epoch %d start', epoch)
+                rng = np.random.default_rng(RANDOM_STATE + epoch)
+                idx = rng.permutation(N).tolist()
+                subset = Subset(ds, idx)
+                loader = DataLoader(
+                    subset, batch_size=batch_size, shuffle=False, num_workers=0)
+                logger.debug('Epoch %d loader ready: batches=%d',
+                             epoch, len(loader))
+
+                it = iter(loader)
+                xb0, yb0 = next(it)
+                logger.debug('Epoch %d first batch shapes: %s %s',
+                             epoch, tuple(xb0.shape), tuple(yb0.shape))
+
+                running_loss = 0.0
+                for xb, yb in loader:
+                    xb = xb.to(device)
+                    yb = yb.to(device).view(-1).long()
+                    optimizer.zero_grad(set_to_none=True)
+                    logits = model(xb)
+                    loss = criterion(logits, yb)
+                    loss.backward()
+                    optimizer.step()
+                    running_loss += float(loss.item()) * xb.size(0)
+
+                logger.debug('[feedforward][epoch %02d] loss=%.6f',
+                             epoch + 1, running_loss / N)
+
+            try:
+                if device.type == 'mps':
+                    torch.mps.synchronize()
+                    logger.debug('MPS synchronized after training')
+            except Exception as e:
+                logger.debug(f'MPS sync skipped: {e}')
+
+            logger.debug('Eval start')
+            model.eval()
+
+            eval_bs = 4096
+            eval_loader = DataLoader(
+                ds, batch_size=eval_bs, shuffle=False, num_workers=0)
+            logger.debug(
+                f'Eval loader ready: batches={len(eval_loader)}, eval_bs={eval_bs}')
+
+            probs_chunks: list[np.ndarray] = []
+
+            if device.type == 'mps':
+                logger.debug('Eval on MPS (per-batch sigmoid on MPS)')
+                with torch.no_grad():
+                    for i, (xb, _) in enumerate(eval_loader):
+                        logger.debug(
+                            f'Eval batch {i} start: xb_device={xb.device}, xb_shape={tuple(xb.shape)}')
+                        xb = xb.to(device, non_blocking=False)
+                        logits_i = model(xb)
+                        logger.debug(
+                            f'Eval batch {i} logits shape={tuple(logits_i.shape)}')
+
+                        probs_i = F.softmax(logits_i, dim=1).to("cpu")
+                        logger.debug(
+                            f'Eval batch {i} probs shape={tuple(probs_i.shape)}')
+
+                        probs_chunks.append(probs_i.numpy())
+            else:
+                logger.debug('Eval on CPU (per-batch sigmoid on CPU)')
+                try:
+                    torch.set_num_threads(1)
+                    logger.debug('CPU threads set to 1')
+                except Exception as e:
+                    logger.debug(f'set_num_threads failed: {e}')
+
+                with torch.no_grad():
+                    for i, (xb, _) in enumerate(eval_loader):
+                        logger.debug(
+                            f'Eval batch {i} start: xb_device={xb.device}, xb_shape={tuple(xb.shape)}')
+                        xb = xb.to(dtype=torch.float32).contiguous()
+                        logger.debug(
+                            f'Eval batch {i} after cast/contig: xb_device={xb.device}, xb_dtype={xb.dtype}, xb_is_contig={xb.is_contiguous()}'  # noqa: E501
+                        )
+
+                        logits_i = model(xb)
+                        logger.debug(
+                            f'Eval batch {i} logits shape={tuple(logits_i.shape)}')
+
+                        probs_i = F.softmax(logits_i, dim=1)
+                        logger.debug(
+                            f'Eval batch {i} probs shape={tuple(probs_i.shape)}')
+
+                        probs_chunks.append(probs_i.cpu().numpy())
+
+            y_pred_prob = np.concatenate(probs_chunks, axis=0)
+            logger.debug(
+                f'Eval concat complete: y_pred_prob shape={y_pred_prob.shape}')
+
+            y_pred_int = np.argmax(
+                y_pred_prob, axis=1).astype(np.int64)  # (N,)
+            logger.debug(
+                f"Eval argmax complete: y_pred_int shape={y_pred_int.shape}")
+
+            y_pred = le.inverse_transform(y_pred_int)
+
+        case _:
+            raise ValueError(f"Unknown variant '{config.model_variant.value}'")
+
+    if config.model_variant == ModelVariant.FEEDFORWARD:
+        pass
     else:
-        raise ValueError(f"Unknown multiclass variant '{variant}'")
+        sk = cast('SupportsPredict', model)
+        y_pred = np.asarray(sk.predict(Xf)).reshape(-1)
 
-    model.fit(Xf, y)
+    if y_pred is None:
+        raise RuntimeError(
+            f'Internal error: y_pred not computed for variant {config.model_variant.value!r}')
 
-    y_pred = model.predict(Xf)
-    logger.info('Multiclass Model Performance on Training Data:')
-    logger.info(f'Accuracy:  {accuracy_score(y, y_pred):.4f}')
-    logger.info(f'Macro Precision: {precision_score(y, y_pred, average="macro", zero_division=0):.4f}')
-    logger.info(f'Macro Recall:    {recall_score(y, y_pred, average="macro", zero_division=0):.4f}')
-    logger.info(f'Macro F1 Score:  {f1_score(y, y_pred, average="macro", zero_division=0):.4f}')
-    report = classification_report(y, y_pred, digits=4)
+    acc = float(accuracy_score(y, y_pred))
+    prec = float(precision_score(y, y_pred, average="macro", zero_division=0))
+    rec = float(recall_score(y, y_pred, average="macro", zero_division=0))
+    f1 = float(f1_score(y, y_pred, average="macro", zero_division=0))
+
+    logger.info('Model Performance on Training Data:')
+    logger.info(f'Accuracy:  {acc:.4f}')
+    logger.info(f'Precision: {prec:.4f}')
+    logger.info(f'Recall:    {rec:.4f}')
+    logger.info(f'F1 Score:  {f1:.4f}')
+    report = classification_report(y, y_pred, digits=4, zero_division=0)
     logger.info('\n%s', report)
 
-    fname_map = {
-        'dt': 'decision_tree_multi.pkl',
-        'knn': 'knearest_multi.pkl',
-        'rf': 'random_forest_multi.pkl',
-        'svm': 'svm_multi.pkl',
-        'xgb': 'xgboost_multi.pkl',
-    }
-    joblib.dump(model, outdir / fname_map[variant])
+    perf_stats.log_classifier_metrics(acc, prec, rec, f1)
 
-    logging.info(f"[ce_models] Trained '{variant}' multiclass CE model and wrote artifacts to {outdir}/")
+    if config.model_variant == ModelVariant.FEEDFORWARD and isinstance(model, nn.Module):
+        torch.save(
+            {
+                'state_dict': model.state_dict(),
+                'input_dim': int(Xf.shape[1]),
+                'dropout': 0.3,
+                'random_state': RANDOM_STATE,
+            },
+            outdir / 'feedforward_model_binary.pt',
+        )
+    else:
+        joblib.dump(model, outdir /
+                    f'{config.model_variant.value}_model_binary.pkl')
+
+    logging.info(
+        f"[ce_models] Trained '{config.model_variant.value}' binary CE model and wrote artifacts to {outdir}/")
+    return outdir
 
 
 if __name__ == '__main__':
