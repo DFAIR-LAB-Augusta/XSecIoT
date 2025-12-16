@@ -53,6 +53,7 @@ from src.core.conformalEval.conformal_evaluators import ConformalEvaluator
 from src.core.conformalEval.ice import InductiveConformalEvaluator
 from src.core.conformalEval.tce import ApproximateTransductiveConformalEvaluator
 from src.core.models.feedforward_binary import FeedForwardBinary
+from src.core.models.feedforward_multiclass import FeedForwardMulticlass
 from src.core.models.mlp_ce import MLP_CE
 from src.core.perf_stats import PerformanceStats
 from src.core.rolling_csv import RollingCSV
@@ -74,7 +75,8 @@ DROP_COLS: List[str] = [
     'time_diff_seconds',
     'Attack',
 ]
-CE_EXTRA_DROP: List[str] = ['device_id', 'session_id', 'src_port', 'dst_port', 'protocol', 'timestamp', 'BinLabel']
+CE_EXTRA_DROP: List[str] = ['device_id', 'session_id',
+                            'src_port', 'dst_port', 'protocol', 'timestamp', 'BinLabel']
 FULL_DROP_COLS: List[str] = DROP_COLS + CE_EXTRA_DROP
 FINAL_LOG_COLUMNS: List[str] = [
     'src_ip',
@@ -247,7 +249,8 @@ UNSW_DROP_COLUMNS: List[str] = [
     'pkt_len_max',
 ]
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s: %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)s %(name)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -258,16 +261,21 @@ def _parse_args() -> argparse.Namespace:
     Returns:
         argparse.Namespace: Parsed CLI arguments including paths, model/CE config, and flags.
     """
-    p = argparse.ArgumentParser(description='CE sim: seed log and process CE flows')
+    p = argparse.ArgumentParser(
+        description='CE sim: seed log and process CE flows')
     p.add_argument('aggregated_file', type=Path)
     p.add_argument('flows_file', type=Path)
     p.add_argument('--log', type=Path, default=Path('ce_log.csv.gz'))
     p.add_argument('--chunk_size', type=int, default=1000)
     p.add_argument('--max_rows', type=int, default=10000)
-    p.add_argument('--use-pca', action='store_true', help='Enable PCA during CE simulation')
-    p.add_argument('--log2File', action='store_true', help='Enable logging output to file')
-    p.add_argument('--modelVariant', type=ModelVariant, choices=list(ModelVariant), default='knn')
-    p.add_argument('--modelType', type=ModelType, choices=list(ModelType), default='binary')
+    p.add_argument('--use-pca', action='store_true',
+                   help='Enable PCA during CE simulation')
+    p.add_argument('--log2File', action='store_true',
+                   help='Enable logging output to file')
+    p.add_argument('--modelVariant', type=ModelVariant,
+                   choices=list(ModelVariant), default='knn')
+    p.add_argument('--modelType', type=ModelType,
+                   choices=list(ModelType), default='binary')
     p.add_argument(
         '--ceType',
         type=CEType,
@@ -284,10 +292,14 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         '--useASC', action='store_true', help='Use adaptive significance value controller for CE drift detection'
     )
-    p.add_argument('--useSVM', action='store_true', help='Use SVM model for CEs')
-    p.add_argument('--useAC', action='store_true', help='Use adaptive chunking')
-    p.add_argument('--unsw', action='store_true', help='Use UNSW-NB15 dataset format (default is DFAIR 2024)')
-    p.add_argument('--useMLP', action='store_true', help='Use MLP model for CEs')
+    p.add_argument('--useSVM', action='store_true',
+                   help='Use SVM model for CEs')
+    p.add_argument('--useAC', action='store_true',
+                   help='Use adaptive chunking')
+    p.add_argument('--unsw', action='store_true',
+                   help='Use UNSW-NB15 dataset format (default is DFAIR 2024)')
+    p.add_argument('--useMLP', action='store_true',
+                   help='Use MLP model for CEs')
 
     return p.parse_args()
 
@@ -310,7 +322,8 @@ def _configure_logging(config: SimulationConfig) -> None:
         else:
             log_dir = log_dir / f'chunk_size_{config.chunk_size}'
         log_dir.mkdir(exist_ok=True)
-        log_file = log_dir / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_run.log'
+        log_file = log_dir / \
+            f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_run.log'
         file_handler = logging.FileHandler(log_file, mode='w')
         log_handlers.append(file_handler)
 
@@ -342,21 +355,26 @@ def _simulate(
     perf_stats = PerformanceStats()
 
     df_train = pd.read_csv(config.aggregated_path)
-    df_train = df_train.drop(columns=['device_id', 'session_id'], errors='ignore')
+    df_train = df_train.drop(
+        columns=['device_id', 'session_id'], errors='ignore')
     if config.model_type == ModelType.BINARY and 'BinLabel' not in df_train.columns and 'Label' in df_train.columns:
         if config.is_unsw:
             df_train['BinLabel'] = df_train['Label']
         else:
-            df_train['BinLabel'] = df_train['Label'].map({'Benign': 0}).fillna(1).astype(int)
+            df_train['BinLabel'] = df_train['Label'].map(
+                {'Benign': 0}).fillna(1).astype(int)
     df_train = df_train.drop(columns='Label', errors='ignore')
     df_train = df_train.drop(columns='Unnamed: 0', errors='ignore')
 
     if config.is_unsw:
-        df_train = _unsw_clean(clean_data(df_train, config.is_unsw), config.model_type == ModelType.MULTI)
+        df_train = _unsw_clean(clean_data(
+            df_train, config.is_unsw), config.model_type == ModelType.MULTI)
         extra_features = set(df_train.columns) - set(FINAL_LOG_COLUMNS)
-        logger.debug(f'UNSW features extra ontop of mandatory: {extra_features}')
+        logger.debug(
+            f'UNSW features extra ontop of mandatory: {extra_features}')
         if len(extra_features) > 0:
-            raise RuntimeError('Diagnose this for retraining to work properly. ')
+            raise RuntimeError(
+                'Diagnose this for retraining to work properly. ')
 
     _ensure_models_exist(config, perf_stats)
 
@@ -372,8 +390,10 @@ def _simulate(
         LoggerCls = RollingCSV
         log_dir = str(config.log_path)
 
-    DROP_BEFORE_SEED = ['timestamp', 'dst_port', 'dst_ip', 'protocol', 'src_ip', 'src_port']
-    seed_df = df_train.tail(config.max_rows).copy().drop(columns=DROP_BEFORE_SEED, errors='ignore')
+    DROP_BEFORE_SEED = ['timestamp', 'dst_port',
+                        'dst_ip', 'protocol', 'src_ip', 'src_port']
+    seed_df = df_train.tail(config.max_rows).copy().drop(
+        columns=DROP_BEFORE_SEED, errors='ignore')
     rolling_cols = [c for c in FINAL_LOG_COLUMNS if c not in DROP_BEFORE_SEED]
 
     if config.is_unsw:
@@ -404,18 +424,21 @@ def _simulate(
     with LoggerCls(log_dir, max_rows=config.max_rows, columns=rolling_cols) as rolling:
         seed_df = seed_df.reindex(columns=rolling_cols)
         vals = seed_df['BinLabel']
-        logger.debug(f'[pre-clean] BinLabel dtype={vals.dtype}, n_rows={len(vals)}')
+        logger.debug(
+            f'[pre-clean] BinLabel dtype={vals.dtype}, n_rows={len(vals)}')
         logger.debug(
             f'[pre-clean] BinLabel nunique(excl NaN)={vals.nunique(dropna=True)}, n_nan={int(vals.isna().sum())}'
         )
         uniques = pd.unique(vals)
-        logger.debug(f'[pre-clean] BinLabel unique values (raw): {list(uniques)}')
+        logger.debug(
+            f'[pre-clean] BinLabel unique values (raw): {list(uniques)}')
 
         for rec in seed_df.tail(config.max_rows).itertuples(index=False, name=None):
             rolling.append(list(rec))
 
         rolling.flush()
-        logger.info(f'Seeded {min(len(df_train), config.max_rows)} rows in {time.perf_counter() - t_seed:.4f}s')
+        logger.info(
+            f'Seeded {min(len(df_train), config.max_rows)} rows in {time.perf_counter() - t_seed:.4f}s')
         logger.info(f'Rolling log initialized with columns: {rolling.columns}')
 
         if isinstance(rolling, CircularDequeLogger) and config.use_mlp and config.is_unsw:
@@ -423,7 +446,8 @@ def _simulate(
             logger.debug(f'Unique rolling log cols: {df_log.columns}')
             vals = df_log['BinLabel']
 
-            logger.debug(f'[pre-clean] BinLabel dtype={vals.dtype}, n_rows={len(vals)}')
+            logger.debug(
+                f'[pre-clean] BinLabel dtype={vals.dtype}, n_rows={len(vals)}')
             logger.debug(
                 f'[pre-clean] BinLabel nunique(excl NaN)={vals.nunique(dropna=True)}, n_nan={int(vals.isna().sum())}'
             )
@@ -437,13 +461,16 @@ def _simulate(
         if config.ce_type != CEType.NONE:
             ce_kwargs = _filter_ce_kwargs(config)
 
-            Xtr = preprocess_chunk(clean_tr, FULL_DROP_COLS).select_dtypes(include=['number'])
+            Xtr = preprocess_chunk(
+                clean_tr, FULL_DROP_COLS).select_dtypes(include=['number'])
             logger.info(f'CE_Features: {Xtr.columns}')
 
             Xs = scaler.transform(Xtr)
-            Xp = pca.transform(Xs) if config.use_pca and pca is not None else Xs
+            Xp = pca.transform(
+                Xs) if config.use_pca and pca is not None else Xs
             if config.is_unsw:
-                logging.debug(f"UNSW y classes: {clean_tr['BinLabel'].unique() = }")
+                logging.debug(
+                    f"UNSW y classes: {clean_tr['BinLabel'].unique() = }")
 
             ytr = clean_tr['BinLabel'] if config.model_type == ModelType.BINARY else clean_tr['Label']
             input_dim = Xp.shape[1]
@@ -451,10 +478,13 @@ def _simulate(
             # TODO: Add option for cuml svm version
             if config.use_svm:
                 if config.max_rows >= 100_000:
-                    ce_model = SVC(probability=True, kernel='linear', verbose=False, random_state=42, shrinking=True)
+                    ce_model = SVC(probability=True, kernel='linear',
+                                   verbose=False, random_state=42, shrinking=True)
                 else:
-                    ce_model = SVC(probability=True, kernel='linear', verbose=False, random_state=42, shrinking=False)
-                logging.info(f'Using SVM model for CE: {ce_model.__class__.__name__}')
+                    ce_model = SVC(probability=True, kernel='linear',
+                                   verbose=False, random_state=42, shrinking=False)
+                logging.info(
+                    f'Using SVM model for CE: {ce_model.__class__.__name__}')
             elif config.use_mlp:
                 ce_model = MLP_CE(
                     input_dim=input_dim,
@@ -467,10 +497,12 @@ def _simulate(
                     random_state=int(ce_kwargs.get('random_state', 42)),
                     device=config.device,
                 )
-                logging.info(f'Using MLPBinaryCE for CE on device={config.device} (input_dim={input_dim})')
+                logging.info(
+                    f'Using MLPBinaryCE for CE on device={config.device} (input_dim={input_dim})')
                 ce_kwargs.setdefault('n_jobs', 1)
             elif config.use_cuml:
-                ce_model = SVC(probability=True, kernel='linear', verbose=False, random_state=42, shrinking=True)
+                ce_model = SVC(probability=True, kernel='linear',
+                               verbose=False, random_state=42, shrinking=True)
                 pass
             else:
                 ce_model = model
@@ -478,30 +510,37 @@ def _simulate(
                     f"Using model variant '{config.model_variant.value}' for CE: {ce_model.__class__.__name__}"
                 )
 
-            ce = ConformalEvaluator(config.ce_type, ce_model, significance_controller=sig_controller, **ce_kwargs)
+            ce = ConformalEvaluator(
+                config.ce_type, ce_model, significance_controller=sig_controller, **ce_kwargs)
 
             tci = time.perf_counter()
 
             ce.calibrate(Xp, ytr.to_numpy(), perf_stats)
-            logger.info(f'Initial CE calibration in {time.perf_counter() - tci:.4f}s')
+            logger.info(
+                f'Initial CE calibration in {time.perf_counter() - tci:.4f}s')
         else:
             ce = None
-            logger.info('No conformal evaluation enabled; skipping CE calibration')
+            logger.info(
+                'No conformal evaluation enabled; skipping CE calibration')
 
         if config.use_adaptive_chunking:
             chunker = AdaptiveChunkController(config.adaptive_chunk_config)
-            logger.info('[AdaptiveChunking] Enabled. Initial chunk size: %d', chunker.get_chunk_size())
+            logger.info(
+                '[AdaptiveChunking] Enabled. Initial chunk size: %d', chunker.get_chunk_size())
 
-            flow_data = pd.read_csv(config.flows_path, iterator=True, chunksize=1_000_000)
+            flow_data = pd.read_csv(
+                config.flows_path, iterator=True, chunksize=1_000_000)
             current_df = pd.DataFrame()
 
             chunk_index = 0
             for big_batch in flow_data:
-                current_df = pd.concat([current_df, big_batch], ignore_index=True)
+                current_df = pd.concat(
+                    [current_df, big_batch], ignore_index=True)
 
                 while len(current_df) >= chunker.get_chunk_size():
                     chunk_size = chunker.get_chunk_size()
-                    chunk, current_df = current_df.iloc[:chunk_size], current_df.iloc[chunk_size:]
+                    chunk, current_df = current_df.iloc[:
+                                                        chunk_size], current_df.iloc[chunk_size:]
 
                     _sim_loop(
                         config,
@@ -554,14 +593,17 @@ def _ensure_models_exist(config: SimulationConfig, perf_stats: PerformanceStats)
     if config.model_type == ModelType.BINARY:
         t0 = time.perf_counter()
         train_ce_binary(config, str(config.aggregated_path), perf_stats)
-        logger.info('Binary CE training completed in %.4fs', time.perf_counter() - t0)
+        logger.info('Binary CE training completed in %.4fs',
+                    time.perf_counter() - t0)
 
     elif config.model_type == ModelType.MULTI:
         # if config.model_variant != ModelVariant.FEEDFORWARD and config.model_type == ModelType.MULTI:
-        logger.info(f"CE-multiclass artifacts missing for '{ds}'; training now…")
+        logger.info(
+            f"CE-multiclass artifacts missing for '{ds}'; training now…")
         t0 = time.perf_counter()
         try:
-            train_ce_multiclass(config, perf_stats, str(config.aggregated_path))
+            train_ce_multiclass(config, perf_stats,
+                                str(config.aggregated_path))
             logger.info(
                 f'Multiclass CE training completed in {time.perf_counter() - t0:.4f}s',
             )
@@ -590,7 +632,8 @@ def _filter_ce_kwargs(config: SimulationConfig) -> dict[str, Any]:
         RuntimeError: If CE is disabled ('none') and this function is incorrectly called.
     """
     if config.ce_type == CEType.NONE:
-        raise RuntimeError("CE is disabled (ce_type='none'); no CE kwargs should be requested.")
+        raise RuntimeError(
+            "CE is disabled (ce_type='none'); no CE kwargs should be requested.")
 
     impl_map = {
         'ice': InductiveConformalEvaluator,
@@ -608,7 +651,7 @@ def _sim_loop(
     rolling: RollingCSV | CircularDequeLogger,
     scaler: StandardScaler,
     pca: Optional[PCA],
-    model: ClassifierMixin | xgb.Booster | FeedForwardBinary,
+    model: ClassifierMixin | xgb.Booster | FeedForwardBinary | FeedForwardMulticlass,
     ce: Optional[ConformalEvaluator],
     chunk: pd.DataFrame,
     perf_stats: PerformanceStats,
@@ -648,14 +691,16 @@ def _sim_loop(
     clean_ch = clean_data(chunk, False)
     logging.debug(f'Chunk has {len(clean_ch.columns)} columns post-cleaning')
 
-    ground_truth = clean_ch['BinLabel'].reset_index(drop=True) if 'BinLabel' in clean_ch.columns else None
+    ground_truth = clean_ch['BinLabel'].reset_index(
+        drop=True) if 'BinLabel' in clean_ch.columns else None
     if 'BinLabel' in clean_ch.columns:
         clean_ch = clean_ch.drop(columns=['BinLabel'])
 
     if config.is_unsw:
         to_drop = clean_ch.columns.difference(FINAL_LOG_COLUMNS)
         clean_ch = clean_ch.drop(columns=to_drop)
-        logging.debug(f'Chunk has {len(clean_ch.columns)} columns post-column drop')
+        logging.debug(
+            f'Chunk has {len(clean_ch.columns)} columns post-column drop')
 
     logging.debug(f'Chunk has rows {clean_ch.shape[0]}')
 
@@ -666,13 +711,15 @@ def _sim_loop(
         if raw_row.isnull().all():
             logging.warning(f'Row {i} is empty.')
 
-        X_row = preprocess_chunk(pd.DataFrame([raw_row]), FULL_DROP_COLS).select_dtypes(include=['number'])
+        X_row = preprocess_chunk(pd.DataFrame(
+            [raw_row]), FULL_DROP_COLS).select_dtypes(include=['number'])
 
         if X_row.empty:
             logging.warning(f'Row {i} is empty after preprocessing.')
 
         row_to_log = X_row.copy()
-        pred_raw = _predict_row(X_row, DROP_COLS, scaler, pca, config, model, PRED_THRESHOLD)
+        pred_raw = _predict_row(X_row, DROP_COLS, scaler,
+                                pca, config, model, PRED_THRESHOLD)
         if pred_raw not in [0, 1]:
             logging.error(f'Row {i} prediction: {pred_raw!r}')
         logger.debug(f'Classified row in {time.perf_counter() - tc:.4f}s')
@@ -688,9 +735,11 @@ def _sim_loop(
                 is_correct = pred_raw == true_val
                 perf_stats.correct_log.append(is_correct)
 
-                logger.debug(f'[Index {i}] Predicted={pred_raw}, Actual={true_val}')
+                logger.debug(
+                    f'[Index {i}] Predicted={pred_raw}, Actual={true_val}')
                 if not is_correct:
-                    logger.info(f'[Incorrect] Predicted={pred_raw}, Actual={true_val}')
+                    logger.info(
+                        f'[Incorrect] Predicted={pred_raw}, Actual={true_val}')
                     logger.debug(f'Row {i} details: {raw_row.to_json()}')
         else:
             label_col = 'Label'
@@ -734,7 +783,8 @@ def _sim_loop(
             missing = [c for c in allowed if c not in s.index]
 
             if extras and not config.use_mlp:
-                logger.warning(f'[rolling] dropping extras: {extras[:10]}{" ..." if len(extras) > 10 else ""}')
+                logger.warning(
+                    f'[rolling] dropping extras: {extras[:10]}{" ..." if len(extras) > 10 else ""}')
 
                 logger.info(
                     f'[rolling] cols before={len(s.index)}, kept={len(kept)}, dropped={len(extras)}, missing={len(missing)}'  # noqa: E501
@@ -762,7 +812,8 @@ def _sim_loop(
                 }
                 raw_bl = map_dict.get(raw_bl, raw_bl)
 
-            bl_num = pd.to_numeric(pd.Series([raw_bl]), errors='coerce').iloc[0]
+            bl_num = pd.to_numeric(
+                pd.Series([raw_bl]), errors='coerce').iloc[0]
 
             if pd.isna(bl_num) or bl_num not in (0, 1):
                 preview = {k: s_pruned[k] for k in allowed[:5]}
@@ -781,16 +832,19 @@ def _sim_loop(
             rolling.append(row_to_log.iloc[0].to_list())
 
     if ce is None:
-        logger.warning('CE is disabled; skipping drift detection and retraining.')
+        logger.warning(
+            'CE is disabled; skipping drift detection and retraining.')
         drift_chunk_flag = np.array([False])
     else:
         start_drift = time.perf_counter()
 
         if config.is_unsw:
             X_chunk = preprocess_chunk(clean_ch, FULL_DROP_COLS)
-            logger.debug(f'UNSW training features: {X_chunk.columns.tolist() = }')
+            logger.debug(
+                f'UNSW training features: {X_chunk.columns.tolist() = }')
         else:
-            X_chunk = preprocess_chunk(clean_ch, FULL_DROP_COLS).select_dtypes(include=['number'])
+            X_chunk = preprocess_chunk(
+                clean_ch, FULL_DROP_COLS).select_dtypes(include=['number'])
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 'ignore',
@@ -804,7 +858,8 @@ def _sim_loop(
 
             extra = [c for c in X_chunk.columns if c not in expected]
             if extra:
-                logger.debug(f'Dropping unseen features: {extra[:10]}{" ..." if len(extra) > 10 else ""}')
+                logger.debug(
+                    f'Dropping unseen features: {extra[:10]}{" ..." if len(extra) > 10 else ""}')
                 X_chunk = X_chunk.drop(columns=extra)
             X_chunk = X_chunk.reindex(columns=expected)
             logger.debug(
@@ -820,8 +875,10 @@ def _sim_loop(
 
     if drift_chunk_flag.any() and ce is not None:
         perf_stats.log_drift(chunkNum)
-        logger.info('Drift detected in the chunk. Retraining model and recalibrating CE...')
-        scaler, pca, model, ce = _retrain(config, scaler, pca, model, ce, rolling, perf_stats, sig_controller)
+        logger.info(
+            'Drift detected in the chunk. Retraining model and recalibrating CE...')
+        scaler, pca, model, ce = _retrain(
+            config, scaler, pca, model, ce, rolling, perf_stats, sig_controller)
 
     elapsed_iter = time.perf_counter() - start_iter
     perf_stats.iteration_times.append(elapsed_iter)
@@ -833,7 +890,7 @@ def _predict_row(
     scaler: StandardScaler,
     pca: Optional[PCA],
     config: SimulationConfig,
-    model: ClassifierMixin | xgb.Booster | FeedForwardBinary,
+    model: ClassifierMixin | xgb.Booster | FeedForwardBinary | FeedForwardMulticlass,
     threshold: float,
 ) -> int:
     """
@@ -937,22 +994,28 @@ def _retrain(
         Tuple of updated (scaler, pca, model, ce).
     """
     if ce is None:
-        raise RuntimeError('CE is disabled; retraining should not have been triggered.')
+        raise RuntimeError(
+            'CE is disabled; retraining should not have been triggered.')
 
     start = time.perf_counter()
     if isinstance(rolling, CircularDequeLogger):
         df_log = rolling.to_dataframe().tail(config.max_rows)
-        logging.debug('Retraining model using last %d rows of the in-memory circular log', len(df_log))
+        logging.debug(
+            'Retraining model using last %d rows of the in-memory circular log', len(df_log))
     else:
-        df_log = pd.read_csv(config.log_path, compression='gzip').tail(config.max_rows)
+        df_log = pd.read_csv(
+            config.log_path, compression='gzip').tail(config.max_rows)
 
     vals = df_log['BinLabel']
 
-    logger.debug(f'[pre-clean] BinLabel dtype={vals.dtype}, n_rows={len(vals)}')
-    logger.debug(f'[pre-clean] BinLabel nunique(excl NaN)={vals.nunique(dropna=True)}, n_nan={int(vals.isna().sum())}')
+    logger.debug(
+        f'[pre-clean] BinLabel dtype={vals.dtype}, n_rows={len(vals)}')
+    logger.debug(
+        f'[pre-clean] BinLabel nunique(excl NaN)={vals.nunique(dropna=True)}, n_nan={int(vals.isna().sum())}')
     uniques = pd.unique(vals)
     logger.debug(f'[pre-clean] BinLabel unique values (raw): {list(uniques)}')
-    logger.debug('Retraining model using last %d rows of the rolling log', len(df_log))
+    logger.debug(
+        'Retraining model using last %d rows of the rolling log', len(df_log))
 
     if config.is_unsw:
         ce_columns = [
@@ -977,10 +1040,12 @@ def _retrain(
             'fwd_iat_tot',
             'bwd_iat_tot',
         ]
-        to_drop = set(df_log.columns) - set(ce_columns) - set(['Label', 'BinLabel'])
+        to_drop = set(df_log.columns) - set(ce_columns) - \
+            set(['Label', 'BinLabel'])
         df_log = df_log.drop(columns=to_drop)
 
-    model_dir = train_ce_binary(config, config.log_path.as_posix(), perf_stats, df_log)
+    model_dir = train_ce_binary(
+        config, config.log_path.as_posix(), perf_stats, df_log)
 
     scaler = joblib.load(model_dir / 'scaler_binary.pkl')
 
@@ -990,31 +1055,38 @@ def _retrain(
         pca = None
 
     if config.model_variant == ModelVariant.FEEDFORWARD:
-        logger.debug(f'Loading Torch feedforward model from {model_dir / "feedforward_model_binary.pt"}')
-        ckpt = torch.load(model_dir / 'feedforward_model_binary.pt', map_location='cpu')
+        logger.debug(
+            f'Loading Torch feedforward model from {model_dir / "feedforward_model_binary.pt"}')
+        ckpt = torch.load(
+            model_dir / 'feedforward_model_binary.pt', map_location='cpu')
 
         input_dim = int(ckpt.get('input_dim'))
         p_drop = float(ckpt.get('dropout', 0.3))
         state_dict = ckpt['state_dict']
 
-        logger.debug(f'Rebuilding FeedForwardBinary(input_dim={input_dim}, p_drop={p_drop}) on device={config.device}')
+        logger.debug(
+            f'Rebuilding FeedForwardBinary(input_dim={input_dim}, p_drop={p_drop}) on device={config.device}')
 
         model = FeedForwardBinary(input_dim=input_dim, p_drop=p_drop)
         missing, unexpected = model.load_state_dict(state_dict, strict=False)
         if missing:
             logger.debug(f'Missing keys while loading state_dict: {missing}')
         if unexpected:
-            logger.debug(f'Unexpected keys while loading state_dict: {unexpected}')
+            logger.debug(
+                f'Unexpected keys while loading state_dict: {unexpected}')
 
         model.to(config.device)
         model.eval()
         logger.debug('Torch feedforward model loaded and set to eval()')
     else:
-        model = joblib.load(model_dir / f'{config.model_variant.value}_model_binary.pkl')
-        logger.debug(f'Loaded sklearn model from {model_dir / f"{config.model_variant.value}_model_binary.pkl"}')
+        model = joblib.load(
+            model_dir / f'{config.model_variant.value}_model_binary.pkl')
+        logger.debug(
+            f'Loaded sklearn model from {model_dir / f"{config.model_variant.value}_model_binary.pkl"}')
 
     clean = clean_data(df_log, config.is_unsw)
-    X_df = preprocess_chunk(clean, FULL_DROP_COLS).select_dtypes(include=['number'])
+    X_df = preprocess_chunk(
+        clean, FULL_DROP_COLS).select_dtypes(include=['number'])
 
     with warnings.catch_warnings():
         warnings.filterwarnings(
@@ -1032,13 +1104,15 @@ def _retrain(
     y = clean['BinLabel'] if config.model_type == ModelType.BINARY else clean['Label']
 
     if y.nunique() < 2:
-        logger.warning('Only one class (%s) found in retrain data — skipping retrain.', y.unique())
+        logger.warning(
+            'Only one class (%s) found in retrain data — skipping retrain.', y.unique())
         return scaler, pca, model, ce
     elif len(y.unique()) > 2:
         logger.warning(f'More than 2 unique values in y: {y.unique()}')
 
     logger.debug(f'[pre-clean] BinLabel dtype={y.dtype}, n_rows={len(y)}')
-    logger.debug(f'[pre-clean] BinLabel nunique(excl NaN)={y.nunique(dropna=True)}, n_nan={int(y.isna().sum())}')
+    logger.debug(
+        f'[pre-clean] BinLabel nunique(excl NaN)={y.nunique(dropna=True)}, n_nan={int(y.isna().sum())}')
 
     uniques = pd.unique(y)
     logger.debug(f'[pre-clean] BinLabel unique values (raw): {list(uniques)}')
@@ -1072,16 +1146,20 @@ def _log_results(config: SimulationConfig, overall: float, perf_stats: Performan
           in the appropriate logging subdirectory.
         - Logs all summary statistics to the configured logging handler.
     """
-    logger.info(f'[==OVERALL SIM STATS==] Total simulate time: {time.perf_counter() - overall:.4f}s')
+    logger.info(
+        f'[==OVERALL SIM STATS==] Total simulate time: {time.perf_counter() - overall:.4f}s')
     logger.info(f'Full performance stats: {perf_stats = }')
     logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
 
     if perf_stats.correct_log:
-        final_accuracy = sum(perf_stats.correct_log) / len(perf_stats.correct_log)
-        logger.info(f'[==OVERALL STATS==] Final Accuracy on all simulated samples: {final_accuracy:.4f}')
+        final_accuracy = sum(perf_stats.correct_log) / \
+            len(perf_stats.correct_log)
+        logger.info(
+            f'[==OVERALL STATS==] Final Accuracy on all simulated samples: {final_accuracy:.4f}')
 
         window = 100
-        moving_avg = np.convolve(perf_stats.correct_log, np.ones(window) / window, mode='valid')
+        moving_avg = np.convolve(
+            perf_stats.correct_log, np.ones(window) / window, mode='valid')
         plt.figure(figsize=(10, 4))
         plt.plot(moving_avg)
         plt.title('Sliding Accuracy Over Time')
@@ -1105,26 +1183,33 @@ def _log_results(config: SimulationConfig, overall: float, perf_stats: Performan
             )
         plt.savefig(plot_path)
         logger.debug(f"Accuracy over time plot saved to '{plot_path}'")
-        _summarize_timings('Per-Chunk Iteration Time', perf_stats.iteration_times)
-        _summarize_timings('Per-Row Drift Detection Time', perf_stats.drift_times)
+        _summarize_timings('Per-Chunk Iteration Time',
+                           perf_stats.iteration_times)
+        _summarize_timings('Per-Row Drift Detection Time',
+                           perf_stats.drift_times)
 
     if perf_stats.drift_detected_indices:
         total_drift = len(perf_stats.drift_detected_indices)
         drift_rate = total_drift / len(perf_stats.correct_log)
 
-        logger.info(f'[==OVERALL SIM STATS==] Total Drift Detections: {total_drift}')
-        logger.info(f'[==OVERALL SIM STATS==] Drift Detection Rate: {drift_rate:.4%}')
+        logger.info(
+            f'[==OVERALL SIM STATS==] Total Drift Detections: {total_drift}')
+        logger.info(
+            f'[==OVERALL SIM STATS==] Drift Detection Rate: {drift_rate:.4%}')
 
         if perf_stats.drift_intervals:
             avg_interval = np.mean(perf_stats.drift_intervals)
-            logger.info(f'[==OVERALL SIM STATS==] Average Chunks Between Drift Detections: {avg_interval:.2f}')
-            logger.info(f'[==OVERALL SIM STATS==] Drift Intervals (in chunks): {perf_stats.drift_intervals}')
+            logger.info(
+                f'[==OVERALL SIM STATS==] Average Chunks Between Drift Detections: {avg_interval:.2f}')
+            logger.info(
+                f'[==OVERALL SIM STATS==] Drift Intervals (in chunks): {perf_stats.drift_intervals}')
 
             plt.figure(figsize=(10, 4))
             plt.plot(perf_stats.drift_intervals, marker='o')
             plt.title('Drift Intervals Over Time')
             plt.xlabel('Drift Detection Index')
-            plt.ylabel(f'Chunks Since Last Drift (Chunk Size: {config.chunk_size})')
+            plt.ylabel(
+                f'Chunks Since Last Drift (Chunk Size: {config.chunk_size})')
             plt.grid(True)
             log_dir = Path('logging')
             log_dir.mkdir(exist_ok=True)
@@ -1144,7 +1229,8 @@ def _log_results(config: SimulationConfig, overall: float, perf_stats: Performan
             logger.debug(f"Drift interval plot saved to '{plot_path}'")
 
             plt.figure(figsize=(8, 4))
-            plt.hist(perf_stats.drift_intervals, bins=range(1, max(perf_stats.drift_intervals) + 2), edgecolor='black')
+            plt.hist(perf_stats.drift_intervals, bins=range(
+                1, max(perf_stats.drift_intervals) + 2), edgecolor='black')
             plt.title('Histogram of Drift Intervals (Chunks)')
             plt.xlabel('Chunks Between Drifts')
             plt.ylabel('Frequency')
@@ -1227,12 +1313,16 @@ def _log_results(config: SimulationConfig, overall: float, perf_stats: Performan
             / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_classifier_training_metrics.png'  # noqa: E501
         )
         plt.savefig(ce_metric_plot)
-        logger.debug(f"Classifier training metric plot saved to '{ce_metric_plot}'")
+        logger.debug(
+            f"Classifier training metric plot saved to '{ce_metric_plot}'")
 
     if perf_stats.chunk_sizes and config.use_adaptive_chunking:
-        logger.info(f'[==OVERALL SIM STATS==] Average Chunk Size: {mean(perf_stats.chunk_sizes):.2f}')
-        logger.info(f'[==OVERALL SIM STATS==] Median Chunk Size: {median(perf_stats.chunk_sizes):.2f}')
-        logger.info(f'[==OVERALL SIM STATS==] Standard Deviation of Chunk Sizes: {stdev(perf_stats.chunk_sizes):.2f}')
+        logger.info(
+            f'[==OVERALL SIM STATS==] Average Chunk Size: {mean(perf_stats.chunk_sizes):.2f}')
+        logger.info(
+            f'[==OVERALL SIM STATS==] Median Chunk Size: {median(perf_stats.chunk_sizes):.2f}')
+        logger.info(
+            f'[==OVERALL SIM STATS==] Standard Deviation of Chunk Sizes: {stdev(perf_stats.chunk_sizes):.2f}')
         plt.figure(figsize=(10, 4))
         plt.plot(perf_stats.chunk_sizes, marker='o')
         plt.title('Adaptive Chunk Size Over Time')

@@ -654,12 +654,12 @@ def train_ce_multiclass(
 
     scaler = StandardScaler().fit(X)
     Xs = scaler.transform(X)
-    joblib.dump(scaler, outdir / 'scaler_binary.pkl')
+    joblib.dump(scaler, outdir / 'scaler_multi.pkl')
 
     if config.use_pca:
         pca = PCA(n_components=0.95).fit(Xs)
         Xf = pca.transform(Xs)
-        joblib.dump(pca, outdir / 'pca_binary.pkl')
+        joblib.dump(pca, outdir / 'pca_multi.pkl')
     else:
         Xf = Xs
 
@@ -868,9 +868,10 @@ def train_ce_multiclass(
                 'state_dict': model.state_dict(),
                 'input_dim': int(Xf.shape[1]),
                 'dropout': 0.3,
+                "num_classes": int(num_classes),
                 'random_state': RANDOM_STATE,
             },
-            outdir / 'feedforward_model_binary.pt',
+            outdir / 'feedforward_multi.pt',
         )
     else:
         joblib.dump(model, outdir /
