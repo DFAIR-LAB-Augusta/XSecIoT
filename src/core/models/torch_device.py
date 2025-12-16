@@ -1,4 +1,3 @@
-# src/core/torch_device
 """
 torch_device
 ============

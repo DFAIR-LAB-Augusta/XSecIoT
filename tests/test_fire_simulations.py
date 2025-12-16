@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-# ensure src/ on path
 ROOT = Path(__file__).parent.parent
 SRC = ROOT / 'src'
 sys.path.insert(0, str(SRC))
@@ -25,17 +24,16 @@ from src.FIRE.simulations import (  # noqa: E402
 
 class DummyModel:
     def predict(self, X):
-        # always return 0
         return np.zeros(X.shape[0], dtype=int)
 
 
+@pytest.mark.slow
 @pytest.fixture
 def setup_sim_dir(tmp_path):
     """
     Create a mini dataset + pre-trained scaler/pca/model pickles so that
     the simulations functions can load them.
     """
-    # 1) dataset folder + CSV
     ds_dir = tmp_path / 'DATASET'
     ds_dir.mkdir()
     df = pd.DataFrame({
@@ -47,14 +45,12 @@ def setup_sim_dir(tmp_path):
     agg = ds_dir / 'aggregated_data.csv'
     df.to_csv(agg, index=False)
 
-    # 2) train scaler + pca on the two numeric cols
     from sklearn.decomposition import PCA
     from sklearn.preprocessing import StandardScaler
 
     scaler = StandardScaler().fit(df[['f1', 'f2']])
     pca = PCA(n_components=1).fit(scaler.transform(df[['f1', 'f2']]))
 
-    # 3) dump pickles in the expected structure
     bm = tmp_path / 'binary_models' / 'DATASET'
     mm = tmp_path / 'multi_class_models' / 'DATASET'
     bm.mkdir(parents=True)
@@ -86,13 +82,11 @@ def test_preprocess_and_get_name():
     assert 'drop' not in cleaned.columns
     assert not cleaned.isna().any().any()
 
-    # get_dataset_name
     assert _get_dataset_name('/foo/BAR/agg.csv') == 'BAR'
 
 
 def test_process_chunk_preds(setup_sim_dir, tmp_path, monkeypatch):
     agg = setup_sim_dir
-    # switch cwd so _load picks up tmp_path/binary_models etc.
     monkeypatch.chdir(tmp_path)
 
     chunk = pd.read_csv(agg, nrows=2)
@@ -114,7 +108,6 @@ def test_process_chunk_preds(setup_sim_dir, tmp_path, monkeypatch):
     scaler, pca, model = load_simulation_objects(str(agg), 'binary', 'dt')
 
     preds = process_chunk(chunk, drop_cols, scaler, pca, model, model_variant='dt', model_type='binary', threshold=0.5)
-    # DummyModel.predict -> zeros -> 'Benign'
     assert preds == ['Benign', 'Benign']
 
 
@@ -124,7 +117,6 @@ def test_sequential_simulation(setup_sim_dir, tmp_path, monkeypatch):
     preds = sequential_simulation(
         str(agg), model_type='binary', model_variant='dt', chunk_size=2, delay=0, threshold=0.5, isUNSW=False
     )
-    # 3 rows => 3 preds
     assert isinstance(preds, list)
     assert len(preds) == 3
 

@@ -1,5 +1,3 @@
-# src/xseciot_core/adaptive_chunker
-
 """
 Adaptive Chunk Controller
 

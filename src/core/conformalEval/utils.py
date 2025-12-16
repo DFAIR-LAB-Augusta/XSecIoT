@@ -1,4 +1,3 @@
-# src/core/conformalEval/utils
 import copy
 import inspect
 import logging
@@ -35,14 +34,12 @@ def clone_model(model: Any) -> Any:
     Raises:
         ValueError: If cloning fails and a deep copy cannot be created.
     """
-    # 1) Custom clone method
     if hasattr(model, 'clone') and callable(getattr(model, 'clone')):
         try:
             return model.clone()
         except Exception as e:
             logger.debug(f'[clone_model] model.clone() failed: {e!r}')
 
-    # 2) Special handling for XGBClassifier
     if XGBClassifier is not None and isinstance(model, XGBClassifier):
         try:
             params = model.get_params()
@@ -50,15 +47,13 @@ def clone_model(model: Any) -> Any:
         except Exception as e:
             logger.debug(f'[clone_model] XGBClassifier reinit failed: {e!r}')
 
-    # 3) scikit-learn clone (when available/compatible)
     try:
-        from sklearn.base import clone as sk_clone  # type: ignore
+        from sklearn.base import clone as sk_clone
 
         return sk_clone(model)
     except Exception as e:
         logger.debug(f'[clone_model] sklearn.clone failed: {e!r}')
 
-    # 4) Reconstruct via get_params + constructor signature
     if hasattr(model, 'get_params') and callable(getattr(model, 'get_params')):
         try:
             params = model.get_params(deep=True)
@@ -68,7 +63,6 @@ def clone_model(model: Any) -> Any:
         except Exception as e:
             logger.debug(f'[clone_model] get_params reinit failed: {e!r}')
 
-    # 5) Last resort: deepcopy
     try:
         return copy.deepcopy(model)
     except Exception as e:

@@ -1,5 +1,3 @@
-# src.FIRE.preprocessing
-
 import argparse
 import logging
 import os
@@ -52,7 +50,6 @@ def clean_data(data: pd.DataFrame, is_unsw: bool) -> pd.DataFrame:
         }
         missing_cols = required_columns - set(data.columns)
         if missing_cols:
-            # raise ValueError(f"Missing expected UNSW columns: {missing_cols}")
             logger.debug(f'Missing expected UNSW columns when preprocessing: {missing_cols}')
             return data
 
@@ -110,13 +107,6 @@ def clean_data(data: pd.DataFrame, is_unsw: bool) -> pd.DataFrame:
         if 'Unnamed: 0' in data.columns:
             data.rename(columns={'Unnamed: 0': 'id'}, inplace=True)
             data.drop(columns=['id'], inplace=True, errors='ignore')
-        # if 'timestamp' not in data.columns:
-        #     raise ValueError("Missing 'timestamp' column in non-UNSW dataset")
-        # data['timestamp'] = pd.to_datetime(data['timestamp'], errors='coerce', format='%d-%m-%Y %H:%M')
-        # if not pd.api.types.is_datetime64_any_dtype(data.index):
-        #     data['time'] = pd.to_datetime(data['timestamp'])
-        #     data.set_index('time', inplace=True)
-        # Commented out for FIRCE compatibility; req for FIRE
         if not data.index.is_monotonic_increasing:
             data.sort_index(inplace=True)
         data.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -131,7 +121,6 @@ def _aggregate_sessions(data: pd.DataFrame, is_unsw: bool) -> pd.DataFrame:
     - Default: aggregates standard features including subflow and FWD/BWD statistics.
     """
     if is_unsw:
-        # Reset index to access start_time column
         data_reset = data.reset_index()
         session = (
             data_reset.groupby(['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol'])
@@ -218,7 +207,6 @@ def _sliding_window_aggregation(
     For default dataset, simple pandas-based sliding aggregation.
     """
     if is_unsw:
-        # Setup metadata schema
         meta = pd.DataFrame(
             columns=[
                 'start_time',
@@ -289,7 +277,6 @@ def _sliding_window_aggregation(
             window = data[(data.index >= start_time) & (data.index < end_time)]
             if window.empty:
                 return pd.DataFrame(columns=meta.columns).astype(meta.dtypes.to_dict())
-            # compute features
             duration = (window.index.max() - window.index.min()).total_seconds() + 1e-9
             agg = {
                 'start_time': start_time,
@@ -375,7 +362,6 @@ def _merge_aggregated_data(
     if is_unsw:
         print(f'[{time.strftime("%H:%M:%S")}] Starting UNSW merge...', file=sys.stderr)
         t0 = time.time()
-        # Dask-based merge
         s_ddf = dd.from_pandas(sliding_data, npartitions=20)
         sess_ddf = dd.from_pandas(session_data, npartitions=20)
         merged_ddf = s_ddf.merge(sess_ddf, on=['src_ip', 'dst_ip', 'src_port', 'dst_port', 'protocol'], how='left')
@@ -392,7 +378,6 @@ def _merge_aggregated_data(
         print(f'DONE UNSW merge total time: {time.time() - t0:.2f}s', file=sys.stderr)
         return merged
     else:
-        # Pandas-based asof merge
         merged = pd.merge_asof(
             sliding_data.sort_values('start_time'),
             session_data.sort_values('start_time'),

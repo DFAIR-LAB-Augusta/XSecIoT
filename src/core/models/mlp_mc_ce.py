@@ -46,11 +46,9 @@ class MLP_CE_Multiclass(MLP_CE_Base):
         )
         self.num_classes = int(num_classes)
         if self.num_classes < 2:
-            raise ValueError(
-                f'num_classes must be >= 2, got {self.num_classes}')
+            raise ValueError(f'num_classes must be >= 2, got {self.num_classes}')
 
-        self.classes_: Optional[np.ndarray] = None if classes is None else np.asarray(
-            classes, dtype=object)
+        self.classes_: Optional[np.ndarray] = None if classes is None else np.asarray(classes, dtype=object)
         self._class_to_index: Optional[dict[object, int]] = None
 
         self.net = self._build_net(output_dim=self.num_classes)

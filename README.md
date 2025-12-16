@@ -49,7 +49,7 @@ XSecIoT/
 │   │   │   └── conformal_config.toml
 │   │   ├── models/           # MLP/FFN CE models + device helpers
 │   │   ├── adaptive_chunking.py
-│   │   ├── adaptive_sig_ctlr.py
+│   │   ├── adaptive_significance_controller.py
 │   │   ├── circular_logger.py
 │   │   ├── rolling_csv.py
 │   │   └── perf_stats.py
@@ -113,7 +113,7 @@ That’s it—FIRCE will load from `datasets/`, run the streaming CE pipeline, a
 ## 🔧 Configuration Tips
 
 * **Conformal Evaluators & thresholds:** edit `src/core/conformalEval/conformal_config.toml` to switch CE type (ICE/CCE/Approx-CCE/TCE), calibration window sizes, p-value thresholds, etc.
-* **Adaptive behavior:** tune `adaptive_chunking.py` and `adaptive_sig_ctlr.py` parameters if you need different responsiveness.
+* **Adaptive behavior:** tune `adaptive_chunking.py` and `adaptive_significance_controller.py` parameters if you need different responsiveness.
 * **Hardware selection:** `src/core/models/torch_device.py` auto-selects device; override via env var if needed.
 
 ---

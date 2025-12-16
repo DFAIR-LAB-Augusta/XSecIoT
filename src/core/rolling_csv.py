@@ -1,4 +1,3 @@
-# src/core/rolling_csv
 """
 Rolling Log Utility for Streaming Simulations
 
@@ -98,9 +97,7 @@ class RollingCSV:
             self.flush()
 
         if self.count >= self.max_rows:
-            logger.debug(
-                'Max row count exceeded (%d); truncating...', self.max_rows
-            )  # Displaying this log message can be noisy
+            logger.debug('Max row count exceeded (%d); truncating...', self.max_rows)
             self._truncate_to_last_n(self.max_rows)
 
     def flush(self) -> None:
@@ -142,9 +139,7 @@ class RollingCSV:
         df.to_csv(tmp, index=False, compression='gzip')
         shutil.move(tmp, self.path)
         self.count = len(df)
-        logger.debug(
-            'Truncated log to last %d rows in %.4fs', n, time.perf_counter() - t0
-        )  # Displaying this log message can be noisy
+        logger.debug('Truncated log to last %d rows in %.4fs', n, time.perf_counter() - t0)
 
     def close(self) -> None:
         """

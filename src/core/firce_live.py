@@ -1,5 +1,3 @@
-# src.core.streaming_pipeline
-
 """
 TODO: FIX lol
 """
@@ -25,6 +23,7 @@ from src.FIRE.simulations import load_simulation_objects, preprocess_chunk, proc
 
 logger = logging.getLogger(__name__)
 
+raise NotImplementedError('This needs fixing')
 # --- Configuration ---
 MODEL_TYPE = 'binary'
 MODEL_VARIANT = 'feedforward'

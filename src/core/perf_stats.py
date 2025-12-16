@@ -1,4 +1,3 @@
-# src/core/perf_stats
 import logging
 
 from dataclasses import dataclass, field

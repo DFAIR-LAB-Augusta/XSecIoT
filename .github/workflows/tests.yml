@@ -2,7 +2,9 @@ name: tests
 
 on:
   push:
-    branches: ["**"]
+    branches: 
+      - main
+      - FIRCE-MC
   pull_request:
 
 permissions:

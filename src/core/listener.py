@@ -1,4 +1,3 @@
-# src/core/listener.py
 import io
 import logging
 
@@ -9,7 +8,7 @@ from flask import Flask, request
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-data_callback = None  # This will be set externally
+data_callback = None
 
 
 @app.route('/', methods=['POST'])
@@ -19,7 +18,6 @@ def receive_csv():
         df = pd.read_csv(io.StringIO(csv_data))
         logging.info('Received CSV data:')
 
-        # If a processing callback is set, call it
         if data_callback:
             data_callback(df)
 

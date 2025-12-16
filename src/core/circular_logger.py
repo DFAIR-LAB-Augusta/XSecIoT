@@ -1,4 +1,3 @@
-# src/core/circular_logger.py
 """
 In-memory circular logger for simulation logs.
 

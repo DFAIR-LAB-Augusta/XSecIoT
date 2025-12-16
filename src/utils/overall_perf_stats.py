@@ -1,4 +1,3 @@
-# src/utils/perf_stats_ce_only_plots.py
 """
 Classifier dashboards: 5x4 grid of CE + Classifier metrics per classifier.
 

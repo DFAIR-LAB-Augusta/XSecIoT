@@ -1,4 +1,3 @@
-# src.core.conformalEval.cce
 """
 Cross Conformal Evaluator (CCE) Module
 
@@ -29,7 +28,7 @@ from scipy.stats import mode
 from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 from sklearn.model_selection import StratifiedKFold
 
-from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from src.core.conformalEval.adaptive_significance_controller import AdaptiveSignificanceController
 from src.core.conformalEval.utils import (
     clone_model,
     compute_class_thresholds,

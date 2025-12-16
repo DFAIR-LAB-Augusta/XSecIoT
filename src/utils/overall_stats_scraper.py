@@ -1,4 +1,3 @@
-# src/utils/overall_stats_scraper
 import logging
 import os
 import re

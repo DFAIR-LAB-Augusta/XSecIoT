@@ -46,7 +46,7 @@ from src.core.adaptive_chunking import AdaptiveChunkController
 from src.core.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
 from src.core.circular_logger import CircularDequeLogger
 from src.core.config import CEType, ModelType, ModelVariant, SimulationConfig
-from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from src.core.conformalEval.adaptive_significance_controller import AdaptiveSignificanceController
 from src.core.conformalEval.approx_cce import ApproxCrossConformalEvaluator
 from src.core.conformalEval.cce import CrossConformalEvaluator
 from src.core.conformalEval.conformal_evaluators import ConformalEvaluator
@@ -990,7 +990,8 @@ def _predict_row(
         out = int(np.asarray(pred).reshape(-1)[0])
         logger.debug(f'[predict_row][sk] pred={out}')
         return out
-
+    elif hasattr(model, 'predict_proba'):
+        return model.p1 >= 0.5  # type: ignore
     raise TypeError(f'Unsupported model type for prediction: {type(model)}')
 
 
@@ -1131,6 +1132,10 @@ def _retrain(
     return scaler, pca, model, ce
 
 
+def _safe_stdev(values: list[float] | list[int]) -> float:
+    return float(stdev(values)) if len(values) >= 2 else 0.0
+
+
 def _log_results(config: SimulationConfig, overall: float, perf_stats: PerformanceStats) -> None:
     """
     Log and visualize overall simulation metrics for CE-based drift detection.
@@ -1154,6 +1159,7 @@ def _log_results(config: SimulationConfig, overall: float, perf_stats: Performan
           in the appropriate logging subdirectory.
         - Logs all summary statistics to the configured logging handler.
     """
+
     logger.info(f'[==OVERALL SIM STATS==] Total simulate time: {time.perf_counter() - overall:.4f}s')
     logger.info(f'Full performance stats: {perf_stats = }')
     logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
@@ -1314,7 +1320,9 @@ def _log_results(config: SimulationConfig, overall: float, perf_stats: Performan
     if perf_stats.chunk_sizes and config.use_adaptive_chunking:
         logger.info(f'[==OVERALL SIM STATS==] Average Chunk Size: {mean(perf_stats.chunk_sizes):.2f}')
         logger.info(f'[==OVERALL SIM STATS==] Median Chunk Size: {median(perf_stats.chunk_sizes):.2f}')
-        logger.info(f'[==OVERALL SIM STATS==] Standard Deviation of Chunk Sizes: {stdev(perf_stats.chunk_sizes):.2f}')
+        logger.info(
+            f'[==OVERALL SIM STATS==] Standard Deviation of Chunk Sizes: {_safe_stdev(perf_stats.chunk_sizes):.2f}'
+        )
         plt.figure(figsize=(10, 4))
         plt.plot(perf_stats.chunk_sizes, marker='o')
         plt.title('Adaptive Chunk Size Over Time')
@@ -1350,7 +1358,7 @@ def _summarize_timings(name: str, times: list[float]) -> None:
         return
     logger.info(
         f'[==OVERALL SIM STATS==] {name} — Count: {len(times)} | Mean: {mean(times):.4f}s | '
-        f'Median: {median(times):.4f}s | Std: {stdev(times):.4f}s | '
+        f'Median: {median(times):.4f}s | Std: {_safe_stdev(times):.4f}s | '
         f'Min: {min(times):.4f}s | Max: {max(times):.4f}s'
     )
 

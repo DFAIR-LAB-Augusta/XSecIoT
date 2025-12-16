@@ -1,5 +1,3 @@
-# src.FIRE.models
-
 import argparse
 import logging
 import os
@@ -66,9 +64,7 @@ def _explain_with_shap(
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X_sample)
     else:
-        explainer = shap.KernelExplainer(
-            lambda x: model.predict_proba(x), X_sample
-        )  # Nparray wrapped to avoid TypeErrors
+        explainer = shap.KernelExplainer(lambda x: model.predict_proba(x), X_sample)
         shap_values = explainer.shap_values(X_sample)
 
     if isinstance(shap_values, list) and len(shap_values) > 1:
@@ -136,17 +132,13 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     multiple binary classifiers using the 'BinLabel' column as the target.
     Trained models and transformation objects are saved in the 'binary_models' folder.
     """
-    print(
-        f'Agg Data Path: {aggregated_file}'
-    )  # caffeinate python3 -m FIRE.main datasets/CIC_UNSW/NF-CICIDS2018-v3.csv --unsw --window_size 3s --step_size 5s >> output/WS3_SS5/CICtest.txt  # noqa: E501
+    print(f'Agg Data Path: {aggregated_file}')
     data = pd.read_csv(aggregated_file)
     print(f'IsUNSW: {isUNSW}', file=sys.stderr, flush=True)
 
-    # For UNSW runs, the dataset already has a binary 'Label' (Benign vs Attack)
     if isUNSW:
         data['BinLabel'] = data['Label']
 
-    # Otherwise derive BinLabel if needed
     if 'BinLabel' not in data.columns and 'Label' in data.columns:
         data['BinLabel'] = data['Label'].apply(lambda x: 0 if x == 'Benign' else 1)
     X = data.drop(
@@ -194,8 +186,6 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
         X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
         feature_names = X.columns.tolist()
 
-    # ------------------
-    # Random Forest
     print('Starting Random Forest', file=sys.stderr, flush=True)
     rf = RandomForestClassifier(random_state=42)
     if isPCA:
@@ -210,8 +200,6 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     print('Random Forest Classification Report:')
     print(classification_report(y_test, y_pred, target_names=['Benign', 'Attack']))
 
-    # ------------------
-    # K-Nearest Neighbors
     print('Starting KNN', file=sys.stderr, flush=True)
     knn = KNeighborsClassifier(n_neighbors=5)
     if isPCA:
@@ -226,8 +214,6 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     print('KNN Classification Report:')
     print(classification_report(y_test, y_pred_knn, target_names=['Benign', 'Attack']))
 
-    # ------------------
-    # Decision Tree
     print('Starting DT', file=sys.stderr, flush=True)
     dt = DecisionTreeClassifier(random_state=42)
     if isPCA:
@@ -242,11 +228,8 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     print('Decision Tree Classification Report:')
     print(classification_report(y_test, y_pred_dt, target_names=['Benign', 'Attack']))
 
-    # ------------------
-    # Support Vector Machine
     print('Starting SVM', file=sys.stderr, flush=True)
     svm = SVC(kernel='poly', C=1, random_state=0, probability=True)
-    # svm = SVC(kernel='linear', C=1, random_state=0, probability=True) # Testing w/ liberal
     if isPCA:
         cv_scores = cross_val_score(svm, X_pca, y, cv=5, scoring='accuracy')  # type: ignore
     else:
@@ -259,8 +242,6 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     print('SVM Classification Report:')
     print(classification_report(y_test, y_pred_svm, target_names=['Benign', 'Attack']))
 
-    # ------------------
-    # XGBoost
     print('Starting XGBoost', file=sys.stderr, flush=True)
     dtrain = xgb.DMatrix(X_train, label=y_train, feature_names=[f'f_{i}' for i in range(X_train.shape[1])])
     params = {'objective': 'binary:logistic', 'learning_rate': 0.1, 'max_depth': 8, 'random_state': 42}
@@ -274,8 +255,6 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     print('XGBoost Classification Report:')
     print(classification_report(y_test, y_pred_xgb, target_names=['Benign', 'Attack']))
 
-    # ------------------
-    # Feedforward Neural Network
     print('Starting FNN', file=sys.stderr, flush=True)
     feedforward_model_bin = Sequential([
         Input(shape=(X_train.shape[1],)),
@@ -315,7 +294,6 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     )
 
     xgb_sklearn_model = xgb.XGBClassifier()
-    # needed because current xgb_model is native API
     xgb_sklearn_model.fit(X_train, y_train)
     _explain_with_shap(
         xgb_sklearn_model,
@@ -359,16 +337,6 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
         knn, X_train, X_test, feature_names, class_names, outputPath=xai_output_dir, output_prefix='knn_binary'
     )
 
-    # try: # SHAP for Neural Net (DeepExplainer requires raw input)
-    #     import shap
-    #     from shap import DeepExplainer
-    #     explainer = DeepExplainer(feedforward_model_bin, X_train[:100])
-    #     shap_values = explainer.shap_values(X_test[:10])
-    #     shap.summary_plot(shap_values, X_test[:10], show=False, feature_names=X.columns.tolist())
-    #     plt.savefig(os.path.join(xai_output_dir, "fnn_binary_summary.png"))
-    # except Exception as e:
-    #     print("FNN SHAP explanation failed:", e)
-
     joblib.dump(rf, os.path.join(binary_models_dir, 'rf_model_binary.pkl'))
     joblib.dump(knn, os.path.join(binary_models_dir, 'knn_model_binary.pkl'))
     joblib.dump(dt, os.path.join(binary_models_dir, 'dt_model_binary.pkl'))
@@ -377,7 +345,13 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     joblib.dump(feedforward_model_bin, os.path.join(binary_models_dir, 'feedforward_model_binary.pkl'))
     joblib.dump(scaler, os.path.join(binary_models_dir, 'scaler_binary.pkl'))
     if isPCA:
-        joblib.dump(pca, os.path.join(binary_models_dir, 'pca_binary.pkl'))  # type: ignore
+        joblib.dump(
+            pca,  # type: ignore
+            os.path.join(
+                binary_models_dir,
+                'pca_binary.pkl',
+            ),
+        )
     print('Binary models and transformation objects saved in', binary_models_dir)
 
 
@@ -432,8 +406,8 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
         X1_final = X1_pca
     else:
         X1_final = X1_scaled
+        X1_pca = X1
 
-    # ----- Random Forest (Multi) -----
     print('Starting RF Multiclass', file=sys.stderr, flush=True)
     rf_multi = RandomForestClassifier(random_state=42)
     if isPCA:
@@ -443,7 +417,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     print(f'Random Forest (multi) CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})')
     if isPCA:
         X_train_multi, X_test_multi, y_train_multi, y_test_multi = train_test_split(
-            X1_pca,
+            X1_pca,  # type: ignore
             y1,
             test_size=0.2,
             random_state=42,  # type: ignore
@@ -459,7 +433,6 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     print('RF (multi) Classification Report:')
     print(classification_report(y_test_multi, y_pred_rf, labels=multiclassLabels, target_names=multiclassLabels))
 
-    # ----- K-Nearest Neighbors (Multi) -----
     print('Starting KNN Multiclass', file=sys.stderr, flush=True)
     knn_multi = KNeighborsClassifier(n_neighbors=4)
     if isPCA:
@@ -474,7 +447,6 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     print('KNN (multi) Classification Report:')
     print(classification_report(y_test_multi, y_pred_knn_multi, labels=multiclassLabels, target_names=multiclassLabels))
 
-    # ----- Decision Tree (Multi) -----
     print('Starting DT Multiclass', file=sys.stderr, flush=True)
     dt_multi = DecisionTreeClassifier(max_depth=54)
     if isPCA:
@@ -489,7 +461,6 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     print('Decision Tree (multi) Classification Report:')
     print(classification_report(y_test_multi, y_pred_dt, labels=multiclassLabels, target_names=multiclassLabels))
 
-    # ----- SVM (Multi) -----
     print('Starting SVM Multiclass', file=sys.stderr, flush=True)
     svm_multi = SVC(kernel='rbf', C=1, gamma=0.1, random_state=0, probability=True)
     if isPCA:
@@ -504,13 +475,12 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     print('SVM (multi) Classification Report:')
     print(classification_report(y_test_multi, y_pred_svm_multi, labels=multiclassLabels, target_names=multiclassLabels))
 
-    # ----- XGBoost (Multi) -----
     print('Starting XGBoost Multiclass', file=sys.stderr, flush=True)
     label_encoder = LabelEncoder()
     y1_encoded = label_encoder.fit_transform(y1)
     if isPCA:
         X_train_multi, X_test_multi, y_train_multi, y_test_multi = train_test_split(
-            X1_pca,
+            X1_pca,  # type: ignore
             y1_encoded,
             test_size=0.2,
             random_state=42,  # type: ignore
@@ -542,12 +512,11 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     print('XGBoost (multi) Confusion Matrix:')
     print(confusion_matrix(y_test_labels, y_pred_labels, labels=present_labels))
 
-    # ----- Feedforward Neural Network (Multi) -----
     print('Starting FNN Multiclass', file=sys.stderr, flush=True)
     y1_encoded = label_encoder.fit_transform(y1)
     y1_categorical = to_categorical(y1_encoded)
     X_train_nn, X_test_nn, y_train_nn, y_test_nn = train_test_split(
-        X1_pca,
+        X1_pca,  # type: ignore
         y1_categorical,
         test_size=0.2,
         random_state=42,  # type: ignore
@@ -567,7 +536,6 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     y_pred_proba = feedforward_model.predict(X_test_nn)
     y_pred_ff = np.argmax(y_pred_proba, axis=1)
     y_test_ff = np.argmax(y_test_nn, axis=1)
-    # Dynamically compute target names from the test labels.
     target_names_ff = sorted(np.unique(y_test_ff.astype(str)))
     print('Feedforward NN (multi) Confusion Matrix:')
     print(confusion_matrix(y_test_ff, y_pred_ff))
@@ -660,14 +628,6 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
         output_prefix='knn_multi',
     )
 
-    # try:
-    #     explainer = shap.DeepExplainer(feedforward_model, X_train_nn[:100])
-    #     shap_values = explainer.shap_values(X_test_nn[:10])
-    #     shap.summary_plot(shap_values[0], X_test_nn[:10], show=False)
-    #     plt.savefig(os.path.join(xai_output_dir, "fnn_multi_summary.png"))
-    # except Exception as e:
-    #     print("FNN (multi) SHAP explanation failed:", e)
-
     joblib.dump(rf_multi, os.path.join(multi_models_dir, 'random_forest_multi.pkl'))
     joblib.dump(knn_multi, os.path.join(multi_models_dir, 'knearest_multi.pkl'))
     joblib.dump(dt_multi, os.path.join(multi_models_dir, 'decision_tree_multi.pkl'))
@@ -676,7 +636,13 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     joblib.dump(feedforward_model, os.path.join(multi_models_dir, 'feedforward_multi.pkl'))
     joblib.dump(scaler1, os.path.join(multi_models_dir, 'scaler_multi.pkl'))
     if isPCA:
-        joblib.dump(pca1, os.path.join(multi_models_dir, 'pca_multi.pkl'))  # type: ignore
+        joblib.dump(
+            pca1,  # type: ignore
+            os.path.join(
+                multi_models_dir,
+                'pca_multi.pkl',
+            ),
+        )
     print('Multi-class models and transformation objects saved in', multi_models_dir)
 
 

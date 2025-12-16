@@ -1,4 +1,3 @@
-# src/core/ce_model_training
 """
 CE Model Training Utilities
 

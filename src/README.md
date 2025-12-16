@@ -37,7 +37,7 @@ The **production-style** pipeline that ingests CICFlowMeter-style flows, classif
 
   * `ice.py`, `cce.py`, `tce.py`, `approx_cce.py` — CE variants
   * `conformal_evaluators.py` — unified interfaces/wrappers
-  * `adaptive_sig_ctlr.py` — adaptive significance controller (threshold adaptation)
+  * `adaptive_significance_controller.py` — adaptive significance controller (threshold adaptation)
   * `utils.py` — CE helpers (calibration windows, p-values, etc.)
   * `conformal_config.toml` — CE configuration (e.g., evaluator, windows, thresholds)
 

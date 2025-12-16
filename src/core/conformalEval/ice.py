@@ -1,4 +1,3 @@
-# src.core.conformalEval.ice
 """
 Inductive Conformal Evaluator (ICE) Module
 
@@ -26,7 +25,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 
-from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from src.core.conformalEval.adaptive_significance_controller import AdaptiveSignificanceController
 from src.core.conformalEval.utils import (
     compute_class_thresholds,
     compute_nonconformity_scores,

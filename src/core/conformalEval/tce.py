@@ -1,4 +1,3 @@
-# src.core.conformalEval.tce
 """
 Approximate Transductive Conformal Evaluator (TCE)
 
@@ -12,7 +11,6 @@ Classes:
       the full training set as pseudo-calibration data.
 """
 
-# src.core.conformalEval.approx_cce
 import logging
 
 from typing import Any, Dict, Optional
@@ -21,7 +19,7 @@ import numpy as np
 
 from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 
-from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from src.core.conformalEval.adaptive_significance_controller import AdaptiveSignificanceController
 from src.core.conformalEval.utils import compute_p_values, load_conformal_config
 from src.core.perf_stats import PerformanceStats
 

@@ -21,10 +21,10 @@ def _clamp_threads_for_tests() -> None:
     Helps avoid rare segfaults on macOS due to native-thread oversubscription
     (OpenMP/MKL/Accelerate) when running many tests quickly.
     """
-    os.environ.setdefault("OMP_NUM_THREADS", "1")
-    os.environ.setdefault("MKL_NUM_THREADS", "1")
-    os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
-    os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
+    os.environ.setdefault('OMP_NUM_THREADS', '1')
+    os.environ.setdefault('MKL_NUM_THREADS', '1')
+    os.environ.setdefault('VECLIB_MAXIMUM_THREADS', '1')
+    os.environ.setdefault('NUMEXPR_NUM_THREADS', '1')
     try:
         torch.set_num_threads(1)
     except Exception:
@@ -36,7 +36,7 @@ def test_mlp_ce_binary_fit_predict_proba_shapes() -> None:
     _clamp_threads_for_tests()
 
     X, y = _toy_bin()
-    dev = torch.device("cpu")
+    dev = torch.device('cpu')
 
     m = MLP_CE_Binary(
         input_dim=X.shape[1],
@@ -70,7 +70,7 @@ def test_mlp_ce_binary_save_load_roundtrip(tmp_path: pytest.TempPathFactory) -> 
     _clamp_threads_for_tests()
 
     X, y = _toy_bin()
-    dev = torch.device("cpu")
+    dev = torch.device('cpu')
 
     m = MLP_CE_Binary(
         input_dim=X.shape[1],
@@ -88,7 +88,7 @@ def test_mlp_ce_binary_save_load_roundtrip(tmp_path: pytest.TempPathFactory) -> 
 
 def test_mlp_ce_binary_prepare_y_shape_dtype() -> None:
     _clamp_threads_for_tests()
-    m = MLP_CE_Binary(input_dim=4, device=torch.device("cpu"), epochs=1)
+    m = MLP_CE_Binary(input_dim=4, device=torch.device('cpu'), epochs=1)
 
     y = np.array([0, 1, 1, 0], dtype=np.int32)
     y2 = m._prepare_y(y)
@@ -100,7 +100,7 @@ def test_mlp_ce_binary_prepare_y_shape_dtype() -> None:
 
 def test_mlp_ce_binary_logits_to_proba_sums_to_one() -> None:
     _clamp_threads_for_tests()
-    m = MLP_CE_Binary(input_dim=4, device=torch.device("cpu"), epochs=1)
+    m = MLP_CE_Binary(input_dim=4, device=torch.device('cpu'), epochs=1)
 
     logits = torch.tensor([[-10.0], [0.0], [10.0]], dtype=torch.float32)
     proba = m._logits_to_proba(logits)
@@ -113,13 +113,12 @@ def test_mlp_ce_binary_logits_to_proba_sums_to_one() -> None:
 
 def test_mlp_ce_binary_predict_threshold_override(monkeypatch) -> None:
     _clamp_threads_for_tests()
-    m = MLP_CE_Binary(input_dim=4, device=torch.device(
-        "cpu"), threshold=0.5, epochs=1)
+    m = MLP_CE_Binary(input_dim=4, device=torch.device('cpu'), threshold=0.5, epochs=1)
 
     def _fake_predict_proba(*args, **kwargs):
         return np.array([[0.4, 0.6], [0.6, 0.4]], dtype=np.float32)
 
-    monkeypatch.setattr(m, "predict_proba", _fake_predict_proba)
+    monkeypatch.setattr(m, 'predict_proba', _fake_predict_proba)
 
     pred_default = m.predict(np.zeros((2, 4), dtype=np.float32))
     assert pred_default.tolist() == [1, 0]
@@ -130,7 +129,7 @@ def test_mlp_ce_binary_predict_threshold_override(monkeypatch) -> None:
 
 def test_mlp_ce_binary_get_params_and_clone() -> None:
     _clamp_threads_for_tests()
-    dev = torch.device("cpu")
+    dev = torch.device('cpu')
 
     m = MLP_CE_Binary(
         input_dim=6,
@@ -145,14 +144,14 @@ def test_mlp_ce_binary_get_params_and_clone() -> None:
     )
 
     params = m.get_params()
-    assert params["input_dim"] == 6
-    assert params["widths"] == (16, 8)
-    assert params["p_drop"] == 0.1
-    assert params["threshold"] == 0.6
-    assert params["epochs"] == 3
-    assert params["batch_size"] == 32
-    assert params["random_state"] == 123
-    assert params["device"] == dev
+    assert params['input_dim'] == 6
+    assert params['widths'] == (16, 8)
+    assert params['p_drop'] == 0.1
+    assert params['threshold'] == 0.6
+    assert params['epochs'] == 3
+    assert params['batch_size'] == 32
+    assert params['random_state'] == 123
+    assert params['device'] == dev
 
     m2 = m.clone()
     assert m2.input_dim == m.input_dim

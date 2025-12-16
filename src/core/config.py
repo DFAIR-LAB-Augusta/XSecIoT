@@ -1,4 +1,3 @@
-# src/core/config
 """Pydantic-based configuration for CE simulation and training.
 
 This module defines enums for model type, model variant, and conformal
@@ -19,7 +18,7 @@ from typing import Any, Dict
 
 import torch
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
 
 from src.core.models.torch_device import pick_device
 
@@ -90,24 +89,15 @@ class AdaptiveChunkConfig(BaseModel):
             raise ValueError('ema_decay must be in [0, 1]')
         return value
 
-    @field_validator('max_chunk_size')
-    @classmethod
-    def _max_ge_min(cls, value: int, info) -> int:
-        """Validate that `max_chunk_size` is not smaller than `min_chunk_size`."""
-        min_value = info.data.get('min_chunk_size', 1)
-        if value < min_value:
+    @model_validator(mode='after')
+    def _cross_field_checks(self) -> 'AdaptiveChunkConfig':
+        if self.max_chunk_size < self.min_chunk_size:
             raise ValueError('max_chunk_size must be >= min_chunk_size')
-        return value
 
-    @field_validator('init_chunk_size')
-    @classmethod
-    def _init_between_bounds(cls, value: int, info) -> int:
-        """Validate that `init_chunk_size` lies within [min_chunk_size, max_chunk_size]."""
-        min_value = info.data.get('min_chunk_size', 1)
-        max_value = info.data.get('max_chunk_size', 1000)
-        if not (min_value <= value <= max_value):
+        if not (self.min_chunk_size <= self.init_chunk_size <= self.max_chunk_size):
             raise ValueError('init_chunk_size must be within [min_chunk_size, max_chunk_size]')
-        return value
+
+        return self
 
 
 class SimulationConfig(BaseModel):

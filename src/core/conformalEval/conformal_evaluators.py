@@ -1,4 +1,3 @@
-# src.core.conformalEval.conformal_evaluators
 """
 Unified Conformal Evaluation Interface
 
@@ -30,7 +29,7 @@ import numpy as np
 import pandas as pd
 
 from src.core.config import CEType
-from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from src.core.conformalEval.adaptive_significance_controller import AdaptiveSignificanceController
 from src.core.conformalEval.approx_cce import ApproxCrossConformalEvaluator as _ApproxCCEImpl
 from src.core.conformalEval.cce import CrossConformalEvaluator as _CCEImpl
 from src.core.conformalEval.ice import InductiveConformalEvaluator as _ICEImpl
@@ -51,7 +50,7 @@ class ConformalEvaluatorFactory:
     @staticmethod
     def create(
         evaluator_type: CEType,
-        model: str,
+        model: Any,
         significance_controller: Optional[AdaptiveSignificanceController] = None,
         **kwargs,
     ) -> _ICEImpl | _CCEImpl | _ApproxTCEImpl | _ApproxCCEImpl:
@@ -199,7 +198,7 @@ class ConformalEvaluator:
         # Case 3: 1D p-value array (binary only)
         if isinstance(p_values, np.ndarray) and p_values.ndim == 1:
             logger.debug('Case 3: Detected structured p_values in 1D p-value array (binary only) format.')
-            pval = p_values
+            pval = float(np.asarray(p_values).reshape(-1)[0])
             if self.significance_controller:
                 pred_class = list(self.thresholds.keys())[0]  # fallback
                 self.significance_controller.update(np.array([pred_class]), np.array([pval]))
