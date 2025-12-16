@@ -28,10 +28,8 @@ np.random.seed(42)
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description='Run simulation pipeline for FIRE process (Step 3)')
-    parser.add_argument('aggregated_file', type=str,
-                        help='Path to aggregated_data.csv')
+    parser = argparse.ArgumentParser(description='Run simulation pipeline for FIRE process (Step 3)')
+    parser.add_argument('aggregated_file', type=str, help='Path to aggregated_data.csv')
     parser.add_argument(
         '--mode',
         type=str,
@@ -39,23 +37,16 @@ def _parse_args() -> argparse.Namespace:
         choices=['sequential', 'continuous', 'parallel'],
         help='Simulation mode',
     )
-    parser.add_argument('--model_type', type=str, default='binary',
-                        choices=['binary', 'multi'], help='Model type')
+    parser.add_argument('--model_type', type=str, default='binary', choices=['binary', 'multi'], help='Model type')
     parser.add_argument(
         '--model_variant', type=str, default='dt', help='Model variant: dt, knn, rf, svm, feedforward, xgb'
     )
-    parser.add_argument('--chunk_size', type=int,
-                        default=1000, help='Chunk size')
-    parser.add_argument('--delay', type=float, default=1.0,
-                        help='Delay between chunks (s)')
-    parser.add_argument('--window_duration', type=int,
-                        default=300, help='Window duration (s)')
-    parser.add_argument('--num_processes', type=int,
-                        default=4, help='Processes for parallel mode')
-    parser.add_argument('--threshold', type=float, default=0.5,
-                        help='Threshold for probabilistic models')
-    parser.add_argument('--unsw', action='store_true',
-                        help='UNSW dataset mode')
+    parser.add_argument('--chunk_size', type=int, default=1000, help='Chunk size')
+    parser.add_argument('--delay', type=float, default=1.0, help='Delay between chunks (s)')
+    parser.add_argument('--window_duration', type=int, default=300, help='Window duration (s)')
+    parser.add_argument('--num_processes', type=int, default=4, help='Processes for parallel mode')
+    parser.add_argument('--threshold', type=float, default=0.5, help='Threshold for probabilistic models')
+    parser.add_argument('--unsw', action='store_true', help='UNSW dataset mode')
     return parser.parse_args()
 
 
@@ -107,8 +98,7 @@ def load_simulation_objects(
         scaler_file = os.path.join(base, 'scaler_binary.pkl')
         pca_file = os.path.join(base, 'pca_binary.pkl')
         if model_variant != 'feedforward':
-            model_file = os.path.join(
-                base, f'{model_variant}_model_binary.pkl')
+            model_file = os.path.join(base, f'{model_variant}_model_binary.pkl')
         else:
             model_file = os.path.join(base, 'feedforward_model_binary.pt')
     else:
@@ -124,8 +114,7 @@ def load_simulation_objects(
             'xgb': 'xgboost_multi.pkl',
         }
         if model_variant not in mapping:
-            raise ValueError(
-                f'Unsupported multi-class variant: {model_variant}')
+            raise ValueError(f'Unsupported multi-class variant: {model_variant}')
         model_file = os.path.join(base, mapping[model_variant])
 
     scaler = joblib.load(scaler_file)
@@ -136,24 +125,22 @@ def load_simulation_objects(
 
     device = pick_device()
 
-    logger.debug(f"Loading Torch checkpoint from {model_file} to CPU")
-    ckpt = torch.load(model_file, map_location="cpu")
+    logger.debug(f'Loading Torch checkpoint from {model_file} to CPU')
+    ckpt = torch.load(model_file, map_location='cpu')
 
-    input_dim = int(ckpt["input_dim"])
-    p_drop = float(ckpt.get("dropout", 0.3))
-    state_dict = ckpt["state_dict"]
+    input_dim = int(ckpt['input_dim'])
+    p_drop = float(ckpt.get('dropout', 0.3))
+    state_dict = ckpt['state_dict']
 
-    if model_type == "binary":
-        logger.debug(
-            f"Rebuilding FeedForwardBinary(input_dim={input_dim}, p_drop={p_drop})")
+    if model_type == 'binary':
+        logger.debug(f'Rebuilding FeedForwardBinary(input_dim={input_dim}, p_drop={p_drop})')
         torch_model = FeedForwardBinary(input_dim=input_dim, p_drop=p_drop)
     else:
-        num_classes = int(ckpt["num_classes"])
+        num_classes = int(ckpt['num_classes'])
         logger.debug(
-            f"Rebuilding FeedForwardMulticlass(input_dim={input_dim}, num_classes={num_classes}, p_drop={p_drop})"
+            f'Rebuilding FeedForwardMulticlass(input_dim={input_dim}, num_classes={num_classes}, p_drop={p_drop})'
         )
-        torch_model = FeedForwardMulticlass(
-            input_dim=input_dim, num_classes=num_classes, p_drop=p_drop)
+        torch_model = FeedForwardMulticlass(input_dim=input_dim, num_classes=num_classes, p_drop=p_drop)
 
     torch_model.load_state_dict(state_dict, strict=True)
     missing, unexpected = torch_model.load_state_dict(state_dict, strict=False)
@@ -200,8 +187,7 @@ def process_chunk(
         LList[int | str]: List of predicted labels or class indices.
     """
     # 1) preprocess & select numeric
-    X_df = preprocess_chunk(
-        chunk, drop_cols).select_dtypes(include=[np.number])
+    X_df = preprocess_chunk(chunk, drop_cols).select_dtypes(include=[np.number])
 
     # 2) align columns to scaler.feature_names_in_
     if hasattr(scaler, 'feature_names_in_'):
@@ -267,8 +253,7 @@ def sequential_simulation(
     if isUNSW:
         drop_cols += ['start_time_x', 'start_time_y']
 
-    scaler, pca, model = load_simulation_objects(
-        aggregated_file, model_type, model_variant)
+    scaler, pca, model = load_simulation_objects(aggregated_file, model_type, model_variant)
     all_preds = []
     t0 = time.time()
 
@@ -323,8 +308,7 @@ def continuous_simulation(
     if isUNSW:
         drop_cols += ['start_time_x', 'start_time_y']
 
-    scaler, pca, model = load_simulation_objects(
-        aggregated_file, model_type, model_variant)
+    scaler, pca, model = load_simulation_objects(aggregated_file, model_type, model_variant)
     window_df = pd.DataFrame()
     all_true, all_preds, latencies = [], [], []
     t0 = time.time()
@@ -335,28 +319,23 @@ def continuous_simulation(
 
         # update window
         window_df = pd.concat([window_df, chunk])
-        window_df['end_time_x'] = pd.to_datetime(
-            window_df['end_time_x'], errors='coerce')
+        window_df['end_time_x'] = pd.to_datetime(window_df['end_time_x'], errors='coerce')
         latest = window_df['end_time_x'].max()
-        window_df = window_df[window_df['end_time_x'] >=
-                              latest - pd.Timedelta(seconds=window_duration)]
+        window_df = window_df[window_df['end_time_x'] >= latest - pd.Timedelta(seconds=window_duration)]
 
         # ensure binary label
         if model_type == 'binary':
             if 'BinLabel' not in window_df:
-                window_df['BinLabel'] = window_df['Label'].map(
-                    {'Benign': 0, 'Attack': 1})
+                window_df['BinLabel'] = window_df['Label'].map({'Benign': 0, 'Attack': 1})
             else:
                 na = window_df['BinLabel'].isna()
                 if na.any():
-                    window_df.loc[na, 'BinLabel'] = window_df.loc[na, 'Label'].map(
-                        {'Benign': 0, 'Attack': 1})
+                    window_df.loc[na, 'BinLabel'] = window_df.loc[na, 'Label'].map({'Benign': 0, 'Attack': 1})
 
         print('Window snapshot:\n', window_df.head())
 
         # preprocess & align
-        X_df = window_df.drop(columns=drop_cols, errors='ignore').select_dtypes(
-            include=[np.number])
+        X_df = window_df.drop(columns=drop_cols, errors='ignore').select_dtypes(include=[np.number])
         if X_df.isna().any().any():
             X_df = X_df.fillna(X_df.mean()).dropna()
         if X_df.empty:
@@ -415,10 +394,9 @@ def parallel_simulation(
     if isUNSW:
         drop_cols += ['start_time_x', 'start_time_y']
 
-    scaler, pca, model = load_simulation_objects(
-        aggregated_file, model_type, model_variant)
+    scaler, pca, model = load_simulation_objects(aggregated_file, model_type, model_variant)
     data = pd.read_csv(aggregated_file)
-    chunks = [data[i: i + chunk_size] for i in range(0, len(data), chunk_size)]
+    chunks = [data[i : i + chunk_size] for i in range(0, len(data), chunk_size)]
     print(f'Processing {len(chunks)} chunks in parallel…')
 
     worker = partial(
