@@ -35,6 +35,9 @@ sync:
 test: 
 	$(UV) run pytest
 
+test-cov:
+	$(UV) run pytest --cov=src --cov-report=term-missing --cov-report=xml
+
 clean: 
 	rm -rf .pytest_cache **/__pycache__ *.pyc
 

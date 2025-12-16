@@ -4,6 +4,8 @@
 
 This repository also contains **FIRE** (offline preprocessing/modeling/simulation), but the primary entrypoint for users is **FIRCE**. The FIRE repo can be found in its state at publication in the `FIRE_bkp` branch on this repository.
 
+[![tests](https://github.com/DFAIR-LAB-Augusta/XSecIoT/actions/workflows/tests.yml/badge.svg)](https://github.com/DFAIR-LAB-Augusta/XSecIoT/actions/workflows/tests.yml)
+
 ---
 
 ## 📦 What You Get
