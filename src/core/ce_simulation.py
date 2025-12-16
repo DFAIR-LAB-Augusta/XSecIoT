@@ -65,7 +65,7 @@ from src.FIRE.simulations import (
 )
 
 PRED_THRESHOLD: float = 0.5
-DROP_COLS: List[str] = [
+DROP_COLS: list[str] = [
     'Label',
     'src_ip',
     'dst_ip',
@@ -76,9 +76,9 @@ DROP_COLS: List[str] = [
     'time_diff_seconds',
     'Attack',
 ]
-CE_EXTRA_DROP: List[str] = ['device_id', 'session_id', 'src_port', 'dst_port', 'protocol', 'timestamp', 'BinLabel']
-FULL_DROP_COLS: List[str] = DROP_COLS + CE_EXTRA_DROP
-FINAL_LOG_COLUMNS: List[str] = [
+CE_EXTRA_DROP: list[str] = ['device_id', 'session_id', 'src_port', 'dst_port', 'protocol', 'timestamp', 'BinLabel']
+FULL_DROP_COLS: list[str] = DROP_COLS + CE_EXTRA_DROP
+FINAL_LOG_COLUMNS: list[str] = [
     'src_ip',
     'dst_ip',
     'src_port',
@@ -164,7 +164,7 @@ FINAL_LOG_COLUMNS: List[str] = [
     'BinLabel',
 ]
 
-UNSW_DROP_COLUMNS: List[str] = [
+UNSW_DROP_COLUMNS: list[str] = [
     'bwd_pkt_len_max',
     'idle_max',
     'bwd_iat_tot',
@@ -379,6 +379,9 @@ def _simulate(
     DROP_BEFORE_SEED = ['timestamp', 'dst_port', 'dst_ip', 'protocol', 'src_ip', 'src_port']
     seed_df = df_train.tail(config.max_rows).copy().drop(columns=DROP_BEFORE_SEED, errors='ignore')
     rolling_cols = [c for c in FINAL_LOG_COLUMNS if c not in DROP_BEFORE_SEED]
+    if config.model_type == ModelType.MULTI:
+        rolling_cols.remove('BinLabel')
+        rolling_cols.append('MC_Label')
 
     if config.is_unsw and config.model_type == ModelType.BINARY:
         rolling_cols = [
@@ -619,7 +622,6 @@ def _ensure_models_exist(config: SimulationConfig, perf_stats: PerformanceStats)
         logger.info('Binary CE training completed in %.4fs', time.perf_counter() - t0)
 
     elif config.model_type == ModelType.MULTI:
-        # if config.model_variant != ModelVariant.FEEDFORWARD and config.model_type == ModelType.MULTI:
         logger.info(f"CE-multiclass artifacts missing for '{ds}'; training now…")
         t0 = time.perf_counter()
         try:
@@ -710,12 +712,20 @@ def _sim_loop(
     clean_ch = clean_data(chunk, False)
     logging.debug(f'Chunk has {len(clean_ch.columns)} columns post-cleaning')
 
-    ground_truth = clean_ch['BinLabel'].reset_index(drop=True) if 'BinLabel' in clean_ch.columns else None
-    if 'BinLabel' in clean_ch.columns:
-        clean_ch = clean_ch.drop(columns=['BinLabel'])
+    label_col_name = 'BinLabel' if config.model_type == ModelType.BINARY else 'MC_Label'
+    ground_truth = clean_ch[label_col_name].reset_index(drop=True) if label_col_name in clean_ch.columns else None
+    if label_col_name in clean_ch.columns:
+        clean_ch = clean_ch.drop(columns=[label_col_name])
 
     if config.is_unsw:
-        to_drop = clean_ch.columns.difference(FINAL_LOG_COLUMNS)
+        if config.model_type == ModelType.BINARY:
+            final_log_cols = FINAL_LOG_COLUMNS
+        else:
+            final_log_cols = FINAL_LOG_COLUMNS.copy()
+            final_log_cols.remove('BinLabel')
+            final_log_cols.append('MC_Label')
+
+        to_drop = clean_ch.columns.difference(final_log_cols)
         clean_ch = clean_ch.drop(columns=to_drop)
         logging.debug(f'Chunk has {len(clean_ch.columns)} columns post-column drop')
 
@@ -950,15 +960,25 @@ def _predict_row(
             pred = model.predict(dtest)[0]
         return int(pred)
 
-    if config.model_variant == ModelVariant.FEEDFORWARD and isinstance(model, FeedForwardBinary):
+    if config.model_variant == ModelVariant.FEEDFORWARD and isinstance(
+        model, (FeedForwardBinary, FeedForwardMulticlass)
+    ):
         dev = config.device
         xt = torch.from_numpy(np.asarray(X_p, dtype=np.float32)).to(dev)
         model.eval()
         with torch.no_grad():
             logits = model(xt)
-            prob = torch.sigmoid(logits).flatten().item()
-        logger.debug(f'[predict_row][ff] prob={prob:.6f}, thr={threshold}')
-        return int(prob > threshold)
+
+            if isinstance(model, FeedForwardBinary):
+                prob = torch.sigmoid(logits).view(-1).item()
+                logger.debug(f'[predict_row][ff-bin] prob={prob:.6f}, thr={threshold}')
+                return int(prob > threshold)
+
+            elif isinstance(model, FeedForwardMulticlass):
+                probs = torch.softmax(logits, dim=1)  # (1, C)
+                pred_idx = int(torch.argmax(probs, dim=1).item())
+                logger.debug(f'[predict_row][ff-mc] pred_idx={pred_idx}, probs={probs.cpu().numpy().reshape(-1)}')
+                return pred_idx
 
     if hasattr(model, 'predict'):
         with warnings.catch_warnings():

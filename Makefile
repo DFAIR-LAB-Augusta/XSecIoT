@@ -47,6 +47,12 @@ sim-mc:
 xseciot: 
 	bash src/core/run_xseciot.sh
 
+bin-test: 
+	PYTHONPATH='.' caffeinate $(UV) run $(PY) -m src.core.ce_simulation \
+		datasets/CETrain/combined_data.csv datasets/CEFlows/CE_MC_Flows_labeled_merged.csv \
+	 	--log2File --modelVariant "feedforward" --ceType "approx_tce" --max_rows 100000 \
+	 	--useCircularLogger --debug --useMLP --useAC 
+
 mc-test: 
 	PYTHONPATH='.' caffeinate $(UV) run $(PY) -m src.core.ce_simulation \
 		datasets/CETrain/combined_data.csv datasets/CEFlows/CE_MC_Flows_labeled_merged.csv \
