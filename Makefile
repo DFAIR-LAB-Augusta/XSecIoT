@@ -33,9 +33,15 @@ sync:
 	$(UV) sync
 
 test: 
-	$(UV) run pytest
+	OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
+	NUMEXPR_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+	PYTORCH_ENABLE_MPS_FALLBACK=1 \
+	$(UV) run pytest -q
 
 test-cov:
+	OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
+	NUMEXPR_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+	PYTORCH_ENABLE_MPS_FALLBACK=1 \
 	$(UV) run pytest --cov=src --cov-report=term-missing --cov-report=xml
 
 clean: 

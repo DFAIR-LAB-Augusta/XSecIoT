@@ -24,29 +24,94 @@ jobs:
       - name: Sync dependencies
         run: uv sync --frozen
 
-      - name: Run tests + coverage
-        run: uv run pytest --cov=src --cov-report=term-missing --cov-report=xml
+      - name: Run tests + coverage (skip slow)
+        run: uv run pytest -m "not slow" --cov=src --cov-report=term-missing --cov-report=xml
 
-      - name: Write coverage to job summary
-        continue-on-error: true
+      - name: Write coverage to job summary + generate badge json
         run: |
           uv run python - <<'PY'
+          import json
           import xml.etree.ElementTree as ET
+
           root = ET.parse("coverage.xml").getroot()
           rate = float(root.attrib["line-rate"]) * 100.0
-          print(f"Coverage: {rate:.2f}%")
+          pct = round(rate, 2)
+
+          # Choose a simple color scale
+          if pct >= 90:
+              color = "brightgreen"
+          elif pct >= 80:
+              color = "green"
+          elif pct >= 70:
+              color = "yellowgreen"
+          elif pct >= 60:
+              color = "yellow"
+          elif pct >= 50:
+              color = "orange"
+          else:
+              color = "red"
+
+          print(f"Coverage: {pct:.2f}%")
+
+          # Job summary
           with open("${GITHUB_STEP_SUMMARY}", "a", encoding="utf-8") as f:
-              f.write(f"## Coverage\n\n**{rate:.2f}%** line coverage\n")
+              f.write(f"## Coverage\n\n**{pct:.2f}%** line coverage\n")
+
+          # Shields dynamic json format
+          badge = {
+              "schemaVersion": 1,
+              "label": "coverage",
+              "message": f"{pct:.2f}%",
+              "color": color,
+          }
+          with open("coverage-badge.json", "w", encoding="utf-8") as f:
+              json.dump(badge, f)
           PY
 
-      - name: Upload coverage artifact
+      - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-xml
-          path: coverage.xml
-      
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+          name: coverage
+          path: |
+            coverage.xml
+            coverage-badge.json
+
+  publish-coverage-badge:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: pytest
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download badge artifact
+        uses: actions/download-artifact@v4
         with:
-          files: coverage.xml
-          fail_ci_if_error: false
+          name: coverage
+          path: coverage_artifacts
+
+      - name: Publish badge to badges branch
+        run: |
+          set -euxo pipefail
+
+          BADGE_BRANCH="badges"
+          BADGE_FILE="coverage-badge.json"
+
+          git fetch origin "${BADGE_BRANCH}" || true
+          if git show-ref --verify --quiet "refs/remotes/origin/${BADGE_BRANCH}"; then
+            git checkout -B "${BADGE_BRANCH}" "origin/${BADGE_BRANCH}"
+          else
+            git checkout --orphan "${BADGE_BRANCH}"
+            git rm -rf . || true
+          fi
+
+          cp "coverage_artifacts/${BADGE_FILE}" "${BADGE_FILE}"
+
+          git add "${BADGE_FILE}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update coverage badge" || exit 0
+          git push -f origin "${BADGE_BRANCH}"

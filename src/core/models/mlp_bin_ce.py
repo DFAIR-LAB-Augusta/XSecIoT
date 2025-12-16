@@ -1,4 +1,3 @@
-# src/core/models/mlp_ce_binary.py
 from __future__ import annotations
 
 from typing import Any, Optional, Tuple
