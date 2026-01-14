@@ -1,8 +1,12 @@
+[![tests](https://github.com/DFAIR-LAB-Augusta/XSecIoT/actions/workflows/tests.yml/badge.svg)](https://github.com/DFAIR-LAB-Augusta/XSecIoT/actions/workflows/tests.yml)
+![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/DFAIR-LAB-Augusta/XSecIoT/badges/coverage-badge.json)
+
 # 🔥 FIRCE (XSecIoT): Streaming Conformal Evaluation for IoT IDS
 
 **FIRCE** (Framework for **I**ntrusion **R**esponse and **C**onformal **E**valuation) is the streaming half of **XSecIoT**. It ingests flow records, performs ML classification, detects concept drift with Conformal Evaluators (ICE/CCE/Approx-CCE/TCE), and triggers adaptive retraining with rolling logs.
 
 This repository also contains **FIRE** (offline preprocessing/modeling/simulation), but the primary entrypoint for users is **FIRCE**. The FIRE repo can be found in its state at publication in the `FIRE_bkp` branch on this repository.
+
 
 ---
 
@@ -45,7 +49,7 @@ XSecIoT/
 │   │   │   └── conformal_config.toml
 │   │   ├── models/           # MLP/FFN CE models + device helpers
 │   │   ├── adaptive_chunking.py
-│   │   ├── adaptive_sig_ctlr.py
+│   │   ├── adaptive_significance_controller.py
 │   │   ├── circular_logger.py
 │   │   ├── rolling_csv.py
 │   │   └── perf_stats.py
@@ -109,7 +113,7 @@ That’s it—FIRCE will load from `datasets/`, run the streaming CE pipeline, a
 ## 🔧 Configuration Tips
 
 * **Conformal Evaluators & thresholds:** edit `src/core/conformalEval/conformal_config.toml` to switch CE type (ICE/CCE/Approx-CCE/TCE), calibration window sizes, p-value thresholds, etc.
-* **Adaptive behavior:** tune `adaptive_chunking.py` and `adaptive_sig_ctlr.py` parameters if you need different responsiveness.
+* **Adaptive behavior:** tune `adaptive_chunking.py` and `adaptive_significance_controller.py` parameters if you need different responsiveness.
 * **Hardware selection:** `src/core/models/torch_device.py` auto-selects device; override via env var if needed.
 
 ---

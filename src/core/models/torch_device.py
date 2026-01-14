@@ -1,4 +1,3 @@
-# src/core/torch_device
 """
 torch_device
 ============
@@ -32,7 +31,7 @@ def _mps_usable() -> bool:
     Returns:
         bool: True if MPS is built and reports availability, False otherwise.
     """
-    mps = getattr(torch.backends, "mps", None)
+    mps = getattr(torch.backends, 'mps', None)
     return bool(mps and torch.backends.mps.is_built() and torch.backends.mps.is_available())
 
 
@@ -58,8 +57,7 @@ def _smoke_test(device: torch.device) -> Tuple[bool, str]:
         ).to(device)
 
         x = torch.randn(32, 8, device=device, dtype=torch.float32)
-        y = torch.randint(0, 2, (32,), device=device,
-                          dtype=torch.float32)  # 0/1
+        y = torch.randint(0, 2, (32,), device=device, dtype=torch.float32)  # 0/1
 
         opt = torch.optim.SGD(model.parameters(), lr=1e-2)
         loss_fn = nn.BCEWithLogitsLoss()
@@ -70,9 +68,9 @@ def _smoke_test(device: torch.device) -> Tuple[bool, str]:
         loss.backward()
         opt.step()
 
-        return True, ""
+        return True, ''
     except Exception as exc:
-        return False, f"{type(exc).__name__}: {exc}"
+        return False, f'{type(exc).__name__}: {exc}'
 
 
 def pick_device() -> torch.device:
@@ -83,33 +81,34 @@ def pick_device() -> torch.device:
         torch.device: A working device verified with a smoke test.
     """
     if torch.cuda.is_available():
-        dev = torch.device("cuda")
+        dev = torch.device('cuda')
         ok, why = _smoke_test(dev)
         if ok:
             _set_precision_safe()
             return dev
-        logger.warning("CUDA failed smoke test; falling back. Reason: %s", why)
+        logger.warning('CUDA failed smoke test; falling back. Reason: %s', why)
 
     if _mps_usable():
         try:
             import os
-            os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
+
+            os.environ.setdefault('PYTORCH_ENABLE_MPS_FALLBACK', '1')
         except Exception:
             pass
 
-        dev = torch.device("mps")
+        dev = torch.device('mps')
         ok, why = _smoke_test(dev)
         if ok:
             _set_precision_safe()
             return dev
-        logger.warning("MPS failed smoke test; falling back. Reason: %s", why)
+        logger.warning('MPS failed smoke test; falling back. Reason: %s', why)
         try:
             torch.mps.empty_cache()
         except Exception:
             pass
         gc.collect()
 
-    dev = torch.device("cpu")
+    dev = torch.device('cpu')
     _set_precision_safe()
     return dev
 
@@ -121,12 +120,10 @@ def _set_precision_safe() -> None:
     This is a no-op if the option is not supported.
     """
     try:
-        torch.set_float32_matmul_precision("high")
+        torch.set_float32_matmul_precision('high')
     except Exception:
         pass
 
 
-if __name__ == "__main__":
-    raise NotImplementedError(
-        "This module is not intended to be run directly. "
-    )
+if __name__ == '__main__':
+    raise NotImplementedError('This module is not intended to be run directly. ')

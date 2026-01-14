@@ -1,4 +1,3 @@
-# src.core.conformalEval.conformal_evaluators
 """
 Unified Conformal Evaluation Interface
 
@@ -20,6 +19,7 @@ Key Capabilities:
 This abstraction simplifies downstream CE integration and enables dynamic evaluator
 selection with consistent calibration and drift detection APIs.
 """
+
 import logging
 import time
 
@@ -29,7 +29,7 @@ import numpy as np
 import pandas as pd
 
 from src.core.config import CEType
-from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from src.core.conformalEval.adaptive_significance_controller import AdaptiveSignificanceController
 from src.core.conformalEval.approx_cce import ApproxCrossConformalEvaluator as _ApproxCCEImpl
 from src.core.conformalEval.cce import CrossConformalEvaluator as _CCEImpl
 from src.core.conformalEval.ice import InductiveConformalEvaluator as _ICEImpl
@@ -46,12 +46,13 @@ class ConformalEvaluatorFactory:
     Supports dynamic instantiation of Inductive, Cross, and Approximate Transductive
     conformal evaluation strategies based on the specified evaluator type.
     """
+
     @staticmethod
     def create(
         evaluator_type: CEType,
-        model: str,
+        model: Any,
         significance_controller: Optional[AdaptiveSignificanceController] = None,
-        **kwargs
+        **kwargs,
     ) -> _ICEImpl | _CCEImpl | _ApproxTCEImpl | _ApproxCCEImpl:
         """
         Instantiate the appropriate conformal evaluator based on type.
@@ -69,11 +70,11 @@ class ConformalEvaluatorFactory:
         elif evaluator_type == CEType.CCE:
             return _CCEImpl(model=model, significance_controller=significance_controller, **kwargs)
         elif evaluator_type == CEType.APPROX_TCE:
-            return _ApproxTCEImpl(model=model, significance_controller=significance_controller, ** kwargs)
+            return _ApproxTCEImpl(model=model, significance_controller=significance_controller, **kwargs)
         elif evaluator_type == CEType.APPROX_CCE:
-            return _ApproxCCEImpl(model=model, significance_controller=significance_controller, ** kwargs)
+            return _ApproxCCEImpl(model=model, significance_controller=significance_controller, **kwargs)
         else:
-            raise ValueError(f"Unknown evaluator type: {evaluator_type}")
+            raise ValueError(f'Unknown evaluator type: {evaluator_type}')
 
 
 class ConformalEvaluator:
@@ -90,7 +91,7 @@ class ConformalEvaluator:
         evaluator_type: CEType,
         model: Any,
         significance_controller: Optional[AdaptiveSignificanceController] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize a ConformalEvaluator with the desired backend strategy.
@@ -100,8 +101,7 @@ class ConformalEvaluator:
             model (Any): Pretrained classifier to use for conformal evaluation.
             **kwargs: Any other CE-specific keyword arguments.
         """
-        self.evaluator = ConformalEvaluatorFactory.create(
-            evaluator_type, model, significance_controller, **kwargs)
+        self.evaluator = ConformalEvaluatorFactory.create(evaluator_type, model, significance_controller, **kwargs)
         self.thresholds: Optional[Dict[Any, float]] = None
         self.significance_controller = significance_controller
 
@@ -116,13 +116,13 @@ class ConformalEvaluator:
             y_train (np.ndarray): Corresponding ground truth labels.
             **calib_kwargs: Optional calibration parameters like number of folds.
         """
-        logger.info("Starting CE calibration with %d samples...", len(X_train))
+        logger.info('Starting CE calibration with %d samples...', len(X_train))
         t0 = time.perf_counter()
         self.evaluator.calibrate(X_train, y_train, perf_stats, **calib_kwargs)
         self.thresholds = self.evaluator.get_thresholds()
         elapsed = time.perf_counter() - t0
-        logger.info("CE calibration completed in %.4fs", elapsed)
-        logger.debug("Extracted thresholds: %s", self.thresholds)
+        logger.info('CE calibration completed in %.4fs', elapsed)
+        logger.debug('Extracted thresholds: %s', self.thresholds)
 
     def detect_drift(self, X: np.ndarray) -> np.ndarray:
         """
@@ -139,120 +139,98 @@ class ConformalEvaluator:
             ValueError: If the returned p-value format is not supported.
         """
         if self.thresholds is None:
-            raise RuntimeError(
-                "Conformal evaluator must be calibrated before detection.")
-        logger.debug("Starting drift detection.")
+            raise RuntimeError('Conformal evaluator must be calibrated before detection.')
+        logger.debug('Starting drift detection.')
         t0 = time.perf_counter()
         model_input_shape = X.shape
-        model_expected_shape = getattr(
-            self.evaluator.model, "n_features_in_", None)
+        model_expected_shape = getattr(self.evaluator.model, 'n_features_in_', None)
         if model_expected_shape is not None and model_input_shape[1] != model_expected_shape:
             logger.debug(
-                f"Model expects {self.evaluator.model.n_features_in_} features, received {X.shape[1]} features."
+                f'Model expects {self.evaluator.model.n_features_in_} features, received {X.shape[1]} features.'
             )
         else:
             logger.debug(
-                "Model input shape is valid: %s compared to expected %s",
-                model_input_shape,
-                model_expected_shape
+                'Model input shape is valid: %s compared to expected %s', model_input_shape, model_expected_shape
             )
 
         p_values = self.evaluator.predict_p_values(X)
 
         elapsed = time.perf_counter() - t0
-        logger.debug("Drift detection completed in %.4fs", elapsed)
-        logger.debug("Received p_values of type %s", type(p_values))
+        logger.debug('Drift detection completed in %.4fs', elapsed)
+        logger.debug('Received p_values of type %s', type(p_values))
 
         # Case 1: Structured dictionary
         if isinstance(p_values, dict) and 'class' in p_values and 'p_value' in p_values:
-            logger.debug(
-                "Case 1: Detected structured p_values dictionary format.")
+            logger.debug('Case 1: Detected structured p_values dictionary format.')
             cls = p_values['class'][0]
             pval = p_values['p_value'][0]
 
             if self.significance_controller:
-                self.significance_controller.update(
-                    np.array([cls]), np.array([pval]))
-                thresh = self.significance_controller.get_thresholds().get(
-                    cls, self.thresholds.get(cls))
+                self.significance_controller.update(np.array([cls]), np.array([pval]))
+                thresh = self.significance_controller.get_thresholds().get(cls, self.thresholds.get(cls))
             else:
                 thresh = self.thresholds.get(cls)
 
             drifted = pval < thresh
-            logger.debug(
-                "Drift check (class: %s): p-value=%.6f vs threshold=%.6f", cls, pval, thresh)
+            logger.debug('Drift check (class: %s): p-value=%.6f vs threshold=%.6f', cls, pval, thresh)
             if drifted:
-                logger.info("Drift detected for class %s", cls)
+                logger.info('Drift detected for class %s', cls)
             return np.array([drifted])
 
         # Case 2: DataFrame with one row
         if isinstance(p_values, pd.DataFrame):
-            logger.debug(
-                "Case 2: Detected structured p_values in DataFrame with one row format.")
+            logger.debug('Case 2: Detected structured p_values in DataFrame with one row format.')
             cls = p_values.iloc[0]['class']
             pval = p_values.iloc[0]['p_value']
 
             if self.significance_controller:
-                self.significance_controller.update(
-                    np.array([cls]), np.array([pval]))
-                thresh = self.significance_controller.get_thresholds().get(
-                    cls, self.thresholds.get(cls))
+                self.significance_controller.update(np.array([cls]), np.array([pval]))
+                thresh = self.significance_controller.get_thresholds().get(cls, self.thresholds.get(cls))
             else:
                 thresh = self.thresholds.get(cls)
 
             drifted = pval < thresh
-            logger.debug(
-                "Drift check (class: %s): p-value=%.6f vs threshold=%.6f", cls, pval, thresh)
+            logger.debug('Drift check (class: %s): p-value=%.6f vs threshold=%.6f', cls, pval, thresh)
             if drifted:
-                logger.info("Drift detected for class %s", cls)
+                logger.info('Drift detected for class %s', cls)
             return np.array([drifted])
 
         # Case 3: 1D p-value array (binary only)
         if isinstance(p_values, np.ndarray) and p_values.ndim == 1:
-            logger.debug(
-                "Case 3: Detected structured p_values in 1D p-value array (binary only) format.")
-            pval = p_values
+            logger.debug('Case 3: Detected structured p_values in 1D p-value array (binary only) format.')
+            pval = float(np.asarray(p_values).reshape(-1)[0])
             if self.significance_controller:
                 pred_class = list(self.thresholds.keys())[0]  # fallback
-                self.significance_controller.update(
-                    np.array([pred_class]), np.array([pval]))
-                thresh = list(
-                    self.significance_controller.get_thresholds().values())[0]
+                self.significance_controller.update(np.array([pred_class]), np.array([pval]))
+                thresh = list(self.significance_controller.get_thresholds().values())[0]
             else:
                 thresh = list(self.thresholds.values())[0]
 
             drifted = pval < thresh
-            logger.debug(
-                "Drift check (binary): p-value=%.6f vs threshold=%.6f", pval, thresh)
+            logger.debug('Drift check (binary): p-value=%.6f vs threshold=%.6f', pval, thresh)
             if drifted:
-                logger.info("Drift detected (binary)")
+                logger.info('Drift detected (binary)')
             return np.array([drifted])
 
         # Case 4: Scalar p-value
         if isinstance(p_values, (float, int)):
-            logger.debug(
-                "Case 4: Detected structured p_values in Scalar p-value format.")
+            logger.debug('Case 4: Detected structured p_values in Scalar p-value format.')
             pval = float(p_values)
             if self.significance_controller:
                 pred_class = list(self.thresholds.keys())[0]  # fallback
-                self.significance_controller.update(
-                    np.array([pred_class]), np.array([pval]))
-                thresh = list(
-                    self.significance_controller.get_thresholds().values())[0]
+                self.significance_controller.update(np.array([pred_class]), np.array([pval]))
+                thresh = list(self.significance_controller.get_thresholds().values())[0]
             else:
                 thresh = list(self.thresholds.values())[0]
 
             drifted = pval < thresh
-            logger.debug(
-                "Drift check (scalar): p-value=%.6f vs threshold=%.6f", pval, thresh)
+            logger.debug('Drift check (scalar): p-value=%.6f vs threshold=%.6f', pval, thresh)
             if drifted:
-                logger.info("Drift detected (scalar)")
+                logger.info('Drift detected (scalar)')
             return np.array([drifted])
 
-        raise ValueError(f"Unexpected p_values format: {type(p_values)}")
+        raise ValueError(f'Unexpected p_values format: {type(p_values)}')
 
 
-if __name__ == "__main__":
-    raise NotImplementedError(
-        "This module is not intended to be run directly. "
-    )
+if __name__ == '__main__':
+    raise NotImplementedError('This module is not intended to be run directly. ')

@@ -14,7 +14,7 @@ core/
 ├── circular_logger.py          # In-memory circular buffer logger
 ├── config.py                   # Centralized config & paths for the runtime
 ├── conformalEval/              # Conformal evaluators + config
-│   ├── adaptive_sig_ctlr.py    # Adaptive significance (threshold) controller
+│   ├── adaptive_significance_controller.py    # Adaptive significance (threshold) controller
 │   ├── approx_cce.py           # Approximate CCE variant
 │   ├── cce.py                  # Cross Conformal Evaluation
 │   ├── conformal_config.toml   # CE settings (evaluator, windows, thresholds)

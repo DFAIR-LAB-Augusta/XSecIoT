@@ -169,4 +169,4 @@ logging/*
 # OS metadata files
 .DS_Store
 datasets/CEFlows/*
-*.tmp
+*tmp

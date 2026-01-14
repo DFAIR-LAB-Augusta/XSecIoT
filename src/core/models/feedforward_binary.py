@@ -1,65 +1,23 @@
-# src/core/models/feedforward_binary
-"""
-feedforward_binary
-==================
+from __future__ import annotations
 
-This module defines a simple feedforward neural network (MLP) for binary
-classification tasks. The network architecture mirrors the former Keras
-topology used in earlier experiments and is implemented using PyTorch.
+from typing import TYPE_CHECKING
 
-Architecture:
-    Input -> Dense(64, ReLU) -> Dropout(0.3) ->
-    Dense(32, ReLU) -> Dropout(0.3) -> Dense(1)
+from .feedforward_base import FeedForwardBase
 
-The model outputs raw logits, intended for use with
-``torch.nn.BCEWithLogitsLoss`` during training. A sigmoid activation
-should be applied at inference to obtain probabilities.
-"""
-import torch
-import torch.nn as nn
+if TYPE_CHECKING:
+    import torch
 
 
-class FeedForwardBinary(nn.Module):
+class FeedForwardBinary(FeedForwardBase):
     """
-    Feedforward multilayer perceptron for binary classification.
+    Feedforward MLP for binary classification.
 
-    This network consists of two hidden layers with ReLU activations
-    and dropout regularization. The final output layer produces a
-    single logit, which should be passed through a sigmoid function
-    during inference.
-
-    Args:
-        input_dim (int): Dimensionality of the input features.
-        p_drop (float, optional): Dropout probability applied after each
-            hidden layer. Defaults to 0.3.
+    Outputs raw logits of shape (batch_size,), intended for BCEWithLogitsLoss.
     """
 
     def __init__(self, input_dim: int, p_drop: float = 0.3) -> None:
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(input_dim, 64),
-            nn.ReLU(),
-            nn.Dropout(p_drop),
-            nn.Linear(64, 32),
-            nn.ReLU(),
-            nn.Dropout(p_drop),
-            nn.Linear(32, 1),
-        )
+        super().__init__(input_dim=input_dim, output_dim=1, p_drop=p_drop)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Perform a forward pass through the network.
-
-        Args:
-            x (torch.Tensor): Input tensor of shape (batch_size, input_dim).
-
-        Returns:
-            torch.Tensor: Output logits of shape (batch_size,).
-        """
-        return self.net(x).squeeze(1)
-
-
-if __name__ == "__main__":
-    raise NotImplementedError(
-        "This module is not intended to be run directly. "
-    )
+        # (B, 1) -> (B,)
+        return super().forward(x).squeeze(1)

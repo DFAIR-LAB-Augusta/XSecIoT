@@ -1,0 +1,26 @@
+# Code owners for automatic review requests.
+# Format: <pattern> <owner1> <owner2>
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @sethbarrett50
+
+# GitHub meta
+.github/* @sethbarrett50
+.github/ISSUE_TEMPLATE/* @sethbarrett50
+
+# Core simulation + conformal evaluation
+src/core/** @sethbarrett50
+
+# Models
+src/core/models/** @sethbarrett50
+
+# FIRE legacy components
+src/FIRE/** @sethbarrett50
+
+# Utilities (labeling, merging, stats)
+src/utils/** @sethbarrett50
+
+# Docs
+README.md @sethbarrett50
+LICENSE @sethbarrett50

@@ -1,4 +1,3 @@
-# src/core/circular_logger.py
 """
 In-memory circular logger for simulation logs.
 
@@ -6,10 +5,14 @@ Implements a fixed-size rolling buffer using collections.deque.
 Faster alternative to disk-based RollingCSV for simulation pipelines.
 """
 
+import logging
+
 from collections import deque
 from typing import List, Optional
 
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 class CircularDequeLogger:
@@ -22,12 +25,7 @@ class CircularDequeLogger:
         buffer (deque): The rolling buffer.
     """
 
-    def __init__(
-        self,
-        _: str | None = "ce_log.csv.gz",
-        max_rows: int = 10000,
-        columns: Optional[List[str]] = None
-    ):
+    def __init__(self, _: str | None = 'ce_log.csv.gz', max_rows: int = 10000, columns: Optional[List[str]] = None):
         self.max_rows = max_rows
         self.columns = columns
         self.buffer = deque(maxlen=max_rows)
@@ -40,9 +38,9 @@ class CircularDequeLogger:
             row (List): A list of column values.
         """
         if self.columns is not None and len(row) != len(self.columns):
-            raise ValueError(
-                f"[CircularDequeLogger] Row width {len(row)} != schema width {len(self.columns)}"
-            )
+            logger.error(f'row to add cols: {row}')
+            logger.error(f'Expected schema cols: {self.columns}')
+            raise ValueError(f'[CircularDequeLogger] Row width {len(row)} != schema width {len(self.columns)}')
         self.buffer.append(row)
 
     def flush(self) -> None:
@@ -69,7 +67,5 @@ class CircularDequeLogger:
         self.close()
 
 
-if __name__ == "__main__":
-    raise NotImplementedError(
-        "This module is not intended to be run directly. "
-    )
+if __name__ == '__main__':
+    raise NotImplementedError('This module is not intended to be run directly. ')
