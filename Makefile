@@ -9,6 +9,9 @@ LABELED_DATASET_PATH ?= ./datasets/CEFlows/mc_labeled/
 UNLABELED_DATASET_PATH ?= ./datasets/CEFlows/unlabeled/
 LOG_DIR      ?=
 
+TREE_IGNORE := .venv|binary_models|logging|*pyc|tests|datasets|.pytest_cache|.ruff_cache|.git|assets|feature_engineering|.vscode
+
+
 .PHONY: help sync test clean \
         sim-bin sim-mc xseciot \
         bin-label merge \
@@ -107,3 +110,6 @@ lint-fix-unsafe:
 	uv run $(RUFF) check . --fix --unsafe-fixes
 
 style: fmt lint
+
+tree: ## Print repo tree (ignoring common dirs)
+	tree -a --dirsfirst -I "$(TREE_IGNORE)" .

@@ -791,7 +791,29 @@ def _sim_loop(
                 'fwd_iat_tot',
                 'bwd_iat_tot',
                 'BinLabel',
-            ]
+            ] if config.model_type == ModelType.BINARY else [
+                'totlen_bwd_pkts',
+                'tot_bwd_pkts',
+                'totlen_fwd_pkts',
+                'tot_fwd_pkts',
+                'flow_duration',
+                'fwd_iat_min',
+                'fwd_iat_max',
+                'fwd_iat_mean',
+                'fwd_iat_std',
+                'bwd_iat_min',
+                'bwd_iat_max',
+                'bwd_iat_mean',
+                'bwd_iat_std',
+                'fwd_pkt_len_mean',
+                'bwd_pkt_len_mean',
+                'pkt_len_mean',
+                'flow_iat_mean',
+                'down_up_ratio',
+                'fwd_iat_tot',
+                'bwd_iat_tot',
+                'MCLabel',
+            ] 
             allowed = rolling_cols
 
             if isinstance(rolling, CircularDequeLogger) and hasattr(rolling, 'columns') and rolling.columns is not None:

@@ -5,10 +5,14 @@ Implements a fixed-size rolling buffer using collections.deque.
 Faster alternative to disk-based RollingCSV for simulation pipelines.
 """
 
+import logging
+
 from collections import deque
 from typing import List, Optional
 
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 class CircularDequeLogger:
@@ -34,6 +38,8 @@ class CircularDequeLogger:
             row (List): A list of column values.
         """
         if self.columns is not None and len(row) != len(self.columns):
+            logger.error(f"row to add cols: {row}")
+            logger.error(f"Expected schema cols: {self.columns}")
             raise ValueError(f'[CircularDequeLogger] Row width {len(row)} != schema width {len(self.columns)}')
         self.buffer.append(row)
 
