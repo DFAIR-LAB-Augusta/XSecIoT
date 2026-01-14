@@ -38,8 +38,8 @@ class CircularDequeLogger:
             row (List): A list of column values.
         """
         if self.columns is not None and len(row) != len(self.columns):
-            logger.error(f"row to add cols: {row}")
-            logger.error(f"Expected schema cols: {self.columns}")
+            logger.error(f'row to add cols: {row}')
+            logger.error(f'Expected schema cols: {self.columns}')
             raise ValueError(f'[CircularDequeLogger] Row width {len(row)} != schema width {len(self.columns)}')
         self.buffer.append(row)
 
