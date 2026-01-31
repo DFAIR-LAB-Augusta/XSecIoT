@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "make",
+      "type": "shell",
+      "command": "zsh",
+      "args": [
+        "-lc",
+        "make fmt && make lint; exec zsh -l"
+      ],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always",
+        "focus": false,
+        "close": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "git",
+      "type": "shell",
+      "command": "zsh",
+      "args": ["-lc", "git branch; exec zsh -l"],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always",
+        "focus": false,
+        "close": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "bootstrap: open terminals",
+      "dependsOrder": "parallel",
+      "dependsOn": ["make", "git"],
+      "runOptions": { "runOn": "folderOpen" },
+      "problemMatcher": []
+    }
+  ]
+}
