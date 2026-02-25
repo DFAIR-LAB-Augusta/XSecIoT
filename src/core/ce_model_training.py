@@ -368,6 +368,19 @@ def train_ce_binary(
                         logger.debug(
                             f"Eval batch {i} probs shape={tuple(probs_i.shape)}")
                         probs_chunks.append(probs_i.numpy())
+            elif device.type == "cuda":
+                logger.debug(
+                    "Eval on CUDA (per-batch sigmoid on CUDA, then move to CPU)")
+                with torch.no_grad():
+                    for i, (xb, _) in enumerate(eval_loader):
+                        logger.debug(
+                            f"Eval batch {i} start: xb_device={xb.device}, xb_shape={tuple(xb.shape)}"
+                        )
+                        xb = xb.to(
+                            device, non_blocking=True).float().contiguous()
+                        logits_i = model(xb)  # (B,)
+                        probs_i = torch.sigmoid(logits_i).detach().cpu()
+                        probs_chunks.append(probs_i.numpy())
             else:
                 logger.debug("Eval on CPU (per-batch sigmoid on CPU)")
                 try:
