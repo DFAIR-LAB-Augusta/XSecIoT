@@ -55,13 +55,21 @@ fi
 
 $UV --version || true
 
-# Always run from repo root so relative paths resolve as expected.
-# If this script is invoked from elsewhere, jump to the project root:
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
-cd "$PROJECT_ROOT"
+# --- Working directory ---
+# Prefer SLURM's submit dir / chdir, and fall back to repo discovery.
+if [[ -n "${SLURM_SUBMIT_DIR:-}" ]]; then
+  cd "$SLURM_SUBMIT_DIR"
+fi
 
-log "Project root: $PROJECT_ROOT"
+# If we're inside a git repo, jump to its root (robust even under SLURM).
+if command -v git >/dev/null 2>&1; then
+  GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  if [[ -n "$GIT_ROOT" ]]; then
+    cd "$GIT_ROOT"
+  fi
+fi
+
+log "PWD: $(pwd)"
 log "Using uv: $UV"
 
 # --- Main sweep ---
