@@ -11,8 +11,8 @@ UV="/home/seth/.local/bin/uv"
 # --- Config ---
 CHUNK_SIZES=(5 10 15 25 50 75 100 500 1000 1)
 
-RUNS = (0 1 2 3 4)
-SEEDS = (17 42 67 92 117 )
+RUNS=(0 1 2 3 4)
+SEEDS=(17 42 67 92 117 )
 
 
 # MODEL_VARIANTS=("svm" "dt" "knn" "rf" "xgb" "feedforward")
