@@ -82,8 +82,6 @@ UNSW_DROP_COLS: List[str] = [
     'NUM_PKTS_512_TO_1024_BYTES', 'DNS_QUERY_ID', 'ICMP_TYPE', 'Attack', 'MIN_IP_PKT_LEN', 'MAX_TTL', 'Label'
 ]
 
-RANDOM_STATE: int = 42
-
 
 class SupportsPredict(Protocol):
     def predict(self, X: Any) -> Any:
@@ -260,21 +258,21 @@ def train_ce_binary(
         f"Training binary classifier model with variant '{config.model_variant.value}'")
     match config.model_variant:
         case ModelVariant.DT:
-            model = DecisionTreeClassifier(random_state=RANDOM_STATE)
+            model = DecisionTreeClassifier(random_state=config.seed)
             model.fit(Xf, y)
         case ModelVariant.KNN:
             model = KNeighborsClassifier()
             model.fit(Xf, y)
         case ModelVariant.RF:
-            model = RandomForestClassifier(random_state=RANDOM_STATE)
+            model = RandomForestClassifier(random_state=config.seed)
             model.fit(Xf, y)
         case ModelVariant.SVM:
             model = SVC(kernel="rbf", probability=True,
-                        random_state=RANDOM_STATE)
+                        random_state=config.seed)
             model.fit(Xf, y)
         case ModelVariant.XGB:
             model = xgb.XGBClassifier(
-                objective="binary:logistic", random_state=RANDOM_STATE)
+                objective="binary:logistic", random_state=config.seed)
             model.fit(Xf, y)
         case ModelVariant.FEEDFORWARD:
             Xf = np.asarray(Xf, dtype=np.float32)
@@ -283,9 +281,9 @@ def train_ce_binary(
             device = config.device
             logger.info(f"[feedforward] Using device: {device}", )
 
-            torch.manual_seed(RANDOM_STATE)
+            torch.manual_seed(config.seed)
             if device.type == "cuda":
-                torch.cuda.manual_seed_all(RANDOM_STATE)
+                torch.cuda.manual_seed_all(config.seed)
 
             X_tensor = torch.from_numpy(Xf)
             Y_tensor = torch.from_numpy(y_arr)
@@ -307,7 +305,7 @@ def train_ce_binary(
             logger.debug("FFN Model Train begin")
             for epoch in range(epochs):
                 logger.debug("Epoch %d start", epoch)
-                rng = np.random.default_rng(RANDOM_STATE + epoch)
+                rng = np.random.default_rng(config.seed + epoch)
                 idx = rng.permutation(N).tolist()
                 subset = Subset(ds, idx)
                 loader = DataLoader(
@@ -444,7 +442,7 @@ def train_ce_binary(
                 "state_dict": model.state_dict(),
                 "input_dim": int(Xf.shape[1]),
                 "dropout": 0.3,
-                "random_state": RANDOM_STATE,
+                "random_state": config.seed,
             },
             outdir / "feedforward_model_binary.pt",
         )
@@ -458,9 +456,10 @@ def train_ce_binary(
 
 
 def train_ce_multiclass(
+    config: SimulationConfig,
     flows_csv: str,
     variant: ModelVariant,
-    use_pca: bool = True
+    use_pca: bool = True,
 ) -> None:
     """
     Train a multiclass CE model and persist preprocessing artifacts and model.
@@ -512,16 +511,16 @@ def train_ce_multiclass(
         Xf = Xs
 
     if variant == "dt":
-        model = DecisionTreeClassifier(random_state=RANDOM_STATE)
+        model = DecisionTreeClassifier(random_state=config.seed)
     elif variant == "knn":
         model = KNeighborsClassifier()
     elif variant == "rf":
-        model = RandomForestClassifier(random_state=RANDOM_STATE)
+        model = RandomForestClassifier(random_state=config.seed)
     elif variant == "svm":
-        model = SVC(kernel="rbf", probability=True, random_state=RANDOM_STATE)
+        model = SVC(kernel="rbf", probability=True, random_state=config.seed)
     elif variant == "xgb":
         model = xgb.XGBClassifier(
-            objective="multi:softmax", random_state=RANDOM_STATE)
+            objective="multi:softmax", random_state=config.seed)
     else:
         raise ValueError(f"Unknown multiclass variant '{variant}'")
 

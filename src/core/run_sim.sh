@@ -11,6 +11,10 @@ UV="/home/seth/.local/bin/uv"
 # --- Config ---
 CHUNK_SIZES=(5 10 15 25 50 75 100 500 1000 1)
 
+RUNS = (0 1 2 3 4)
+SEEDS = (17 42 67 92 117 )
+
+
 # MODEL_VARIANTS=("svm" "dt" "knn" "rf" "xgb" "feedforward")
 MODEL_VARIANTS=("feedforward")
 
@@ -47,7 +51,6 @@ run_one() {
   return 1
 }
 
-# --- Preflight ---
 if [[ ! -x "$UV" ]]; then
   err "uv not found or not executable at: $UV"
   exit 127
@@ -73,102 +76,111 @@ log "PWD: $(pwd)"
 log "Using uv: $UV"
 
 # --- Main sweep ---
-for cs in "${CHUNK_SIZES[@]}"; do
-  for model in "${MODEL_VARIANTS[@]}"; do
-    for ce in "${CE_TYPES[@]}"; do
+# for cs in "${CHUNK_SIZES[@]}"; do Chunk size proven to be solid alr
+for run in "${RUNS[@]}"; do
+    for seed in "${SEEDS[@]}"; do
+        for model in "${MODEL_VARIANTS[@]}"; do
+            for ce in "${CE_TYPES[@]}"; do
 
-      # --- Chunk-size runs ---
-      run_one "DFAIR chunk model=$model ce=$ce chunk=$cs" \
-        env PYTHONPATH=. $UV run src/core/ce_simulation.py \
-          datasets/CETrain/combined_data.csv \
-          datasets/CEFlows2/CEFlows2_merged.csv \
-          --log2File \
-          --modelVariant "$model" \
-          --ceType "$ce" \
-          --max_rows 100000 \
-          --useCircularLogger \
-          --debug \
-          --useMLP \
-          --chunk_size "$cs" \
-        || exit 1
+            # --- Chunk-size runs --- Dont need chunk
+            #   run_one "DFAIR chunk model=$model ce=$ce chunk=$cs" \
+            #     env PYTHONPATH=. $UV run src/core/ce_simulation.py \
+            #       datasets/CETrain/combined_data.csv \
+            #       datasets/CEFlows2/CEFlows2_merged.csv \
+            #       --log2File \
+            #       --modelVariant "$model" \
+            #       --ceType "$ce" \
+            #       --max_rows 100000 \
+            #       --useCircularLogger \
+            #       --debug \
+            #       --useMLP \
+            #       --chunk_size "$cs" \
+            #     || exit 1
 
-      run_one "UNSW chunk model=$model ce=$ce chunk=$cs" \
-        env PYTHONPATH=. $UV run src/core/ce_simulation.py \
-          datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
-          datasets/CEFlows2/CEFlows2_merged.csv \
-          --log2File \
-          --modelVariant "$model" \
-          --ceType "$ce" \
-          --max_rows 100000 \
-          --useCircularLogger \
-          --debug \
-          --useMLP \
-          --chunk_size "$cs" \
-          --unsw \
-        || exit 1
+            #   run_one "UNSW chunk model=$model ce=$ce chunk=$cs" \
+            #     env PYTHONPATH=. $UV run src/core/ce_simulation.py \
+            #       datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
+            #       datasets/CEFlows2/CEFlows2_merged.csv \
+            #       --log2File \
+            #       --modelVariant "$model" \
+            #       --ceType "$ce" \
+            #       --max_rows 100000 \
+            #       --useCircularLogger \
+            #       --debug \
+            #       --useMLP \
+            #       --chunk_size "$cs" \
+            #       --unsw \
+            #     || exit 1
 
-      run_one "CIC chunk model=$model ce=$ce chunk=$cs" \
-        env PYTHONPATH=. $UV run src/core/ce_simulation.py \
-          datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
-          datasets/CEFlows2/CEFlows2_merged.csv \
-          --log2File \
-          --modelVariant "$model" \
-          --ceType "$ce" \
-          --max_rows 100000 \
-          --useCircularLogger \
-          --debug \
-          --useMLP \
-          --chunk_size "$cs" \
-          --unsw \
-        || exit 1
+            #   run_one "CIC chunk model=$model ce=$ce chunk=$cs" \
+            #     env PYTHONPATH=. $UV run src/core/ce_simulation.py \
+            #       datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
+            #       datasets/CEFlows2/CEFlows2_merged.csv \
+            #       --log2File \
+            #       --modelVariant "$model" \
+            #       --ceType "$ce" \
+            #       --max_rows 100000 \
+            #       --useCircularLogger \
+            #       --debug \
+            #       --useMLP \
+            #       --chunk_size "$cs" \
+            #       --unsw \
+            #     || exit 1
 
-      # --- Adaptive chunking runs ---
-      run_one "DFAIR AC model=$model ce=$ce" \
-        env PYTHONPATH=. $UV run src/core/ce_simulation.py \
-          datasets/CETrain/combined_data.csv \
-          datasets/CEFlows2/CEFlows2_merged.csv \
-          --log2File \
-          --modelVariant "$model" \
-          --ceType "$ce" \
-          --max_rows 100000 \
-          --useCircularLogger \
-          --debug \
-          --useMLP \
-          --useAC \
-        || exit 1
+            #   # --- Adaptive chunking runs ---
+            run_one "DFAIR AC model=$model ce=$ce" \
+                env PYTHONPATH=. $UV run src/core/ce_simulation.py \
+                datasets/CETrain/combined_data.csv \
+                datasets/CEFlows2/CEFlows2_merged.csv \
+                --log2File \
+                --modelVariant "$model" \
+                --ceType "$ce" \
+                --max_rows 100000 \
+                --useCircularLogger \
+                --debug \
+                --useMLP \
+                --useAC \
+                --seed "$seed" \
+                --runNum "$run" \
+                || exit 1
 
-      run_one "UNSW AC model=$model ce=$ce" \
-        env PYTHONPATH=. $UV run src/core/ce_simulation.py \
-          datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
-          datasets/CEFlows2/CEFlows2_merged.csv \
-          --log2File \
-          --modelVariant "$model" \
-          --ceType "$ce" \
-          --max_rows 100000 \
-          --useCircularLogger \
-          --debug \
-          --useMLP \
-          --useAC \
-          --unsw \
-        || exit 1
+            run_one "UNSW AC model=$model ce=$ce" \
+                env PYTHONPATH=. $UV run src/core/ce_simulation.py \
+                datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
+                datasets/CEFlows2/CEFlows2_merged.csv \
+                --log2File \
+                --modelVariant "$model" \
+                --ceType "$ce" \
+                --max_rows 100000 \
+                --useCircularLogger \
+                --debug \
+                --useMLP \
+                --useAC \
+                --unsw \
+                --seed "$seed" \
+                --runNum "$run" \
+                || exit 1
 
-      run_one "CIC AC model=$model ce=$ce" \
-        env PYTHONPATH=. $UV run src/core/ce_simulation.py \
-          datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
-          datasets/CEFlows2/CEFlows2_merged.csv \
-          --log2File \
-          --modelVariant "$model" \
-          --ceType "$ce" \
-          --max_rows 100000 \
-          --useCircularLogger \
-          --debug \
-          --useMLP \
-          --useAC \
-          --unsw \
-        || exit 1
+            run_one "CIC AC model=$model ce=$ce" \
+                env PYTHONPATH=. $UV run src/core/ce_simulation.py \
+                datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
+                datasets/CEFlows2/CEFlows2_merged.csv \
+                --log2File \
+                --modelVariant "$model" \
+                --ceType "$ce" \
+                --max_rows 100000 \
+                --useCircularLogger \
+                --debug \
+                --useMLP \
+                --useAC \
+                --unsw \
+                --seed "$seed" \
+                --runNum "$run" \
+                || exit 1
 
+            done
+        done
     done
-  done
 done
 
 log "All runs completed successfully."

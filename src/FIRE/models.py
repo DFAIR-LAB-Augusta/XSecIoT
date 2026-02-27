@@ -22,12 +22,10 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from tensorflow import random as tfr
-from tensorflow.keras.layers import Dense, Dropout, Input  # type: ignore
-from tensorflow.keras.models import Sequential  # type: ignore
-from tensorflow.keras.utils import to_categorical  # type: ignore
-from tensorflow.keras.layers import Dense, Dropout, Input  # type: ignore
-from tensorflow.keras.models import Sequential  # type: ignore
-from tensorflow.keras.utils import to_categorical  # type: ignore
+# type: ignore  # type: ignore
+from tensorflow.keras.layers import Dense, Dropout, Input
+from tensorflow.keras.models import Sequential  # type: ignore  # type: ignore
+from tensorflow.keras.utils import to_categorical  # type: ignore  # type: ignore
 
 logger = logging.getLogger(__name__)
 np.random.seed(42)

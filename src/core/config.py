@@ -145,6 +145,8 @@ class SimulationConfig(BaseModel):
     use_mlp: bool = False
     use_adaptive_chunking: bool = False
     use_cuml: bool = False
+    seed: int = 42
+    runNum: int = 0
 
     device: torch.device = Field(default_factory=pick_device)
 

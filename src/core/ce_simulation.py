@@ -122,6 +122,8 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--log", type=Path, default=Path("ce_log.csv.gz"))
     p.add_argument("--chunk_size", type=int, default=1000)
     p.add_argument("--max_rows", type=int, default=10000)
+    p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--runNum", type=int, default=0)
     p.add_argument("--use-pca", action="store_true",
                    help="Enable PCA during CE simulation")
     p.add_argument("--log2File", action="store_true",
@@ -180,7 +182,7 @@ def _configure_logging(config: SimulationConfig) -> None:
             log_dir = log_dir / f"chunk_size_{config.chunk_size}"
         log_dir.mkdir(exist_ok=True)
         log_file = log_dir / \
-            f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_run.log"
+            f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_run.log"
         file_handler = logging.FileHandler(log_file, mode='w')
         log_handlers.append(file_handler)
 
@@ -317,10 +319,10 @@ def _simulate(
             if config.use_svm:
                 if config.max_rows >= 100_000:
                     ce_model = SVC(probability=True, kernel='linear',
-                                   verbose=False, random_state=42, shrinking=True)
+                                   verbose=False, random_state=config.seed, shrinking=True)
                 else:
                     ce_model = SVC(probability=True, kernel='linear',
-                                   verbose=False, random_state=42, shrinking=False)
+                                   verbose=False, random_state=config.seed, shrinking=False)
                 logging.info(
                     f"Using SVM model for CE: {ce_model.__class__.__name__}")
             elif config.use_mlp:
@@ -332,7 +334,7 @@ def _simulate(
                     lr=float(ce_kwargs.get("lr", 1e-3)),
                     epochs=int(ce_kwargs.get("epochs", 20)),
                     batch_size=ce_kwargs.get("batch_size", None),
-                    random_state=int(ce_kwargs.get("random_state", 42)),
+                    random_state=config.seed,
                     device=config.device,
                 )
                 logging.info(
@@ -340,7 +342,7 @@ def _simulate(
                 ce_kwargs.setdefault("n_jobs", 1)
             elif config.use_cuml:
                 ce_model = SVC(probability=True, kernel='linear',
-                               verbose=False, random_state=42, shrinking=True)
+                               verbose=False, random_state=config.seed, shrinking=True)
                 pass
             else:
                 ce_model = model
@@ -438,7 +440,7 @@ def _ensure_models_exist(config: SimulationConfig, perf_stats: PerformanceStats)
             f"CE-multiclass artifacts missing for '{ds}'; training now…")
         t0 = time.perf_counter()
         try:
-            train_ce_multiclass(str(config.aggregated_path),
+            train_ce_multiclass(config, str(config.aggregated_path),
                                 variant=config.model_variant, use_pca=config.use_pca)
             logger.info(
                 f"Multiclass CE training completed in {time.perf_counter() - t0:.4f}s",
@@ -978,9 +980,9 @@ def _log_results(
         log_dir = Path("logging")
         log_dir.mkdir(exist_ok=True)
         if config.use_adaptive_chunking:
-            plot_path = log_dir / "ac" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_accuracy_plot.png"  # noqa: E501
+            plot_path = log_dir / "ac" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_accuracy_plot.png"  # noqa: E501
         else:
-            plot_path = log_dir / f"chunk_size_{config.chunk_size}" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_accuracy_plot.png"  # noqa: E501
+            plot_path = log_dir / f"chunk_size_{config.chunk_size}" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_accuracy_plot.png"  # noqa: E501
         plt.savefig(plot_path)
         logger.debug(f"Accuracy over time plot saved to '{plot_path}'")
         _summarize_timings("Per-Chunk Iteration Time",
@@ -1014,9 +1016,9 @@ def _log_results(
             log_dir = Path("logging")
             log_dir.mkdir(exist_ok=True)
             if config.use_adaptive_chunking:
-                plot_path = log_dir / "ac" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_drift_intervals.png"  # noqa: E501
+                plot_path = log_dir / "ac" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_intervals.png"  # noqa: E501
             else:
-                plot_path = log_dir / f"chunk_size_{config.chunk_size}" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_drift_intervals.png"  # noqa: E501
+                plot_path = log_dir / f"chunk_size_{config.chunk_size}" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_intervals.png"  # noqa: E501
             plt.savefig(plot_path)
             logger.debug(f"Drift interval plot saved to '{plot_path}'")
 
@@ -1028,9 +1030,9 @@ def _log_results(
             plt.ylabel("Frequency")
             plt.grid(True)
             if config.use_adaptive_chunking:
-                hist_path = log_dir / "ac" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_drift_interval_histogram.png"  # noqa: E501
+                hist_path = log_dir / "ac" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_interval_histogram.png"  # noqa: E501
             else:
-                hist_path = log_dir / f"chunk_size_{config.chunk_size}" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_drift_interval_histogram.png"  # noqa: E501
+                hist_path = log_dir / f"chunk_size_{config.chunk_size}" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_interval_histogram.png"  # noqa: E501
             plt.tight_layout()
             plt.savefig(hist_path)
             logger.debug(f"Drift interval histogram saved to '{hist_path}'")
@@ -1061,7 +1063,7 @@ def _log_results(
         else:
             plot_dir = Path("logging") / f"chunk_size_{config.chunk_size}"
         plot_dir.mkdir(parents=True, exist_ok=True)
-        ce_metric_plot = plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_ce_training_metrics.png"  # noqa: E501
+        ce_metric_plot = plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_ce_training_metrics.png"  # noqa: E501
         plt.savefig(ce_metric_plot)
         logger.debug(f"CE training metric plot saved to '{ce_metric_plot}'")
 
@@ -1089,7 +1091,7 @@ def _log_results(
         else:
             plot_dir = Path("logging") / f"chunk_size_{config.chunk_size}"
         plot_dir.mkdir(parents=True, exist_ok=True)
-        ce_metric_plot = plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_classifier_training_metrics.png"  # noqa: E501
+        ce_metric_plot = plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_classifier_training_metrics.png"  # noqa: E501
         plt.savefig(ce_metric_plot)
         logger.debug(
             f"Classifier training metric plot saved to '{ce_metric_plot}'")
@@ -1111,7 +1113,7 @@ def _log_results(
 
         chunk_plot_dir = Path("logging") / "ac"
         chunk_plot_dir.mkdir(parents=True, exist_ok=True)
-        chunk_plot_path = chunk_plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_chunk_size_trace.png"  # noqa: E501
+        chunk_plot_path = chunk_plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_chunk_size_trace.png"  # noqa: E501
         plt.savefig(chunk_plot_path)
         logger.debug(f"Chunk size over time plot saved to '{chunk_plot_path}'")
 
@@ -1148,7 +1150,8 @@ def main() -> None:
             ce_type=args.ceType,
             aggregated_path=args.aggregated_file,
             flows_path=args.flows_file,
-            ce_kwargs={'folds': 5, 'significance': 0.05, 'random_state': 42},
+            ce_kwargs={'folds': 5, 'significance': 0.05,
+                       'random_state': args.seed},
             chunk_size=args.chunk_size,
             use_pca=args.use_pca,
             use_ASC=args.useASC,
@@ -1159,7 +1162,9 @@ def main() -> None:
             use_svm=args.useSVM,
             use_adaptive_chunking=args.useAC,
             is_unsw=args.unsw,
-            use_mlp=args.useMLP
+            use_mlp=args.useMLP,
+            seed=args.seed,
+            runNum=args.runNum
         )
     except ValidationError as e:
         logging.error(e)
