@@ -98,7 +98,7 @@ log "Using uv: $UV"
 for run in "${RUNS[@]}"; do
     for seed in "${SEEDS[@]}"; do
         for model in "${MODEL_VARIANTS[@]}"; do
-            for ce in "${CE_TYPES[@]}"; do
+            # for ce in "${CE_TYPES[@]}"; do
 
             # --- Chunk-size runs --- Dont need chunk
             #   run_one "DFAIR chunk model=$model ce=$ce chunk=$cs" \
@@ -200,7 +200,7 @@ for run in "${RUNS[@]}"; do
             #     || exit 1
 
 
-            done
+            # done
             #   # --- CADE Adaptive chunking runs ---
             run_one "DFAIR AC model=$model monitor=cade" \
                 env PYTHONPATH=. "$UV" run src/core/ce_simulation.py \
