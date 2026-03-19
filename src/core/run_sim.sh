@@ -283,7 +283,7 @@ for run in "${RUNS[@]}"; do
             #     --monitorKwarg cae_lambda_1 "$CADE_LAMBDA_1" \
             #     --monitorKwarg similar_ratio "$CADE_SIMILAR_RATIO" \
             #     --monitorKwarg display_interval "$CADE_DISPLAY_INTERVAL" \
-                || exit 1
+                # || exit 1
         done
     done
 done
