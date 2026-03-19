@@ -59,7 +59,7 @@ wheels = [
 [[package]]
 name = "cade-firce"
 version = "0.3.0"
-source = { path = "../CADE_FIRCE/dist/cade_firce-0.3.0-py3-none-any.whl" }
+source = { git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=main#09962eb370eff8e73f18cd311668502b3ca71d4c" }
 dependencies = [
     { name = "joblib" },
     { name = "matplotlib" },
@@ -71,25 +71,6 @@ dependencies = [
     { name = "seaborn" },
     { name = "tqdm" },
 ]
-wheels = [
-    { filename = "cade_firce-0.3.0-py3-none-any.whl", hash = "sha256:71164060d7bf214eb0529c9d8d45e713cb70ea5ae94bb7417136fcafab5cd6ee" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "joblib", specifier = ">=1.3" },
-    { name = "keras", marker = "extra == 'tf'", specifier = ">=3.10,<4" },
-    { name = "matplotlib", specifier = ">=3.7" },
-    { name = "numpy", specifier = ">=1.23" },
-    { name = "pandas", specifier = ">=1.5" },
-    { name = "pyyaml", specifier = ">=6.0" },
-    { name = "scikit-learn", specifier = ">=1.2" },
-    { name = "scipy", specifier = ">=1.10" },
-    { name = "seaborn", specifier = ">=0.13" },
-    { name = "tensorflow", marker = "sys_platform != 'darwin' and extra == 'tf'", specifier = ">=2.19,<3" },
-    { name = "tqdm", specifier = ">=4.66" },
-]
-provides-extras = ["tf"]
 
 [[package]]
 name = "certifi"
@@ -2221,7 +2202,7 @@ requires-dist = [
     { name = "argcomplete", specifier = "==3.6.2" },
     { name = "astunparse", specifier = "==1.6.3" },
     { name = "blinker", specifier = "==1.9.0" },
-    { name = "cade-firce", path = "../CADE_FIRCE/dist/cade_firce-0.3.0-py3-none-any.whl" },
+    { name = "cade-firce", git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=main" },
     { name = "certifi", specifier = "==2025.4.26" },
     { name = "charset-normalizer", specifier = "==3.4.2" },
     { name = "click", specifier = "==8.2.1" },

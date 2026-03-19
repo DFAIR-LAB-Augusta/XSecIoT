@@ -126,4 +126,5 @@ default-groups = ["dev"]
 package = false
 
 [tool.uv.sources]
-cade-firce = { path = "../CADE_FIRCE/dist/cade_firce-0.3.0-py3-none-any.whl" }
+cade-firce = { git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git", rev = "main" }
+
