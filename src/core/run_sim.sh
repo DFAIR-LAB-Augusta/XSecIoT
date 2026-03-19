@@ -216,17 +216,18 @@ for run in "${RUNS[@]}"; do
                 --useAC \
                 --seed "$seed" \
                 --runNum "$run" \
-                --monitorKwarg dims "${CADE_DIMS[@]}" \
-                --monitorKwarg margin "$CADE_MARGIN" \
-                --monitorKwarg mad_threshold "$CADE_MAD_THRESHOLD" \
-                --monitorKwarg min_drift_ratio "$CADE_MIN_DRIFT_RATIO" \
-                --monitorKwarg min_drift_count "$CADE_MIN_DRIFT_COUNT" \
-                --monitorKwarg batch_size "$CADE_BATCH_SIZE" \
-                --monitorKwarg epochs "$CADE_EPOCHS" \
-                --monitorKwarg lr "$CADE_LR" \
-                --monitorKwarg cae_lambda_1 "$CADE_LAMBDA_1" \
-                --monitorKwarg similar_ratio "$CADE_SIMILAR_RATIO" \
-                --monitorKwarg display_interval "$CADE_DISPLAY_INTERVAL" \
+                --cadeDims "${CADE_DIMS[@]}" \
+                --cadeMargin "$CADE_MARGIN" \
+                --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
+                --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
+                --cadeMinDriftCount "$CADE_MIN_DRIFT_COUNT" \
+                --cadeBatchSize "$CADE_BATCH_SIZE" \
+                --cadeEpochs "$CADE_EPOCHS" \
+                --cadeLr "$CADE_LR" \
+                --cadeLambda1 "$CADE_LAMBDA_1" \
+                --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
+                --cadeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
+                --cadeForceRetrain
                 || exit 1
 
             # run_one "UNSW AC model=$model monitor=cade" \
@@ -244,17 +245,18 @@ for run in "${RUNS[@]}"; do
             #     --unsw \
             #     --seed "$seed" \
             #     --runNum "$run" \
-            #     --monitorKwarg dims "${CADE_DIMS[@]}" \
-            #     --monitorKwarg margin "$CADE_MARGIN" \
-            #     --monitorKwarg mad_threshold "$CADE_MAD_THRESHOLD" \
-            #     --monitorKwarg min_drift_ratio "$CADE_MIN_DRIFT_RATIO" \
-            #     --monitorKwarg min_drift_count "$CADE_MIN_DRIFT_COUNT" \
-            #     --monitorKwarg batch_size "$CADE_BATCH_SIZE" \
-            #     --monitorKwarg epochs "$CADE_EPOCHS" \
-            #     --monitorKwarg lr "$CADE_LR" \
-            #     --monitorKwarg cae_lambda_1 "$CADE_LAMBDA_1" \
-            #     --monitorKwarg similar_ratio "$CADE_SIMILAR_RATIO" \
-            #     --monitorKwarg display_interval "$CADE_DISPLAY_INTERVAL" \
+            #     --cadeDims "${CADE_DIMS[@]}" \
+            #     --cadeMargin "$CADE_MARGIN" \
+            #     --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
+            #     --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
+            #     --cadeMinDriftCount "$CADE_MIN_DRIFT_COUNT" \
+            #     --cadeBatchSize "$CADE_BATCH_SIZE" \
+            #     --cadeEpochs "$CADE_EPOCHS" \
+            #     --cadeLr "$CADE_LR" \
+            #     --cadeLambda1 "$CADE_LAMBDA_1" \
+            #     --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
+            #     --adeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
+                # --cadeForceRetrain
             #     || exit 1
 
             # run_one "CIC AC model=$model monitor=cade" \
@@ -272,17 +274,18 @@ for run in "${RUNS[@]}"; do
             #     --unsw \
             #     --seed "$seed" \
             #     --runNum "$run" \
-            #     --monitorKwarg dims "${CADE_DIMS[@]}" \
-            #     --monitorKwarg margin "$CADE_MARGIN" \
-            #     --monitorKwarg mad_threshold "$CADE_MAD_THRESHOLD" \
-            #     --monitorKwarg min_drift_ratio "$CADE_MIN_DRIFT_RATIO" \
-            #     --monitorKwarg min_drift_count "$CADE_MIN_DRIFT_COUNT" \
-            #     --monitorKwarg batch_size "$CADE_BATCH_SIZE" \
-            #     --monitorKwarg epochs "$CADE_EPOCHS" \
-            #     --monitorKwarg lr "$CADE_LR" \
-            #     --monitorKwarg cae_lambda_1 "$CADE_LAMBDA_1" \
-            #     --monitorKwarg similar_ratio "$CADE_SIMILAR_RATIO" \
-            #     --monitorKwarg display_interval "$CADE_DISPLAY_INTERVAL" \
+            #     --cadeDims "${CADE_DIMS[@]}" \
+            #     --cadeMargin "$CADE_MARGIN" \
+            #     --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
+            #     --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
+            #     --cadeMinDriftCount "$CADE_MIN_DRIFT_COUNT" \
+            #     --cadeBatchSize "$CADE_BATCH_SIZE" \
+            #     --cadeEpochs "$CADE_EPOCHS" \
+            #     --cadeLr "$CADE_LR" \
+            #     --cadeLambda1 "$CADE_LAMBDA_1" \
+            #     --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
+            #     --adeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
+                # --cadeForceRetrain
                 # || exit 1
         done
     done
