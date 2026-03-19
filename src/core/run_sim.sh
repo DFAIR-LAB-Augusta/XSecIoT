@@ -6,7 +6,13 @@ log()  { printf "\033[1;34m[INFO]\033[0m %s\n" "$*"; }
 warn() { printf "\033[1;33m[WARN]\033[0m %s\n" "$*"; }
 err()  { printf "\033[1;31m[ERR ]\033[0m %s\n" "$*" >&2; }
 
-UV="/home/seth/.local/bin/uv"
+if [[ -n "${UV:-}" ]]; then
+  UV="$UV"
+elif command -v uv >/dev/null 2>&1; then
+  UV="$(command -v uv)"
+else
+  UV="$HOME/.local/bin/uv"
+fi
 
 # --- Config ---
 CHUNK_SIZES=(5 10 15 25 50 75 100 500 1000 1)
@@ -19,6 +25,18 @@ SEEDS=(17 42 67 92 117 )
 MODEL_VARIANTS=("feedforward")
 
 CE_TYPES=("none" "ice" "approx_cce" "cce" "approx_tce")
+
+CADE_DIMS=(76 512 128 32) # First num is # of features, 76 for dfair, 3x for UNSW
+CADE_MARGIN=10.0
+CADE_MAD_THRESHOLD=3.5
+CADE_MIN_DRIFT_RATIO=0.05
+CADE_MIN_DRIFT_COUNT=1
+CADE_BATCH_SIZE=64
+CADE_EPOCHS=250
+CADE_LR=0.001
+CADE_LAMBDA_1=0.1
+CADE_SIMILAR_RATIO=0.25
+CADE_DISPLAY_INTERVAL=10
 
 SUCCEEDED=()
 
@@ -128,13 +146,69 @@ for run in "${RUNS[@]}"; do
             #     || exit 1
 
             #   # --- Adaptive chunking runs ---
-            run_one "DFAIR AC model=$model ce=$ce" \
-                env PYTHONPATH=. $UV run src/core/ce_simulation.py \
+            # run_one "DFAIR AC model=$model ce=$ce" \
+            #     env PYTHONPATH=. $UV run src/core/ce_simulation.py \
+            #     datasets/CETrain/combined_data.csv \
+            #     datasets/CEFlows2/CEFlows2_merged.csv \
+            #     --log2File \
+            #     --modelVariant "$model" \
+            #     --monitorType ce \
+            #     --ceType "$ce" \
+            #     --max_rows 100000 \
+            #     --useCircularLogger \
+            #     --debug \
+            #     --useMLP \
+            #     --useAC \
+            #     --seed "$seed" \
+            #     --runNum "$run" \
+            #     || exit 1
+
+            # run_one "UNSW AC model=$model ce=$ce" \
+            #     env PYTHONPATH=. $UV run src/core/ce_simulation.py \
+            #     datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
+            #     datasets/CEFlows2/CEFlows2_merged.csv \
+            #     --log2File \
+            #     --modelVariant "$model" \
+            #     --monitorType ce \
+            #     --ceType "$ce" \
+            #     --max_rows 100000 \
+            #     --useCircularLogger \
+            #     --debug \
+            #     --useMLP \
+            #     --useAC \
+            #     --unsw \
+            #     --seed "$seed" \
+            #     --runNum "$run" \
+            #     || exit 1
+
+            # run_one "CIC AC model=$model ce=$ce" \
+            #     env PYTHONPATH=. $UV run src/core/ce_simulation.py \
+            #     datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
+            #     datasets/CEFlows2/CEFlows2_merged.csv \
+            #     --log2File \
+            #     --modelVariant "$model" \
+            #     --monitorType ce \
+            #     --ceType "$ce" \
+            #     --max_rows 100000 \
+            #     --useCircularLogger \
+            #     --debug \
+            #     --useMLP \
+            #     --useAC \
+            #     --unsw \
+            #     --seed "$seed" \
+            #     --runNum "$run" \
+            #     || exit 1
+
+
+            done
+            #   # --- CADE Adaptive chunking runs ---
+            run_one "DFAIR AC model=$model monitor=cade" \
+                env PYTHONPATH=. "$UV" run src/core/ce_simulation.py \
                 datasets/CETrain/combined_data.csv \
                 datasets/CEFlows2/CEFlows2_merged.csv \
                 --log2File \
                 --modelVariant "$model" \
-                --ceType "$ce" \
+                --monitorType cade \
                 --max_rows 100000 \
                 --useCircularLogger \
                 --debug \
@@ -142,43 +216,74 @@ for run in "${RUNS[@]}"; do
                 --useAC \
                 --seed "$seed" \
                 --runNum "$run" \
+                --monitorKwarg dims "${CADE_DIMS[@]}" \
+                --monitorKwarg margin "$CADE_MARGIN" \
+                --monitorKwarg mad_threshold "$CADE_MAD_THRESHOLD" \
+                --monitorKwarg min_drift_ratio "$CADE_MIN_DRIFT_RATIO" \
+                --monitorKwarg min_drift_count "$CADE_MIN_DRIFT_COUNT" \
+                --monitorKwarg batch_size "$CADE_BATCH_SIZE" \
+                --monitorKwarg epochs "$CADE_EPOCHS" \
+                --monitorKwarg lr "$CADE_LR" \
+                --monitorKwarg cae_lambda_1 "$CADE_LAMBDA_1" \
+                --monitorKwarg similar_ratio "$CADE_SIMILAR_RATIO" \
+                --monitorKwarg display_interval "$CADE_DISPLAY_INTERVAL" \
                 || exit 1
 
-            run_one "UNSW AC model=$model ce=$ce" \
-                env PYTHONPATH=. $UV run src/core/ce_simulation.py \
-                datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
-                datasets/CEFlows2/CEFlows2_merged.csv \
-                --log2File \
-                --modelVariant "$model" \
-                --ceType "$ce" \
-                --max_rows 100000 \
-                --useCircularLogger \
-                --debug \
-                --useMLP \
-                --useAC \
-                --unsw \
-                --seed "$seed" \
-                --runNum "$run" \
-                || exit 1
+            # run_one "UNSW AC model=$model monitor=cade" \
+            #     env PYTHONPATH=. "$UV" run src/core/ce_simulation.py \
+            #     datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
+            #     datasets/CEFlows2/CEFlows2_merged.csv \
+            #     --log2File \
+            #     --modelVariant "$model" \
+            #     --monitorType cade \
+            #     --max_rows 100000 \
+            #     --useCircularLogger \
+            #     --debug \
+            #     --useMLP \
+            #     --useAC \
+            #     --unsw \
+            #     --seed "$seed" \
+            #     --runNum "$run" \
+            #     --monitorKwarg dims "${CADE_DIMS[@]}" \
+            #     --monitorKwarg margin "$CADE_MARGIN" \
+            #     --monitorKwarg mad_threshold "$CADE_MAD_THRESHOLD" \
+            #     --monitorKwarg min_drift_ratio "$CADE_MIN_DRIFT_RATIO" \
+            #     --monitorKwarg min_drift_count "$CADE_MIN_DRIFT_COUNT" \
+            #     --monitorKwarg batch_size "$CADE_BATCH_SIZE" \
+            #     --monitorKwarg epochs "$CADE_EPOCHS" \
+            #     --monitorKwarg lr "$CADE_LR" \
+            #     --monitorKwarg cae_lambda_1 "$CADE_LAMBDA_1" \
+            #     --monitorKwarg similar_ratio "$CADE_SIMILAR_RATIO" \
+            #     --monitorKwarg display_interval "$CADE_DISPLAY_INTERVAL" \
+            #     || exit 1
 
-            run_one "CIC AC model=$model ce=$ce" \
-                env PYTHONPATH=. $UV run src/core/ce_simulation.py \
-                datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
-                datasets/CEFlows2/CEFlows2_merged.csv \
-                --log2File \
-                --modelVariant "$model" \
-                --ceType "$ce" \
-                --max_rows 100000 \
-                --useCircularLogger \
-                --debug \
-                --useMLP \
-                --useAC \
-                --unsw \
-                --seed "$seed" \
-                --runNum "$run" \
+            # run_one "CIC AC model=$model monitor=cade" \
+            #     env PYTHONPATH=. "$UV" run src/core/ce_simulation.py \
+            #     datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
+            #     datasets/CEFlows2/CEFlows2_merged.csv \
+            #     --log2File \
+            #     --modelVariant "$model" \
+            #     --monitorType cade \
+            #     --max_rows 100000 \
+            #     --useCircularLogger \
+            #     --debug \
+            #     --useMLP \
+            #     --useAC \
+            #     --unsw \
+            #     --seed "$seed" \
+            #     --runNum "$run" \
+            #     --monitorKwarg dims "${CADE_DIMS[@]}" \
+            #     --monitorKwarg margin "$CADE_MARGIN" \
+            #     --monitorKwarg mad_threshold "$CADE_MAD_THRESHOLD" \
+            #     --monitorKwarg min_drift_ratio "$CADE_MIN_DRIFT_RATIO" \
+            #     --monitorKwarg min_drift_count "$CADE_MIN_DRIFT_COUNT" \
+            #     --monitorKwarg batch_size "$CADE_BATCH_SIZE" \
+            #     --monitorKwarg epochs "$CADE_EPOCHS" \
+            #     --monitorKwarg lr "$CADE_LR" \
+            #     --monitorKwarg cae_lambda_1 "$CADE_LAMBDA_1" \
+            #     --monitorKwarg similar_ratio "$CADE_SIMILAR_RATIO" \
+            #     --monitorKwarg display_interval "$CADE_DISPLAY_INTERVAL" \
                 || exit 1
-
-            done
         done
     done
 done

@@ -41,6 +41,12 @@ class ModelVariant(str, Enum):
     XGB = "xgb"
 
 
+class MonitorType(str, Enum):
+    NONE = "none"
+    CE = "ce"
+    CADE = "cade"
+
+
 class CEType(str, Enum):
     """Conformal evaluation strategy."""
 
@@ -147,6 +153,8 @@ class SimulationConfig(BaseModel):
     use_cuml: bool = False
     seed: int = 42
     runNum: int = 0
+    monitor_type: MonitorType = MonitorType.CE
+    monitor_kwargs: Dict[str, Any] = Field(default_factory=dict)
 
     device: torch.device = Field(default_factory=pick_device)
 

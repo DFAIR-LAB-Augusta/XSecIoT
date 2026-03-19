@@ -44,13 +44,14 @@ from sklearn.svm import SVC
 from src.core.adaptive_chunking import AdaptiveChunkController
 from src.core.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
 from src.core.circular_logger import CircularDequeLogger
-from src.core.config import CEType, ModelType, ModelVariant, SimulationConfig
+from src.core.config import CEType, ModelType, ModelVariant, MonitorType, SimulationConfig
 from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
 from src.core.conformalEval.approx_cce import ApproxCrossConformalEvaluator
 from src.core.conformalEval.cce import CrossConformalEvaluator
-from src.core.conformalEval.conformal_evaluators import ConformalEvaluator
 from src.core.conformalEval.ice import InductiveConformalEvaluator
 from src.core.conformalEval.tce import ApproximateTransductiveConformalEvaluator
+from src.core.drift_monitor.base import DriftMonitor
+from src.core.drift_monitor.factory import build_monitor
 from src.core.models.feedforward_binary import FeedForwardBinary
 from src.core.models.mlp_ce import MLP_CE
 from src.core.perf_stats import PerformanceStats
@@ -159,7 +160,91 @@ def _parse_args() -> argparse.Namespace:
         "--useMLP", action="store_true",
         help="Use MLP model for CEs"
     )
-
+    p.add_argument(
+        "--monitorType",
+        type=MonitorType,
+        choices=list(MonitorType),
+        default="ce",
+        help="Runtime drift monitor backend to use",
+    )
+    p.add_argument(
+        "--cadeDims",
+        type=int,
+        nargs="+",
+        default=None,
+        help="CADE encoder dims, e.g. --cadeDims 96 512 128 32",
+    )
+    p.add_argument(
+        "--cadeMargin",
+        type=float,
+        default=10.0,
+        help="CADE contrastive margin",
+    )
+    p.add_argument(
+        "--cadeMadThreshold",
+        type=float,
+        default=3.5,
+        help="CADE MAD-based anomaly threshold",
+    )
+    p.add_argument(
+        "--cadeMinDriftRatio",
+        type=float,
+        default=0.05,
+        help="CADE chunk drift ratio threshold",
+    )
+    p.add_argument(
+        "--cadeMinDriftCount",
+        type=int,
+        default=1,
+        help="CADE chunk drift count threshold",
+    )
+    p.add_argument(
+        "--cadeBatchSize",
+        type=int,
+        default=64,
+        help="CADE contrastive AE batch size",
+    )
+    p.add_argument(
+        "--cadeEpochs",
+        type=int,
+        default=250,
+        help="CADE contrastive AE epochs",
+    )
+    p.add_argument(
+        "--cadeLr",
+        type=float,
+        default=1e-3,
+        help="CADE contrastive AE learning rate",
+    )
+    p.add_argument(
+        "--cadeLambda1",
+        type=float,
+        default=1e-1,
+        help="CADE contrastive loss lambda_1",
+    )
+    p.add_argument(
+        "--cadeSimilarRatio",
+        type=float,
+        default=0.25,
+        help="CADE similar pair ratio",
+    )
+    p.add_argument(
+        "--cadeDisplayInterval",
+        type=int,
+        default=10,
+        help="CADE training log interval",
+    )
+    p.add_argument(
+        "--cadeForceRetrain",
+        action="store_true",
+        help="Force retraining CADE weights even if a weights file exists",
+    )
+    p.add_argument(
+        "--cadeWeightsPath",
+        type=str,
+        default=None,
+        help="Optional path to CADE weights file",
+    )
     return p.parse_args()
 
 
@@ -298,69 +383,79 @@ def _simulate(
 
         clean_tr = df_train.copy()
 
-        if config.ce_type != CEType.NONE:
-            ce_kwargs = _filter_ce_kwargs(config)
+        monitor: DriftMonitor | None = None
 
+        if config.monitor_type != MonitorType.NONE:
+            ce_kwargs = _filter_ce_kwargs(
+                config) if config.monitor_type == MonitorType.CE else {}
             Xtr = preprocess_chunk(
                 clean_tr, FULL_DROP_COLS).select_dtypes(include=['number'])
-            logger.info(f"CE_Features: {Xtr.columns}")
+            logger.info(f"Monitor features: {Xtr.columns}")
 
             Xs = scaler.transform(Xtr)
-            Xp = pca.transform(
-                Xs) if config.use_pca and pca is not None else Xs
-            if config.is_unsw:
-                logging.debug(
-                    f"UNSW y classes: {clean_tr['BinLabel'].unique() = }")
+            X_monitor = pca.transform(Xs) if (
+                config.monitor_type == MonitorType.CE and config.use_pca and pca is not None
+            ) else Xs
 
             ytr = clean_tr['BinLabel'] if config.model_type == ModelType.BINARY else clean_tr['Label']
-            input_dim = Xp.shape[1]
 
-            # TODO: Add option for cuml svm version
-            if config.use_svm:
-                if config.max_rows >= 100_000:
-                    ce_model = SVC(probability=True, kernel='linear',
-                                   verbose=False, random_state=config.seed, shrinking=True)
+            input_dim = X_monitor.shape[1]
+
+            if config.monitor_type == MonitorType.CE:
+                if config.use_svm:
+                    if config.max_rows >= 100_000:
+                        monitor_model = SVC(
+                            probability=True,
+                            kernel='linear',
+                            verbose=False,
+                            random_state=config.seed,
+                            shrinking=True,
+                        )
+                    else:
+                        monitor_model = SVC(
+                            probability=True,
+                            kernel='linear',
+                            verbose=False,
+                            random_state=config.seed,
+                            shrinking=False,
+                        )
+                elif config.use_mlp:
+                    monitor_model = MLP_CE(
+                        input_dim=input_dim,
+                        widths=tuple(ce_kwargs.get("widths", (256, 128, 64))),
+                        p_drop=float(ce_kwargs.get("dropout", 0.2)),
+                        threshold=float(ce_kwargs.get("threshold", 0.5)),
+                        lr=float(ce_kwargs.get("lr", 1e-3)),
+                        epochs=int(ce_kwargs.get("epochs", 20)),
+                        batch_size=ce_kwargs.get("batch_size", None),
+                        random_state=config.seed,
+                        device=config.device,
+                    )
+                    ce_kwargs.setdefault("n_jobs", 1)
                 else:
-                    ce_model = SVC(probability=True, kernel='linear',
-                                   verbose=False, random_state=config.seed, shrinking=False)
-                logging.info(
-                    f"Using SVM model for CE: {ce_model.__class__.__name__}")
-            elif config.use_mlp:
-                ce_model = MLP_CE(
-                    input_dim=input_dim,
-                    widths=tuple(ce_kwargs.get("widths", (256, 128, 64))),
-                    p_drop=float(ce_kwargs.get("dropout", 0.2)),
-                    threshold=float(ce_kwargs.get("threshold", 0.5)),
-                    lr=float(ce_kwargs.get("lr", 1e-3)),
-                    epochs=int(ce_kwargs.get("epochs", 20)),
-                    batch_size=ce_kwargs.get("batch_size", None),
-                    random_state=config.seed,
-                    device=config.device,
-                )
-                logging.info(
-                    f"Using MLPBinaryCE for CE on device={config.device} (input_dim={input_dim})")
-                ce_kwargs.setdefault("n_jobs", 1)
-            elif config.use_cuml:
-                ce_model = SVC(probability=True, kernel='linear',
-                               verbose=False, random_state=config.seed, shrinking=True)
-                pass
-            else:
-                ce_model = model
-                logging.info(
-                    f"Using model variant '{config.model_variant.value}' for CE: {ce_model.__class__.__name__}")
+                    monitor_model = model
 
-            ce = ConformalEvaluator(
-                config.ce_type, ce_model, significance_controller=sig_controller, **ce_kwargs)
+                monitor = build_monitor(
+                    config=config,
+                    model=monitor_model,
+                    significance_controller=sig_controller,
+                )
+            else:
+                monitor = build_monitor(
+                    config=config,
+                    model=None,
+                    significance_controller=None,
+                )
 
             tci = time.perf_counter()
-
-            ce.calibrate(Xp, ytr.to_numpy(), perf_stats)
+            if monitor is not None:
+                monitor.fit(X_monitor, ytr.to_numpy(), perf_stats)
             logger.info(
-                f"Initial CE calibration in {time.perf_counter() - tci:.4f}s")
+                "Initial monitor fit in %.4fs",
+                time.perf_counter() - tci,
+            )
         else:
-            ce = None
-            logger.info(
-                "No conformal evaluation enabled; skipping CE calibration")
+            logger.info("No drift monitor enabled; skipping monitor fit")
 
         if config.use_adaptive_chunking:
             chunker = AdaptiveChunkController(config.adaptive_chunk_config)
@@ -387,7 +482,7 @@ def _simulate(
                         scaler,
                         pca,
                         model,
-                        ce if config.ce_type != CEType.NONE else None,
+                        monitor if config.ce_type != CEType.NONE else None,
                         chunk,
                         perf_stats,
                         sig_controller,
@@ -408,7 +503,7 @@ def _simulate(
                     scaler,
                     pca,
                     model,
-                    ce if config.ce_type != CEType.NONE else None,
+                    monitor,
                     chunk,
                     perf_stats,
                     sig_controller,
@@ -490,7 +585,7 @@ def _sim_loop(
     scaler: StandardScaler,
     pca: Optional[PCA],
     model: ClassifierMixin | xgb.Booster | FeedForwardBinary,
-    ce: Optional[ConformalEvaluator],
+    monitor: DriftMonitor | None,
     chunk: pd.DataFrame,
     perf_stats: PerformanceStats,
     sig_controller: Optional[AdaptiveSignificanceController] = None,
@@ -645,56 +740,57 @@ def _sim_loop(
         else:
             rolling.append(row_to_log.iloc[0].to_list())
 
-    if ce is None:
+    if monitor is None:
         logger.warning(
-            "CE is disabled; skipping drift detection and retraining.")
-        drift_chunk_flag = np.array([False])
+            "Drift monitor is disabled; skipping drift detection and retraining."
+        )
+        drift_result = None
     else:
         start_drift = time.perf_counter()
 
         if config.is_unsw:
             X_chunk = preprocess_chunk(clean_ch, FULL_DROP_COLS)
-            logger.debug(
-                f"UNSW training features: {X_chunk.columns.tolist() = }")
         else:
             X_chunk = preprocess_chunk(
                 clean_ch, FULL_DROP_COLS).select_dtypes(include=['number'])
+
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore",
                 message="X does not have valid feature names, but StandardScaler was fitted with feature names"
             )
-            expected = (list(scaler.get_feature_names_out())
-                        if hasattr(scaler, "get_feature_names_out")
-                        else list(scaler.feature_names_in_))
+            expected = (
+                list(scaler.get_feature_names_out())
+                if hasattr(scaler, "get_feature_names_out")
+                else list(scaler.feature_names_in_)
+            )
 
             extra = [c for c in X_chunk.columns if c not in expected]
             if extra:
                 logger.debug(
-                    f"Dropping unseen features: {extra[:10]}{' ...' if len(extra) > 10 else ''}")
+                    f"Dropping unseen features: {extra[:10]}{' ...' if len(extra) > 10 else ''}"
+                )
                 X_chunk = X_chunk.drop(columns=extra)
+
             X_chunk = X_chunk.reindex(columns=expected)
-            logger.debug(
-                f"Scaler was fit with feature names: {scaler.get_feature_names_out()}\n"
-                f"Feature names missing: {set(scaler.get_feature_names_out()) - set(X_chunk.columns)}"
-            )
-
             Xs = scaler.transform(X_chunk)
-        Xp = pca.transform(Xs) if config.use_pca and pca is not None else Xs
 
-        drift_chunk_flag = ce.detect_drift(Xp)
+        X_monitor = pca.transform(Xs) if (
+            config.monitor_type == MonitorType.CE and config.use_pca and pca is not None
+        ) else Xs
+
+        drift_result = monitor.detect(X_monitor)
         perf_stats.drift_times.append(time.perf_counter() - start_drift)
-
-    if drift_chunk_flag.any() and ce is not None:
+    if drift_result is not None and drift_result.chunk_drift:
         perf_stats.log_drift(chunkNum)
         logger.info(
             "Drift detected in the chunk. Retraining model and recalibrating CE...")
-        scaler, pca, model, ce = _retrain(
+        scaler, pca, model, monitor = _retrain(
             config,
             scaler,
             pca,
             model,
-            ce,
+            monitor,
             rolling,
             perf_stats,
             sig_controller
@@ -795,11 +891,11 @@ def _retrain(
     scaler: StandardScaler,
     pca: Optional[PCA],
     model: Any,
-    ce: ConformalEvaluator,
+    monitor: DriftMonitor | None,
     rolling: RollingCSV | CircularDequeLogger,
     perf_stats: PerformanceStats,
     sig_controller: Optional[AdaptiveSignificanceController] = None
-) -> Tuple[StandardScaler, Optional[PCA], Any, ConformalEvaluator]:
+) -> Tuple[StandardScaler, Optional[PCA], Any, DriftMonitor | None]:
     """
     Retrain model and CE using the latest samples from the rolling log file.
     This overwrites the existing trained model artifacts.
@@ -814,7 +910,7 @@ def _retrain(
     Returns:
         Tuple of updated (scaler, pca, model, ce).
     """
-    if ce is None:
+    if monitor is None:
         raise RuntimeError(
             "CE is disabled; retraining should not have been triggered.")
 
@@ -911,7 +1007,7 @@ def _retrain(
     if y.nunique() < 2:
         logger.warning(
             "Only one class (%s) found in retrain data — skipping retrain.", y.unique())
-        return scaler, pca, model, ce
+        return scaler, pca, model, monitor
     elif len(y.unique()) > 2:
         logger.warning(f"More than 2 unique values in y: {y.unique()}")
 
@@ -923,10 +1019,14 @@ def _retrain(
     uniques = pd.unique(y)
     logger.debug(f"[pre-clean] BinLabel unique values (raw): {list(uniques)}")
 
-    ce.calibrate(Xp, y.to_numpy(), perf_stats)
-    logger.debug("Retraining complete in %.4fs", time.perf_counter() - start)
+    if monitor is not None:
+        X_monitor = pca.transform(Xs) if (
+            config.monitor_type == MonitorType.CE and config.use_pca and pca is not None
+        ) else Xs
+        monitor.fit(X_monitor, y.to_numpy(), perf_stats)
 
-    return scaler, pca, model, ce
+    logger.debug("Retraining complete in %.4fs", time.perf_counter() - start)
+    return scaler, pca, model, monitor
 
 
 def _log_results(
@@ -1164,7 +1264,27 @@ def main() -> None:
             is_unsw=args.unsw,
             use_mlp=args.useMLP,
             seed=args.seed,
-            runNum=args.runNum
+            runNum=args.runNum,
+            monitor_type=args.monitorType,
+            monitor_kwargs=(
+                {
+                    "dims": args.cadeDims,
+                    "margin": args.cadeMargin,
+                    "mad_threshold": args.cadeMadThreshold,
+                    "min_drift_ratio": args.cadeMinDriftRatio,
+                    "min_drift_count": args.cadeMinDriftCount,
+                    "batch_size": args.cadeBatchSize,
+                    "epochs": args.cadeEpochs,
+                    "lr": args.cadeLr,
+                    "cae_lambda_1": args.cadeLambda1,
+                    "similar_ratio": args.cadeSimilarRatio,
+                    "display_interval": args.cadeDisplayInterval,
+                    "force_retrain": args.cadeForceRetrain,
+                    "weights_path": args.cadeWeightsPath,
+                }
+                if args.monitorType == MonitorType.CADE
+                else {}
+            ),
         )
     except ValidationError as e:
         logging.error(e)

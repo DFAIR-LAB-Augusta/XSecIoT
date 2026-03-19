@@ -112,6 +112,7 @@ dependencies = [
     "zipp==3.22.0",
     "torch==2.8.0",
     "pydantic>=2.11.9",
+    "cade-firce",
 ]
 
 [dependency-groups]
@@ -123,3 +124,6 @@ dev = [
 [tool.uv]
 default-groups = ["dev"]
 package = false
+
+[tool.uv.sources]
+cade-firce = { path = "../CADE_FIRCE/dist/cade_firce-0.3.0-py3-none-any.whl" }
