@@ -113,4 +113,7 @@ style: fmt lint
 
 tree: ## Print repo tree (ignoring common dirs)
 	tree -a --dirsfirst -I "$(TREE_IGNORE)" .
-	
+
+update-cade:
+	$(UV) remove cade-firce || true
+	$(UV) add "cade-firce @ git+ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git@main"
