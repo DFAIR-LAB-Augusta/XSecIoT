@@ -126,5 +126,5 @@ default-groups = ["dev"]
 package = false
 
 [tool.uv.sources]
-cade-firce = { git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git", rev = "main" }
+cade-firce = { git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git", rev = "dev" }
 

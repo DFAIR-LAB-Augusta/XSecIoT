@@ -116,4 +116,4 @@ tree: ## Print repo tree (ignoring common dirs)
 
 update-cade:
 	$(UV) remove cade-firce || true
-	$(UV) add "cade-firce @ git+ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git@main"
+	$(UV) add "cade-firce @ git+ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git@dev"
