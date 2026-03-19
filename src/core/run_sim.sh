@@ -227,7 +227,7 @@ for run in "${RUNS[@]}"; do
                 --cadeLambda1 "$CADE_LAMBDA_1" \
                 --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
                 --cadeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
-                --cadeForceRetrain
+                --cadeForceRetrain \
                 || exit 1
 
             # run_one "UNSW AC model=$model monitor=cade" \
@@ -256,7 +256,7 @@ for run in "${RUNS[@]}"; do
             #     --cadeLambda1 "$CADE_LAMBDA_1" \
             #     --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
             #     --adeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
-                # --cadeForceRetrain
+                # --cadeForceRetrain \
             #     || exit 1
 
             # run_one "CIC AC model=$model monitor=cade" \
@@ -285,7 +285,7 @@ for run in "${RUNS[@]}"; do
             #     --cadeLambda1 "$CADE_LAMBDA_1" \
             #     --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
             #     --adeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
-                # --cadeForceRetrain
+                # --cadeForceRetrain \
                 # || exit 1
         done
     done
