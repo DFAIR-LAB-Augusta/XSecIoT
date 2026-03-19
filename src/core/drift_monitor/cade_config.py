@@ -26,6 +26,7 @@ class CadeMonitorConfig(BaseModel):
     display_interval: int = 10
     force_retrain: bool = False
     weights_path: str | None = None
+    device: str = "/CPU:0"
 
     @field_validator("dims")
     @classmethod

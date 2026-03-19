@@ -33,6 +33,7 @@ class CadeDriftMonitor:
             display_interval=cade_cfg.display_interval,
             force_retrain=cade_cfg.force_retrain,
             weights_path=cade_cfg.weights_path,
+            device=cade_cfg.device,
         )
 
     def fit(

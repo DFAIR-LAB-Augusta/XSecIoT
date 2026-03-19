@@ -58,8 +58,8 @@ wheels = [
 
 [[package]]
 name = "cade-firce"
-version = "0.3.0"
-source = { git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=main#09962eb370eff8e73f18cd311668502b3ca71d4c" }
+version = "0.3.5"
+source = { git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=dev#7e297e05a61de54b209c5aed3adc13d7332f1f9c" }
 dependencies = [
     { name = "joblib" },
     { name = "matplotlib" },
@@ -2202,7 +2202,7 @@ requires-dist = [
     { name = "argcomplete", specifier = "==3.6.2" },
     { name = "astunparse", specifier = "==1.6.3" },
     { name = "blinker", specifier = "==1.9.0" },
-    { name = "cade-firce", git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=main" },
+    { name = "cade-firce", git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=dev" },
     { name = "certifi", specifier = "==2025.4.26" },
     { name = "charset-normalizer", specifier = "==3.4.2" },
     { name = "click", specifier = "==8.2.1" },
