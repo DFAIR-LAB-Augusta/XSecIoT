@@ -11,11 +11,12 @@ from src.core.drift_monitor.base import DriftDetectionResult
 from .cade_config import CadeMonitorConfig
 
 if TYPE_CHECKING:
+    from src.core.config import SimulationConfig
     from src.core.perf_stats import PerformanceStats
 
 
 class CadeDriftMonitor:
-    def __init__(self, config) -> None:
+    def __init__(self, config: SimulationConfig) -> None:
         cade_cfg = CadeMonitorConfig(**config.monitor_kwargs)
 
         self._detector = CadeRuntimeDetector(
@@ -24,6 +25,14 @@ class CadeDriftMonitor:
             mad_threshold=cade_cfg.mad_threshold,
             min_drift_ratio=cade_cfg.min_drift_ratio,
             min_drift_count=cade_cfg.min_drift_count,
+            batch_size=cade_cfg.batch_size,
+            epochs=cade_cfg.epochs,
+            lr=cade_cfg.lr,
+            cae_lambda_1=cade_cfg.cae_lambda_1,
+            similar_ratio=cade_cfg.similar_ratio,
+            display_interval=cade_cfg.display_interval,
+            force_retrain=cade_cfg.force_retrain,
+            weights_path=cade_cfg.weights_path,
         )
 
     def fit(
