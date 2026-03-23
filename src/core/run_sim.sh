@@ -27,6 +27,7 @@ MODEL_VARIANTS=("feedforward")
 CE_TYPES=("none" "ice" "approx_cce" "cce" "approx_tce")
 
 CADE_DIMS=(76 512 128 32) # First num is # of features, 76 for dfair, 3x for UNSW
+CADE_UNSW_DIMS=(21 512 128 32) # First num is # of features, 76 for dfair, 3x for UNSW
 CADE_MARGIN=10.0
 CADE_MAD_THRESHOLD=3.5
 CADE_MIN_DRIFT_RATIO=0.05
@@ -249,7 +250,7 @@ for run in "${RUNS[@]}"; do
             #     --unsw \
             #     --seed "$seed" \
             #     --runNum "$run" \
-            #     --cadeDims "${CADE_DIMS[@]}" \
+            #     --cadeDims "${CADE_UNSW_DIMS[@]}" \
             #     --cadeMargin "$CADE_MARGIN" \
             #     --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
             #     --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
@@ -280,7 +281,7 @@ for run in "${RUNS[@]}"; do
             #     --unsw \
             #     --seed "$seed" \
             #     --runNum "$run" \
-            #     --cadeDims "${CADE_DIMS[@]}" \
+            #     --cadeDims "${CADE_UNSW_DIMS[@]}" \
             #     --cadeMargin "$CADE_MARGIN" \
             #     --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
             #     --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
