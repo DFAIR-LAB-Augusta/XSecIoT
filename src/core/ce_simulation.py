@@ -281,7 +281,7 @@ def _configure_logging(config: SimulationConfig) -> None:
         else:
             raise ValueError("Expect dataset name not in aggregated_path")
         log_dir = log_dir / ds_type
-
+        log_dir.mkdir(exist_ok=True)
         log_file = log_dir / \
             f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_run.log"
         file_handler = logging.FileHandler(log_file, mode='w')
