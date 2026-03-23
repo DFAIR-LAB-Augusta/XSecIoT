@@ -245,6 +245,12 @@ def _parse_args() -> argparse.Namespace:
         default=None,
         help="Optional path to CADE weights file",
     )
+    p.add_argument(
+        "--cadeDevice",
+        type=str,
+        default="/CPU:0",
+        help="Optional device for CADE to run on",
+    )
     return p.parse_args()
 
 
@@ -1281,6 +1287,7 @@ def main() -> None:
                     "display_interval": args.cadeDisplayInterval,
                     "force_retrain": args.cadeForceRetrain,
                     "weights_path": args.cadeWeightsPath,
+                    "device": args.cadeDevice,
                 }
                 if args.monitorType == MonitorType.CADE
                 else {}

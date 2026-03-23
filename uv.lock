@@ -58,8 +58,8 @@ wheels = [
 
 [[package]]
 name = "cade-firce"
-version = "0.3.5"
-source = { git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=dev#7e297e05a61de54b209c5aed3adc13d7332f1f9c" }
+version = "0.3.6"
+source = { git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=dev#ff06db624b6815f8149f5d33be1f3179100ba1e5" }
 dependencies = [
     { name = "joblib" },
     { name = "matplotlib" },

@@ -37,6 +37,7 @@ CADE_LR=0.001
 CADE_LAMBDA_1=0.1
 CADE_SIMILAR_RATIO=0.25
 CADE_DISPLAY_INTERVAL=10
+CADE_DEVICE="/GPU:0"
 
 SUCCEEDED=()
 
@@ -228,6 +229,7 @@ for run in "${RUNS[@]}"; do
                 --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
                 --cadeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
                 --cadeForceRetrain \
+                --cadeDevice "$CADE_DEVICE" \
                 || exit 1
 
             # run_one "UNSW AC model=$model monitor=cade" \
@@ -257,6 +259,7 @@ for run in "${RUNS[@]}"; do
             #     --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
             #     --adeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
                 # --cadeForceRetrain \
+                # --cadeDevice "$CADE_DEVICE" \
             #     || exit 1
 
             # run_one "CIC AC model=$model monitor=cade" \
@@ -286,6 +289,7 @@ for run in "${RUNS[@]}"; do
             #     --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
             #     --adeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
                 # --cadeForceRetrain \
+                # --cadeDevice "$CADE_DEVICE" \
                 # || exit 1
         done
     done
