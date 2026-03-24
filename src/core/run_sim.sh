@@ -33,7 +33,7 @@ CADE_MAD_THRESHOLD=3.5
 CADE_MIN_DRIFT_RATIO=0.05
 CADE_MIN_DRIFT_COUNT=1
 CADE_BATCH_SIZE=64
-CADE_EPOCHS=250
+CADE_EPOCHS=50
 CADE_LR=0.001
 CADE_LAMBDA_1=0.1
 CADE_SIMILAR_RATIO=0.25
@@ -100,7 +100,7 @@ log "Using uv: $UV"
 for run in "${RUNS[@]}"; do
     for seed in "${SEEDS[@]}"; do
         for model in "${MODEL_VARIANTS[@]}"; do
-            for ce in "${CE_TYPES[@]}"; do
+            # for ce in "${CE_TYPES[@]}"; do
 
             # --- Chunk-size runs --- Dont need chunk
             #   run_one "DFAIR chunk model=$model ce=$ce chunk=$cs" \
@@ -148,75 +148,14 @@ for run in "${RUNS[@]}"; do
             #     || exit 1
 
               # --- Adaptive chunking runs ---
-            run_one "DFAIR AC model=$model ce=$ce" \
-                env PYTHONPATH=. $UV run src/core/ce_simulation.py \
-                datasets/CETrain/combined_data.csv \
-                datasets/CEFlows2/CEFlows2_merged.csv \
-                --log2File \
-                --modelVariant "$model" \
-                --monitorType ce \
-                --ceType "$ce" \
-                --max_rows 100000 \
-                --useCircularLogger \
-                --debug \
-                --useMLP \
-                --useAC \
-                --seed "$seed" \
-                --runNum "$run" \
-                || exit 1
-
-            run_one "UNSW AC model=$model ce=$ce" \
-                env PYTHONPATH=. $UV run src/core/ce_simulation.py \
-                datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
-                datasets/CEFlows2/CEFlows2_merged.csv \
-                --log2File \
-                --modelVariant "$model" \
-                --monitorType ce \
-                --ceType "$ce" \
-                --max_rows 100000 \
-                --useCircularLogger \
-                --debug \
-                --useMLP \
-                --useAC \
-                --unsw \
-                --seed "$seed" \
-                --runNum "$run" \
-                || exit 1
-
-            run_one "CIC AC model=$model ce=$ce" \
-                env PYTHONPATH=. $UV run src/core/ce_simulation.py \
-                datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
-                datasets/CEFlows2/CEFlows2_merged.csv \
-                --log2File \
-                --modelVariant "$model" \
-                --monitorType ce \
-                --ceType "$ce" \
-                --max_rows 100000 \
-                --useCircularLogger \
-                --debug \
-                --useMLP \
-                --useAC \
-                --unsw \
-                --seed "$seed" \
-                --runNum "$run" \
-                || exit 1
-
-
-            done
-            #   # --- CADE Adaptive chunking runs ---
-            # run_one "DFAIR AC model=$model monitor=cade" \
-            #     env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
-            #     "$UV" run src/core/ce_simulation.py \
-            #     datasets/CETrain/combined_data.csv \
-            #     datasets/CEFlows2/CEFlows2_merged.csv \
-            #     --log2File \run_one "DFAIR AC model=$model monitor=cade" \
-            #     env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
-            #     "$UV" run src/core/ce_simulation.py \
+            # run_one "DFAIR AC model=$model ce=$ce" \
+            #     env PYTHONPATH=. $UV run src/core/ce_simulation.py \
             #     datasets/CETrain/combined_data.csv \
             #     datasets/CEFlows2/CEFlows2_merged.csv \
             #     --log2File \
             #     --modelVariant "$model" \
-            #     --monitorType cade \
+            #     --monitorType ce \
+            #     --ceType "$ce" \
             #     --max_rows 100000 \
             #     --useCircularLogger \
             #     --debug \
@@ -224,52 +163,16 @@ for run in "${RUNS[@]}"; do
             #     --useAC \
             #     --seed "$seed" \
             #     --runNum "$run" \
-            #     --cadeDims "${CADE_DIMS[@]}" \
-            #     --cadeMargin "$CADE_MARGIN" \
-            #     --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
-            #     --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
-            #     --cadeMinDriftCount "$CADE_MIN_DRIFT_COUNT" \
-            #     --cadeBatchSize "$CADE_BATCH_SIZE" \
-            #     --cadeEpochs "$CADE_EPOCHS" \
-            #     --cadeLr "$CADE_LR" \
-            #     --cadeLambda1 "$CADE_LAMBDA_1" \
-            #     --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
-            #     --cadeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
-            #     --cadeForceRetrain \
-            #     --cadeDevice "$CADE_DEVICE" \
-            #     || exit 1
-            #     --modelVariant "$model" \
-            #     --monitorType cade \
-            #     --max_rows 100000 \
-            #     --useCircularLogger \
-            #     --debug \
-            #     --useMLP \
-            #     --useAC \
-            #     --seed "$seed" \
-            #     --runNum "$run" \
-            #     --cadeDims "${CADE_DIMS[@]}" \
-            #     --cadeMargin "$CADE_MARGIN" \
-            #     --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
-            #     --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
-            #     --cadeMinDriftCount "$CADE_MIN_DRIFT_COUNT" \
-            #     --cadeBatchSize "$CADE_BATCH_SIZE" \
-            #     --cadeEpochs "$CADE_EPOCHS" \
-            #     --cadeLr "$CADE_LR" \
-            #     --cadeLambda1 "$CADE_LAMBDA_1" \
-            #     --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
-            #     --cadeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
-            #     --cadeForceRetrain \
-            #     --cadeDevice "$CADE_DEVICE" \
             #     || exit 1
 
-            # run_one "UNSW AC model=$model monitor=cade" \
-                # env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
-                # "$UV" run src/core/ce_simulation.py \
+            # run_one "UNSW AC model=$model ce=$ce" \
+            #     env PYTHONPATH=. $UV run src/core/ce_simulation.py \
             #     datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
             #     datasets/CEFlows2/CEFlows2_merged.csv \
             #     --log2File \
             #     --modelVariant "$model" \
-            #     --monitorType cade \
+            #     --monitorType ce \
+            #     --ceType "$ce" \
             #     --max_rows 100000 \
             #     --useCircularLogger \
             #     --debug \
@@ -278,29 +181,16 @@ for run in "${RUNS[@]}"; do
             #     --unsw \
             #     --seed "$seed" \
             #     --runNum "$run" \
-            #     --cadeDims "${CADE_UNSW_DIMS[@]}" \
-            #     --cadeMargin "$CADE_MARGIN" \
-            #     --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
-            #     --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
-            #     --cadeMinDriftCount "$CADE_MIN_DRIFT_COUNT" \
-            #     --cadeBatchSize "$CADE_BATCH_SIZE" \
-            #     --cadeEpochs "$CADE_EPOCHS" \
-            #     --cadeLr "$CADE_LR" \
-            #     --cadeLambda1 "$CADE_LAMBDA_1" \
-            #     --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
-            #     --adeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
-                # --cadeForceRetrain \
-                # --cadeDevice "$CADE_DEVICE" \
             #     || exit 1
 
-            # run_one "CIC AC model=$model monitor=cade" \
-                # env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
-                # "$UV" run src/core/ce_simulation.py \
+            # run_one "CIC AC model=$model ce=$ce" \
+            #     env PYTHONPATH=. $UV run src/core/ce_simulation.py \
             #     datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
             #     datasets/CEFlows2/CEFlows2_merged.csv \
             #     --log2File \
             #     --modelVariant "$model" \
-            #     --monitorType cade \
+            #     --monitorType ce \
+            #     --ceType "$ce" \
             #     --max_rows 100000 \
             #     --useCircularLogger \
             #     --debug \
@@ -309,20 +199,107 @@ for run in "${RUNS[@]}"; do
             #     --unsw \
             #     --seed "$seed" \
             #     --runNum "$run" \
-            #     --cadeDims "${CADE_UNSW_DIMS[@]}" \
-            #     --cadeMargin "$CADE_MARGIN" \
-            #     --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
-            #     --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
-            #     --cadeMinDriftCount "$CADE_MIN_DRIFT_COUNT" \
-            #     --cadeBatchSize "$CADE_BATCH_SIZE" \
-            #     --cadeEpochs "$CADE_EPOCHS" \
-            #     --cadeLr "$CADE_LR" \
-            #     --cadeLambda1 "$CADE_LAMBDA_1" \
-            #     --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
-            #     --adeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
-                # --cadeForceRetrain \
-                # --cadeDevice "$CADE_DEVICE" \
-                # || exit 1
+            #     || exit 1
+
+
+            # done
+            #   # --- CADE Adaptive chunking runs ---
+            run_one "DFAIR AC model=$model monitor=cade" \
+                env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
+                "$UV" run src/core/ce_simulation.py \
+                datasets/CETrain/combined_data.csv \
+                datasets/CEFlows2/CEFlows2_merged.csv \
+                --log2File \run_one "DFAIR AC model=$model monitor=cade" \
+                env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
+                "$UV" run src/core/ce_simulation.py \
+                datasets/CETrain/combined_data.csv \
+                datasets/CEFlows2/CEFlows2_merged.csv \
+                --log2File \
+                --modelVariant "$model" \
+                --monitorType cade \
+                --max_rows 100000 \
+                --useCircularLogger \
+                --debug \
+                --useMLP \
+                --useAC \
+                --seed "$seed" \
+                --runNum "$run" \
+                --cadeDims "${CADE_DIMS[@]}" \
+                --cadeMargin "$CADE_MARGIN" \
+                --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
+                --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
+                --cadeMinDriftCount "$CADE_MIN_DRIFT_COUNT" \
+                --cadeBatchSize "$CADE_BATCH_SIZE" \
+                --cadeEpochs "$CADE_EPOCHS" \
+                --cadeLr "$CADE_LR" \
+                --cadeLambda1 "$CADE_LAMBDA_1" \
+                --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
+                --cadeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
+                --cadeForceRetrain \
+                --cadeDevice "$CADE_DEVICE" \
+                || exit 1
+
+            run_one "UNSW AC model=$model monitor=cade" \
+                env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
+                "$UV" run src/core/ce_simulation.py \
+                datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
+                datasets/CEFlows2/CEFlows2_merged.csv \
+                --log2File \
+                --modelVariant "$model" \
+                --monitorType cade \
+                --max_rows 100000 \
+                --useCircularLogger \
+                --debug \
+                --useMLP \
+                --useAC \
+                --unsw \
+                --seed "$seed" \
+                --runNum "$run" \
+                --cadeDims "${CADE_UNSW_DIMS[@]}" \
+                --cadeMargin "$CADE_MARGIN" \
+                --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
+                --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
+                --cadeMinDriftCount "$CADE_MIN_DRIFT_COUNT" \
+                --cadeBatchSize "$CADE_BATCH_SIZE" \
+                --cadeEpochs "$CADE_EPOCHS" \
+                --cadeLr "$CADE_LR" \
+                --cadeLambda1 "$CADE_LAMBDA_1" \
+                --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
+                --adeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
+                --cadeForceRetrain \
+                --cadeDevice "$CADE_DEVICE" \
+                || exit 1
+
+            run_one "CIC AC model=$model monitor=cade" \
+                env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
+                "$UV" run src/core/ce_simulation.py \
+                datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
+                datasets/CEFlows2/CEFlows2_merged.csv \
+                --log2File \
+                --modelVariant "$model" \
+                --monitorType cade \
+                --max_rows 100000 \
+                --useCircularLogger \
+                --debug \
+                --useMLP \
+                --useAC \
+                --unsw \
+                --seed "$seed" \
+                --runNum "$run" \
+                --cadeDims "${CADE_UNSW_DIMS[@]}" \
+                --cadeMargin "$CADE_MARGIN" \
+                --cadeMadThreshold "$CADE_MAD_THRESHOLD" \
+                --cadeMinDriftRatio "$CADE_MIN_DRIFT_RATIO" \
+                --cadeMinDriftCount "$CADE_MIN_DRIFT_COUNT" \
+                --cadeBatchSize "$CADE_BATCH_SIZE" \
+                --cadeEpochs "$CADE_EPOCHS" \
+                --cadeLr "$CADE_LR" \
+                --cadeLambda1 "$CADE_LAMBDA_1" \
+                --cadeSimilarRatio "$CADE_SIMILAR_RATIO" \
+                --adeDisplayInterval "$CADE_DISPLAY_INTERVAL" \
+                --cadeForceRetrain \
+                --cadeDevice "$CADE_DEVICE" \
+                || exit 1
         done
     done
 done
