@@ -209,11 +209,6 @@ for run in "${RUNS[@]}"; do
                 "$UV" run src/core/ce_simulation.py \
                 datasets/CETrain/combined_data.csv \
                 datasets/CEFlows2/CEFlows2_merged.csv \
-                --log2File \run_one "DFAIR AC model=$model monitor=cade" \
-                env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
-                "$UV" run src/core/ce_simulation.py \
-                datasets/CETrain/combined_data.csv \
-                datasets/CEFlows2/CEFlows2_merged.csv \
                 --log2File \
                 --modelVariant "$model" \
                 --monitorType cade \
