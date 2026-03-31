@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   ruff-style:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, dfair-gha-runner]
 
     steps:
       - name: Checkout
