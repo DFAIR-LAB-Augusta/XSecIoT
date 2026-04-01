@@ -54,8 +54,8 @@ class CadeDriftMonitor:
             chunk_drift=bool(row_flags.any()),
             scores=scores,
             metadata={
-                "drift_count": int(row_flags.sum()),
-                "chunk_size": int(len(row_flags)),
-                "drift_ratio": float(row_flags.mean()) if len(row_flags) else 0.0,
+                'drift_count': int(row_flags.sum()),
+                'chunk_size': int(len(row_flags)),
+                'drift_ratio': float(row_flags.mean()) if len(row_flags) else 0.0,
             },
         )

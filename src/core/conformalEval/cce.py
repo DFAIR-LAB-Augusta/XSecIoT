@@ -17,6 +17,7 @@ Typical usage:
     >>> result = cce.predict_p_values(X_test)
     >>> thresholds = cce.get_thresholds()
 """
+
 import logging
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -39,9 +40,9 @@ from src.core.perf_stats import PerformanceStats
 
 logger = logging.getLogger(__name__)
 STATIC_VALS: Dict = load_conformal_config()
-FOLDS = STATIC_VALS["conformal_eval_config"]["folds"]
-SIGNIFICANCE = STATIC_VALS["conformal_eval_config"]["significance"]
-N_JOBS = STATIC_VALS["conformal_eval_config"]["n_jobs"]
+FOLDS = STATIC_VALS['conformal_eval_config']['folds']
+SIGNIFICANCE = STATIC_VALS['conformal_eval_config']['significance']
+N_JOBS = STATIC_VALS['conformal_eval_config']['n_jobs']
 
 
 class CrossConformalEvaluator:
@@ -64,8 +65,7 @@ class CrossConformalEvaluator:
         significance: float = SIGNIFICANCE,
         random_state: Optional[int] = None,
         n_jobs: int = N_JOBS,
-        significance_controller: Optional[AdaptiveSignificanceController] = None
-
+        significance_controller: Optional[AdaptiveSignificanceController] = None,
     ):
         """
         Initialize the CrossConformalEvaluator.
@@ -85,8 +85,7 @@ class CrossConformalEvaluator:
         self.significance_controller = significance_controller
         self.calibration_scores: Optional[Dict[Any, np.ndarray]] = None
         self.thresholds: Optional[Dict[Any, float]] = None
-        logger.info(
-            f"significance_controller is {'set' if significance_controller else 'None'}")
+        logger.info(f'significance_controller is {"set" if significance_controller else "None"}')
 
     def _process_fold(self, X, y, train_idx, calib_idx):
         """
@@ -109,10 +108,7 @@ class CrossConformalEvaluator:
 
         probas = model_.predict_proba(X_calib)
         classes = model_.classes_
-        scores = 1.0 - np.array([
-            probas[i, np.where(classes == y_calib[i])[0][0]]
-            for i in range(len(y_calib))
-        ])
+        scores = 1.0 - np.array([probas[i, np.where(classes == y_calib[i])[0][0]] for i in range(len(y_calib))])
         fold_scores: Dict[Any, list] = {cls: [] for cls in np.unique(y)}
         for cls in np.unique(y_calib):
             cls_scores = scores[y_calib == cls]
@@ -129,14 +125,12 @@ class CrossConformalEvaluator:
         all_true = []
         all_pred = []
         all_scores: Dict[Any, list] = {cls: [] for cls in np.unique(y)}
-        skf = StratifiedKFold(n_splits=self.folds,
-                              shuffle=True, random_state=self.random_state)
+        skf = StratifiedKFold(n_splits=self.folds, shuffle=True, random_state=self.random_state)
 
         fold_args = list(skf.split(X, y))
         with ThreadPoolExecutor(max_workers=self.folds if self.n_jobs == -1 else self.n_jobs) as executor:
             futures = [
-                executor.submit(self._process_fold, X, y, train_idx, calib_idx)
-                for train_idx, calib_idx in fold_args
+                executor.submit(self._process_fold, X, y, train_idx, calib_idx) for train_idx, calib_idx in fold_args
             ]
             for f in as_completed(futures):
                 result, y_true_fold, y_pred_fold, model_ = f.result()
@@ -146,14 +140,11 @@ class CrossConformalEvaluator:
                 for cls, scores in result.items():
                     all_scores[cls].extend(scores)
 
-        self.calibration_scores = {cls: np.array(
-            scores) for cls, scores in all_scores.items()}
-        thresholds = compute_class_thresholds(
-            self.calibration_scores, self.significance)
+        self.calibration_scores = {cls: np.array(scores) for cls, scores in all_scores.items()}
+        thresholds = compute_class_thresholds(self.calibration_scores, self.significance)
 
         if self.significance_controller:
-            logger.info(
-                "Initializing AdaptiveSignificanceController thresholds")
+            logger.info('Initializing AdaptiveSignificanceController thresholds')
             for cls, scores in self.calibration_scores.items():
                 fake_preds = np.array([cls] * len(scores))
                 self.significance_controller.update(fake_preds, scores)
@@ -161,22 +152,18 @@ class CrossConformalEvaluator:
         else:
             self.thresholds = thresholds
 
-        logger.info("CCE calibration completed successfully.")
+        logger.info('CCE calibration completed successfully.')
         acc = float(accuracy_score(all_true, all_pred))
-        prec = float(precision_score(all_true, all_pred,
-                     average='binary' if len(np.unique(y)) == 2 else 'weighted'))
-        rec = float(recall_score(all_true, all_pred, average='binary' if len(
-            np.unique(y)) == 2 else 'weighted'))
-        f1 = float(f1_score(all_true, all_pred, average='binary' if len(
-            np.unique(y)) == 2 else 'weighted'))
+        prec = float(precision_score(all_true, all_pred, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
+        rec = float(recall_score(all_true, all_pred, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
+        f1 = float(f1_score(all_true, all_pred, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
 
-        logger.info("[CCE] Model Performance Across Calibration Folds:")
-        logger.info("Accuracy:  %.4f", acc)
-        logger.info("Precision: %.4f", prec)
-        logger.info("Recall:    %.4f", rec)
-        logger.info("F1 Score:  %.4f", f1)
-        logger.info("\n%s", classification_report(
-            all_true, all_pred, digits=4))
+        logger.info('[CCE] Model Performance Across Calibration Folds:')
+        logger.info('Accuracy:  %.4f', acc)
+        logger.info('Precision: %.4f', prec)
+        logger.info('Recall:    %.4f', rec)
+        logger.info('F1 Score:  %.4f', f1)
+        logger.info('\n%s', classification_report(all_true, all_pred, digits=4))
 
         if perf_stats:
             perf_stats.log_ce_metrics(acc, prec, rec, f1)
@@ -199,8 +186,7 @@ class CrossConformalEvaluator:
             RuntimeError: If calibration was not performed or models are missing.
         """
         if self.calibration_scores is None or not self.fold_models:
-            raise RuntimeError(
-                "CCE must be calibrated before computing p-values.")
+            raise RuntimeError('CCE must be calibrated before computing p-values.')
 
         all_preds = []
         all_scores = []
@@ -210,10 +196,7 @@ class CrossConformalEvaluator:
             preds = model.predict(X)
             all_preds.append(preds)
 
-            scores = 1.0 - np.array([
-                probas[i, np.where(model.classes_ == preds[i])[0][0]]
-                for i in range(len(preds))
-            ])
+            scores = 1.0 - np.array([probas[i, np.where(model.classes_ == preds[i])[0][0]] for i in range(len(preds))])
             all_scores.append(scores)
 
         all_preds = np.stack(all_preds, axis=0)
@@ -223,10 +206,9 @@ class CrossConformalEvaluator:
 
         avg_scores = np.mean(all_scores, axis=0)
 
-        p_values = compute_p_values(
-            avg_scores, final_preds, self.calibration_scores)
+        p_values = compute_p_values(avg_scores, final_preds, self.calibration_scores)
 
-        return {"class": final_preds, "p_value": p_values}
+        return {'class': final_preds, 'p_value': p_values}
 
     def get_thresholds(self) -> Dict[Any, float]:
         """
@@ -239,12 +221,9 @@ class CrossConformalEvaluator:
             RuntimeError: If called before thresholds have been computed.
         """
         if self.thresholds is None:
-            raise RuntimeError(
-                "Thresholds not available: call calibrate() first.")
+            raise RuntimeError('Thresholds not available: call calibrate() first.')
         return self.thresholds
 
 
-if __name__ == "__main__":
-    raise NotImplementedError(
-        "This module is not intended to be run directly. "
-    )
+if __name__ == '__main__':
+    raise NotImplementedError('This module is not intended to be run directly. ')

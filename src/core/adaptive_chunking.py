@@ -35,6 +35,7 @@ class AdaptiveChunkController:
         ema_decay (float): Exponential decay factor for smoothing drift rate.
         cooldown_period (int): Number of updates to wait before adjusting size again.
     """
+
     def __init__(
         self,
         ac_config: AdaptiveChunkConfig,
@@ -63,10 +64,7 @@ class AdaptiveChunkController:
             self._total_drifts += 1
 
         raw_drift_rate = self._total_drifts / self._total_chunks
-        self._drift_rate_ema = (
-            self.ema_decay * self._drift_rate_ema
-            + (1 - self.ema_decay) * raw_drift_rate
-        )
+        self._drift_rate_ema = self.ema_decay * self._drift_rate_ema + (1 - self.ema_decay) * raw_drift_rate
 
         if self._cooldown_counter > 0:
             self._cooldown_counter -= 1
@@ -88,13 +86,13 @@ class AdaptiveChunkController:
 
         if self.chunk_size != previous_size:
             logger.info(
-                f"[AdaptiveChunking] Chunk size changed from {previous_size} to {self.chunk_size} "
-                f"(drift EMA: {self._drift_rate_ema:.4f})"
+                f'[AdaptiveChunking] Chunk size changed from {previous_size} to {self.chunk_size} '
+                f'(drift EMA: {self._drift_rate_ema:.4f})'
             )
         else:
             logger.debug(
-                f"[AdaptiveChunking] No change in chunk size (current: {self.chunk_size}, "
-                f"drift EMA: {self._drift_rate_ema:.4f})"
+                f'[AdaptiveChunking] No change in chunk size (current: {self.chunk_size}, '
+                f'drift EMA: {self._drift_rate_ema:.4f})'
             )
 
     def get_chunk_size(self) -> int:

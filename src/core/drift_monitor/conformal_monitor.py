@@ -41,14 +41,13 @@ class ConformalDriftMonitor:
         self._evaluator.calibrate(X_train, y_train, perf_stats)
 
     def detect(self, X: np.ndarray) -> DriftDetectionResult:
-        flags = np.asarray(self._evaluator.detect_drift(X),
-                           dtype=bool).reshape(-1)
+        flags = np.asarray(self._evaluator.detect_drift(X), dtype=bool).reshape(-1)
         return DriftDetectionResult(
             row_flags=flags,
             chunk_drift=bool(flags.any()),
             scores=None,
             metadata={
-                "drift_count": int(flags.sum()),
-                "chunk_size": int(len(flags)),
+                'drift_count': int(flags.sum()),
+                'chunk_size': int(len(flags)),
             },
         )

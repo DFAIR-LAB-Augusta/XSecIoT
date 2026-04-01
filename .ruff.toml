@@ -6,6 +6,7 @@ cache-dir      = ".ruff_cache"
 target-version = "py310"
 unsafe-fixes   = true
 show-fixes     = true
+exclude = ["src/FIRE/"]
 
 [lint]
 select = [
@@ -18,7 +19,7 @@ select = [
   "RUF100",
   "UP007",
 ]
-ignore  = ["FURB101", "E116"]
+ignore  = ["FURB101", "E116", "E501"]
 preview = true
 
 [lint.flake8-pytest-style]

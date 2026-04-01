@@ -17,7 +17,7 @@ def build_monitor(
 ):
     """Create the configured drift monitor backend."""
     if config.monitor_type == MonitorType.CE:
-        logger.info("Using CE drift monitor")
+        logger.info('Using CE drift monitor')
         return ConformalDriftMonitor(
             ce_type=config.ce_type,
             model=model,
@@ -26,14 +26,15 @@ def build_monitor(
         )
 
     if config.monitor_type == MonitorType.NONE:
-        logger.info("No drift monitor used")
+        logger.info('No drift monitor used')
         return None
 
     if config.monitor_type == MonitorType.CADE:
         from src.core.drift_monitor.cade_monitor import CadeDriftMonitor
-        logger.info("Using CADE drift monitor")
+
+        logger.info('Using CADE drift monitor')
         return CadeDriftMonitor(
             config=config,
         )
 
-    raise ValueError(f"Unsupported monitor_type: {config.monitor_type}")
+    raise ValueError(f'Unsupported monitor_type: {config.monitor_type}')

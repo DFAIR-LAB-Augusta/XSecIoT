@@ -97,17 +97,9 @@ overall-scrape:
 		$(UV) run $(PY) -m src.utils.overall_stats_scraper; \
 	fi
 
-fmt: 
-	uv run $(RUFF) format .
-
 lint: 
-	uv run $(RUFF) check .
-
-lint-fix: ## Lint with ruff and apply safe auto-fixes
+	uv run $(RUFF) format .
 	uv run $(RUFF) check . --fix
-
-lint-fix-unsafe: 
-	uv run $(RUFF) check . --fix --unsafe-fixes
 
 style: fmt lint
 

@@ -38,24 +38,29 @@ LOG_PATH = 'streamed_labeled_data.csv.gz'
 
 # Global holders
 initialized: bool = False
-scaler: StandardScaler | None = None 
+scaler: StandardScaler | None = None
 pca: PCA | None = None
-mode: ClassifierMixin | xgb.Booster | None = None 
-ce: ConformalEvaluator | None = None 
-rolling_csv: RollingCSV | None = None 
+mode: ClassifierMixin | xgb.Booster | None = None
+ce: ConformalEvaluator | None = None
+rolling_csv: RollingCSV | None = None
 
-DROP_COLS: List[str] = ['Label', 'BinLabel', 'src_ip', 'dst_ip', 'start_time',
-             'end_time_x', 'end_time_y', 'time_diff', 'time_diff_seconds', 'Attack']
+DROP_COLS: List[str] = [
+    'Label',
+    'BinLabel',
+    'src_ip',
+    'dst_ip',
+    'start_time',
+    'end_time_x',
+    'end_time_y',
+    'time_diff',
+    'time_diff_seconds',
+    'Attack',
+]
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Streaming pipeline for real-time data processing and model inference"
-    )
-    parser.add_argument(
-        "--log", type=str, default="5s",
-        help="Enable logging for testing purposes"
-    )
+    parser = argparse.ArgumentParser(description='Streaming pipeline for real-time data processing and model inference')
+    parser.add_argument('--log', type=str, default='5s', help='Enable logging for testing purposes')
 
     return parser.parse_args()
 
@@ -66,7 +71,7 @@ def _initialize_models():
     scaler, pca, model = load_simulation_objects(
         aggregated_file='',  # not used for loading path resolution
         model_type=MODEL_TYPE,
-        model_variant=MODEL_VARIANT
+        model_variant=MODEL_VARIANT,
     )
     ce = ConformalEvaluator(CE_TYPE, model, **CE_KWARGS)
     RollingCSV(LOG_PATH, max_rows=10000)
@@ -96,11 +101,11 @@ def _retrain_on_logged_data():
     # Retrain model
     assert model is not None
 
-    if hasattr(model, "fit"):
+    if hasattr(model, 'fit'):
         cast('Any', model).fit(X_pca, y)
     else:
         # It’s an xgb.Booster — no .fit(), so retraining would require rebuilding via xgb.train. Skip or log a warning.
-        logging.warning("Cannot call .fit() on xgb.Booster; skipping retrain for Booster models.")
+        logging.warning('Cannot call .fit() on xgb.Booster; skipping retrain for Booster models.')
 
     # Recreate and recalibrate CE
     ce = ConformalEvaluator(CE_TYPE, model, **CE_KWARGS)
@@ -130,17 +135,13 @@ def _handle_batch(df: pd.DataFrame):
         initialized = True
         logging.info('CE calibrated on first batch')
         return
-    
+
     # 3: Process batch: inference
     assert scaler is not None
     assert pca is not None
     assert ce is not None
     assert model is not None
-    preds = process_chunk(
-        clean, DROP_COLS,
-        scaler, pca, model,
-        MODEL_VARIANT, MODEL_TYPE, THRESHOLD
-    )
+    preds = process_chunk(clean, DROP_COLS, scaler, pca, model, MODEL_VARIANT, MODEL_TYPE, THRESHOLD)
     logging.info('Predictions:', preds)
 
     # 4: Drift detection
@@ -153,9 +154,9 @@ def _handle_batch(df: pd.DataFrame):
         _retrain_on_logged_data()
     else:
         logging.info('No drift')
-    
+
     # 5: Label & Log new data:
-    assert rolling_csv is not None, "rolling_csv should have been initialized"
+    assert rolling_csv is not None, 'rolling_csv should have been initialized'
     for row_vals, pred in zip(clean.itertuples(index=False, name=None), preds):
         # Convert namedtuple to list, append prediction and drift flag
         drift_flag = int(drift_mask.any())  # or per-row logic if available
