@@ -6,7 +6,7 @@ cache-dir      = ".ruff_cache"
 target-version = "py310"
 unsafe-fixes   = true
 show-fixes     = true
-exclude = ["src/FIRE/"]
+exclude = ["src/fire/"]
 
 [lint]
 select = [
