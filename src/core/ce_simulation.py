@@ -1131,6 +1131,16 @@ def _log_results(
             plt.grid(True)
             log_dir = Path("logging")
             log_dir.mkdir(exist_ok=True)
+            if "CETrain" in str(config.aggregated_path):
+                ds_type = "DFAIR"
+            elif "UNSW_NB15" in str(config.aggregated_path):
+                ds_type = "NB15"
+            elif "CIC_UNSW" in str(config.aggregated_path):
+                ds_type = "CIC_UNSW"
+            else:
+                raise ValueError("Expect dataset name not in aggregated_path")
+            log_dir = log_dir / ds_type
+            log_dir.mkdir(exist_ok=True)
             if config.use_adaptive_chunking:
                 plot_path = log_dir / "ac" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_intervals.png"  # noqa: E501
             else:
@@ -1158,7 +1168,7 @@ def _log_results(
     if perf_stats.ce_stats.accuracies:
         perf_stats.summarize_ce_metrics()
 
-        fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+        _fig, axs = plt.subplots(2, 2, figsize=(12, 8))
         axs = axs.flatten()
         metrics = [
             ("Accuracy", perf_stats.ce_stats.accuracies),
@@ -1179,6 +1189,16 @@ def _log_results(
         else:
             plot_dir = Path("logging") / f"chunk_size_{config.chunk_size}"
         plot_dir.mkdir(parents=True, exist_ok=True)
+        if "CETrain" in str(config.aggregated_path):
+                ds_type = "DFAIR"
+        elif "UNSW_NB15" in str(config.aggregated_path):
+            ds_type = "NB15"
+        elif "CIC_UNSW" in str(config.aggregated_path):
+            ds_type = "CIC_UNSW"
+        else:
+            raise ValueError("Expect dataset name not in aggregated_path")
+        plot_dir = plot_dir / ds_type
+        plot_dir.mkdir(parents=True, exist_ok=True)
         ce_metric_plot = plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_ce_training_metrics.png"  # noqa: E501
         plt.savefig(ce_metric_plot)
         logger.debug(f"CE training metric plot saved to '{ce_metric_plot}'")
@@ -1186,7 +1206,7 @@ def _log_results(
     if perf_stats.classifier_stats.accuracies:
         perf_stats.summarize_classifier_metrics()
 
-        fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+        _fig, axs = plt.subplots(2, 2, figsize=(12, 8))
         axs = axs.flatten()
         metrics = [
             ("Accuracy", perf_stats.classifier_stats.accuracies),
@@ -1206,6 +1226,16 @@ def _log_results(
             plot_dir = Path("logging") / "ac"
         else:
             plot_dir = Path("logging") / f"chunk_size_{config.chunk_size}"
+        plot_dir.mkdir(parents=True, exist_ok=True)
+        if "CETrain" in str(config.aggregated_path):
+            ds_type = "DFAIR"
+        elif "UNSW_NB15" in str(config.aggregated_path):
+            ds_type = "NB15"
+        elif "CIC_UNSW" in str(config.aggregated_path):
+            ds_type = "CIC_UNSW"
+        else:
+            raise ValueError("Expect dataset name not in aggregated_path")
+        plot_dir = plot_dir / ds_type
         plot_dir.mkdir(parents=True, exist_ok=True)
         ce_metric_plot = plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_classifier_training_metrics.png"  # noqa: E501
         plt.savefig(ce_metric_plot)
@@ -1228,6 +1258,16 @@ def _log_results(
         plt.tight_layout()
 
         chunk_plot_dir = Path("logging") / "ac"
+        chunk_plot_dir.mkdir(parents=True, exist_ok=True)
+        if "CETrain" in str(config.aggregated_path):
+            ds_type = "DFAIR"
+        elif "UNSW_NB15" in str(config.aggregated_path):
+            ds_type = "NB15"
+        elif "CIC_UNSW" in str(config.aggregated_path):
+            ds_type = "CIC_UNSW"
+        else:
+            raise ValueError("Expect dataset name not in aggregated_path")
+        chunk_plot_dir = chunk_plot_dir / ds_type
         chunk_plot_dir.mkdir(parents=True, exist_ok=True)
         chunk_plot_path = chunk_plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_chunk_size_trace.png"  # noqa: E501
         plt.savefig(chunk_plot_path)
