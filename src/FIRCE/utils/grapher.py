@@ -7,8 +7,8 @@ from statistics import mean, median, stdev
 import matplotlib.pyplot as plt
 import numpy as np
 
-from core.config import SimulationConfig
-from core.perf_stats import PerformanceStats
+from FIRCE.config import SimulationConfig
+from FIRCE.perf_stats import PerformanceStats
 
 logger = logging.getLogger(__name__)
 

@@ -21,7 +21,7 @@ import torch
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
-from src.core.models.torch_device import pick_device
+from FIRCE.models.torch_device import pick_device
 
 
 class ModelType(str, Enum):

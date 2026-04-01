@@ -1,4 +1,4 @@
-# src.core.conformalEval.approx_cce
+# FIRCE.conformalEval.approx_cce
 """
 Approximate Cross Conformal Evaluation (Approx-CCE) Module
 
@@ -31,15 +31,15 @@ import numpy as np
 from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 from sklearn.model_selection import StratifiedKFold
 
-from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
-from src.core.conformalEval.utils import (
+from FIRCE.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from FIRCE.conformalEval.utils import (
     clone_model,
     compute_class_thresholds,
     compute_nonconformity_scores,
     compute_p_values,
     load_conformal_config,
 )
-from src.core.perf_stats import PerformanceStats
+from FIRCE.perf_stats import PerformanceStats
 
 STATIC_VALS: Dict = load_conformal_config()
 FOLDS = STATIC_VALS['conformal_eval_config']['folds']

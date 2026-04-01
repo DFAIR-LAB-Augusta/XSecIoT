@@ -1,4 +1,4 @@
-# src/xseciot_core/adaptive_chunker
+# FIRCE/xseciot_core/adaptive_chunker
 
 """
 Adaptive Chunk Controller
@@ -18,8 +18,8 @@ Typical usage:
 
 import logging
 
-from src.core.config import AdaptiveChunkConfig
-from src.core.perf_stats import PerformanceStats
+from FIRCE.config import AdaptiveChunkConfig
+from FIRCE.perf_stats import PerformanceStats
 
 logger = logging.getLogger(__name__)
 

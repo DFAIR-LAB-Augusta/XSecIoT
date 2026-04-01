@@ -19,8 +19,8 @@ from sklearn.base import ClassifierMixin
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from src.core.models.feedforward_binary import FeedForwardBinary
-from src.core.models.torch_device import pick_device
+from FIRCE.models.feedforward_binary import FeedForwardBinary
+from FIRCE.models.torch_device import pick_device
 
 logger = logging.getLogger(__name__)
 np.random.seed(42)

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 if TYPE_CHECKING:
     import numpy as np
 
-    from src.core.perf_stats import PerformanceStats
+    from FIRCE.perf_stats import PerformanceStats
 
 
 @dataclass(slots=True)

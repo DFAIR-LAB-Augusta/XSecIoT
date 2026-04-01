@@ -6,7 +6,7 @@ from typing import Any, Deque, Dict
 
 import numpy as np
 
-from src.core.conformalEval.utils import load_conformal_config
+from FIRCE.conformalEval.utils import load_conformal_config
 
 logger = logging.getLogger(__name__)
 STATIC_VALS: Dict = load_conformal_config()

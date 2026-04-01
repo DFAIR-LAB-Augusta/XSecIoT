@@ -109,3 +109,14 @@ tree: ## Print repo tree (ignoring common dirs)
 update-cade:
 	$(UV) remove cade-firce || true
 	$(UV) add "cade-firce @ git+ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git@dev"
+
+build: ## Build sdist/wheel
+	$(UV) build
+
+clean: ## Remove build & test artifacts
+	rm -rf dist build *.egg-info
+	find . -type d -name "__pycache__" -exec rm -rf {} + && rm -rf .pytest_cache
+	
+preflight: ## Build + run twine metadata checks
+	$(UV) build
+	uvx twine check dist/*

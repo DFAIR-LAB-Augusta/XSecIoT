@@ -6,13 +6,13 @@ import numpy as np
 
 from cade.runtime import CadeRuntimeDetector
 
-from src.core.drift_monitor.base import DriftDetectionResult
+from FIRCE.drift_monitor.base import DriftDetectionResult
 
 from .cade_config import CadeMonitorConfig
 
 if TYPE_CHECKING:
-    from src.core.config import SimulationConfig
-    from src.core.perf_stats import PerformanceStats
+    from FIRCE.config import SimulationConfig
+    from FIRCE.perf_stats import PerformanceStats
 
 
 class CadeDriftMonitor:

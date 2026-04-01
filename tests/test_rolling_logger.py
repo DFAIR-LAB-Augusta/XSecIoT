@@ -1,7 +1,7 @@
 import csv
 import gzip
 
-from src.core.rolling_csv import RollingCSV
+from FIRCE.rolling_csv import RollingCSV
 
 
 def read_all_rows(path):

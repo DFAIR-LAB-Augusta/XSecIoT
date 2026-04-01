@@ -4,13 +4,13 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from src.core.conformalEval.conformal_evaluators import ConformalEvaluator
-from src.core.drift_monitor.base import DriftDetectionResult
-from src.core.perf_stats import PerformanceStats
+from FIRCE.conformalEval.conformal_evaluators import ConformalEvaluator
+from FIRCE.drift_monitor.base import DriftDetectionResult
+from FIRCE.perf_stats import PerformanceStats
 
 if TYPE_CHECKING:
-    from src.core.config import CEType
-    from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+    from FIRCE.config import CEType
+    from FIRCE.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
 
 
 class ConformalDriftMonitor:

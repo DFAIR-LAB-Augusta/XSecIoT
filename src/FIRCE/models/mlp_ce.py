@@ -25,7 +25,7 @@ import torch.nn as nn
 
 from torch.utils.data import DataLoader, Subset, TensorDataset
 
-from src.core.models.torch_device import pick_device
+from FIRCE.models.torch_device import pick_device
 
 logger = logging.getLogger(__name__)
 

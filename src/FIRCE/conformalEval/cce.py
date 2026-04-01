@@ -1,4 +1,4 @@
-# src.core.conformalEval.cce
+# FIRCE.conformalEval.cce
 """
 Cross Conformal Evaluator (CCE) Module
 
@@ -29,14 +29,14 @@ from scipy.stats import mode
 from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 from sklearn.model_selection import StratifiedKFold
 
-from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
-from src.core.conformalEval.utils import (
+from FIRCE.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from FIRCE.conformalEval.utils import (
     clone_model,
     compute_class_thresholds,
     compute_p_values,
     load_conformal_config,
 )
-from src.core.perf_stats import PerformanceStats
+from FIRCE.perf_stats import PerformanceStats
 
 logger = logging.getLogger(__name__)
 STATIC_VALS: Dict = load_conformal_config()

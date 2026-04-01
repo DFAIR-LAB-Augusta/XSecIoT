@@ -43,9 +43,9 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from torch.utils.data import DataLoader, Subset, TensorDataset
 
-from src.core.config import ModelVariant, SimulationConfig
-from src.core.models.feedforward_binary import FeedForwardBinary
-from src.core.perf_stats import PerformanceStats
+from FIRCE.config import ModelVariant, SimulationConfig
+from FIRCE.models.feedforward_binary import FeedForwardBinary
+from FIRCE.perf_stats import PerformanceStats
 from src.FIRE.preprocessing import clean_data
 
 if TYPE_CHECKING:
@@ -210,7 +210,7 @@ def train_ce_binary(
     PCA is optionally applied to reduce feature dimensionality.
     The trained model and pipeline components (scaler, PCA) are saved.
     After training, model performance on the training data is logged,
-    including accuracy, precision, recall, and F1 score.
+    including accuracy, precision, recall, and F1 sFIRCE.
 
     Args:
         flows (str): Path to the CSV file containing flow data with labels.

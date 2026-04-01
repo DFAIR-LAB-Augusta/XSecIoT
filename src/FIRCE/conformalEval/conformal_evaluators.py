@@ -1,4 +1,4 @@
-# src.core.conformalEval.conformal_evaluators
+# FIRCE.conformalEval.conformal_evaluators
 """
 Unified Conformal Evaluation Interface
 
@@ -29,13 +29,13 @@ from typing import Any, Dict, Optional
 import numpy as np
 import pandas as pd
 
-from src.core.config import CEType
-from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
-from src.core.conformalEval.approx_cce import ApproxCrossConformalEvaluator as _ApproxCCEImpl
-from src.core.conformalEval.cce import CrossConformalEvaluator as _CCEImpl
-from src.core.conformalEval.ice import InductiveConformalEvaluator as _ICEImpl
-from src.core.conformalEval.tce import ApproximateTransductiveConformalEvaluator as _ApproxTCEImpl
-from src.core.perf_stats import PerformanceStats
+from FIRCE.config import CEType
+from FIRCE.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from FIRCE.conformalEval.approx_cce import ApproxCrossConformalEvaluator as _ApproxCCEImpl
+from FIRCE.conformalEval.cce import CrossConformalEvaluator as _CCEImpl
+from FIRCE.conformalEval.ice import InductiveConformalEvaluator as _ICEImpl
+from FIRCE.conformalEval.tce import ApproximateTransductiveConformalEvaluator as _ApproxTCEImpl
+from FIRCE.perf_stats import PerformanceStats
 
 logger = logging.getLogger(__name__)
 

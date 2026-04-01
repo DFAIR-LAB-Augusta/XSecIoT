@@ -2,7 +2,7 @@ import logging
 
 from pathlib import Path
 
-from core.config import SimulationConfig
+from FIRCE.config import SimulationConfig
 
 
 def configure_sim_logging(config: SimulationConfig) -> None:

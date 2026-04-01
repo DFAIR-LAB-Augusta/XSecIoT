@@ -38,24 +38,24 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-from core.utils.grapher import graph_results
-from core.utils.logger import configure_sim_logging
-from core.utils.parser import parse_sim_args
-from src.core.adaptive_chunking import AdaptiveChunkController
-from src.core.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
-from src.core.config import CEType, ModelType, ModelVariant, MonitorType, SimulationConfig
-from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
-from src.core.conformalEval.approx_cce import ApproxCrossConformalEvaluator
-from src.core.conformalEval.cce import CrossConformalEvaluator
-from src.core.conformalEval.ice import InductiveConformalEvaluator
-from src.core.conformalEval.tce import ApproximateTransductiveConformalEvaluator
-from src.core.drift_monitor.base import DriftMonitor
-from src.core.drift_monitor.factory import build_monitor
-from src.core.models.feedforward_binary import FeedForwardBinary
-from src.core.models.mlp_ce import MLP_CE
-from src.core.perf_stats import PerformanceStats
-from src.core.utils.circular_logger import CircularDequeLogger
-from src.core.utils.rolling_csv import RollingCSV
+from FIRCE.adaptive_chunking import AdaptiveChunkController
+from FIRCE.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
+from FIRCE.config import CEType, ModelType, ModelVariant, MonitorType, SimulationConfig
+from FIRCE.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from FIRCE.conformalEval.approx_cce import ApproxCrossConformalEvaluator
+from FIRCE.conformalEval.cce import CrossConformalEvaluator
+from FIRCE.conformalEval.ice import InductiveConformalEvaluator
+from FIRCE.conformalEval.tce import ApproximateTransductiveConformalEvaluator
+from FIRCE.drift_monitor.base import DriftMonitor
+from FIRCE.drift_monitor.factory import build_monitor
+from FIRCE.models.feedforward_binary import FeedForwardBinary
+from FIRCE.models.mlp_ce import MLP_CE
+from FIRCE.perf_stats import PerformanceStats
+from FIRCE.utils.circular_logger import CircularDequeLogger
+from FIRCE.utils.grapher import graph_results
+from FIRCE.utils.logger import configure_sim_logging
+from FIRCE.utils.parser import parse_sim_args
+from FIRCE.utils.rolling_csv import RollingCSV
 from src.FIRE.preprocessing import clean_data
 from src.FIRE.simulations import (
     load_simulation_objects,

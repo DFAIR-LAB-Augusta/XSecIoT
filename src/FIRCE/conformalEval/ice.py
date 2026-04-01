@@ -1,4 +1,4 @@
-# src.core.conformalEval.ice
+# FIRCE.conformalEval.ice
 """
 Inductive Conformal Evaluator (ICE) Module
 
@@ -26,14 +26,14 @@ import numpy as np
 from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 
-from src.core.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
-from src.core.conformalEval.utils import (
+from FIRCE.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from FIRCE.conformalEval.utils import (
     compute_class_thresholds,
     compute_nonconformity_scores,
     compute_p_values,
     load_conformal_config,
 )
-from src.core.perf_stats import PerformanceStats
+from FIRCE.perf_stats import PerformanceStats
 
 STATIC_VALS: Dict = load_conformal_config()
 SIGNIFICANCE = STATIC_VALS['conformal_eval_config']['significance']

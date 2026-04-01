@@ -1,4 +1,4 @@
-# src.core.streaming_pipeline
+# FIRCE.streaming_pipeline
 
 """
 TODO: FIX lol
@@ -12,14 +12,14 @@ from typing import Any, List, cast
 import pandas as pd
 import xgboost as xgb
 
+from FIRCE.rolling_csv import RollingCSV
 from listener import run_server
 from sklearn.base import ClassifierMixin
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from src.core.conformalEval.conformal_evaluators import ConformalEvaluator
-from src.core.perf_stats import PerformanceStats
-from src.core.rolling_csv import RollingCSV
+from FIRCE.conformalEval.conformal_evaluators import ConformalEvaluator
+from FIRCE.perf_stats import PerformanceStats
 from src.FIRE.preprocessing import clean_data
 from src.FIRE.simulations import load_simulation_objects, preprocess_chunk, process_chunk
 

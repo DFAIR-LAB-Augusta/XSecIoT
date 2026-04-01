@@ -4,8 +4,8 @@ import logging
 
 from typing import Any
 
-from src.core.config import MonitorType, SimulationConfig
-from src.core.drift_monitor.conformal_monitor import ConformalDriftMonitor
+from FIRCE.config import MonitorType, SimulationConfig
+from FIRCE.drift_monitor.conformal_monitor import ConformalDriftMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def build_monitor(
         return None
 
     if config.monitor_type == MonitorType.CADE:
-        from src.core.drift_monitor.cade_monitor import CadeDriftMonitor
+        from FIRCE.drift_monitor.cade_monitor import CadeDriftMonitor
 
         logger.info('Using CADE drift monitor')
         return CadeDriftMonitor(

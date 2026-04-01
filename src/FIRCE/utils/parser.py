@@ -2,7 +2,7 @@ import argparse
 
 from pathlib import Path
 
-from core.config import CEType, ModelType, ModelVariant, MonitorType
+from FIRCE.config import CEType, ModelType, ModelVariant, MonitorType
 
 
 def parse_sim_args() -> argparse.Namespace:
