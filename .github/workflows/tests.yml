@@ -2,7 +2,7 @@ name: tests
 
 on:
   push:
-    branches: 
+    branches:
       - main
       - FIRCE-MC
   pull_request:
@@ -12,34 +12,36 @@ permissions:
 
 jobs:
   pytest:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, dfair-gha-runner]
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
       - uses: astral-sh/setup-uv@v3
 
+      - name: Install Python
+        run: uv python install 3.11
+
+      - name: Show Python
+        run: uv run --python 3.11 python --version
+
       - name: Sync dependencies
-        run: uv sync --frozen
+        run: uv sync --frozen --python 3.11
 
       - name: Run tests + coverage (skip slow)
-        run: uv run pytest -m "not slow" --cov=src --cov-report=term-missing --cov-report=xml
+        run: uv run --python 3.11 pytest -m "not slow" --cov=src --cov-report=term-missing --cov-report=xml
 
       - name: Write coverage to job summary + generate badge json
         run: |
-          uv run python - <<'PY'
+          uv run --python 3.11 python - <<'PY'
           import json
+          import os
           import xml.etree.ElementTree as ET
 
           root = ET.parse("coverage.xml").getroot()
           rate = float(root.attrib["line-rate"]) * 100.0
           pct = round(rate, 2)
 
-          # Choose a simple color scale
           if pct >= 90:
               color = "brightgreen"
           elif pct >= 80:
@@ -55,11 +57,10 @@ jobs:
 
           print(f"Coverage: {pct:.2f}%")
 
-          # Job summary
-          with open("${GITHUB_STEP_SUMMARY}", "a", encoding="utf-8") as f:
+          summary_path = os.environ["GITHUB_STEP_SUMMARY"]
+          with open(summary_path, "a", encoding="utf-8") as f:
               f.write(f"## Coverage\n\n**{pct:.2f}%** line coverage\n")
 
-          # Shields dynamic json format
           badge = {
               "schemaVersion": 1,
               "label": "coverage",
