@@ -24,7 +24,7 @@ SEEDS=(17 42 67 92 117 )
 # MODEL_VARIANTS=("svm" "dt" "knn" "rf" "xgb" "feedforward")
 MODEL_VARIANTS=("feedforward")
 
-CE_TYPES=("none" "ice" "approx_cce" "cce" "approx_tce")
+CE_TYPES=( "ice" "approx_cce" "cce" "approx_tce" "none")
 
 CADE_DIMS=(76 512 128 32) # First num is # of features, 76 for dfair, 3x for UNSW
 CADE_UNSW_DIMS=(21 512 128 32) # First num is # of features, 76 for dfair, 3x for UNSW
