@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --time=7-00:00:00
 #SBATCH --output=slurm_%j.out
-#SBATCH --error=error.txt
+#SBATCH --error=error_%j.txt
 #SBATCH --chdir=/home/seth/Desktop/XSecIoT
 
 set -euo pipefail
