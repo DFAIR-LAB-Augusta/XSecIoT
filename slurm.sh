@@ -4,8 +4,10 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=10
 #SBATCH --mem=64G
+#SBATCH --ntasks=1
 #SBATCH --time=7-00:00:00
 #SBATCH --output=slurm_%j.out
+#SBATCH --error=error.txt
 #SBATCH --chdir=/home/seth/XSecIoT
 
 set -euo pipefail
