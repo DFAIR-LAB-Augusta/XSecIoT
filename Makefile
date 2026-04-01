@@ -47,8 +47,6 @@ test-cov:
 	PYTORCH_ENABLE_MPS_FALLBACK=1 \
 	$(UV) run pytest --cov=src --cov-report=term-missing --cov-report=xml
 
-clean: 
-	rm -rf .pytest_cache **/__pycache__ *.pyc
 
 sim-bin: 
 	bash src/core/run_sim_bin.sh
@@ -119,4 +117,4 @@ clean: ## Remove build & test artifacts
 	
 preflight: ## Build + run twine metadata checks
 	$(UV) build
-	uvx twine check dist/*
+	uv tool run twine check dist/*

@@ -3,8 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/FIRE", "src/FIRCE"]
-sources = ["src"]
+only-include = ["src/FIRE", "src/FIRCE"]
 
 [project]
 name = "xseciot"
@@ -83,7 +82,6 @@ dependencies = [
     "pyarrow==20.0.0",
     "pygments==2.19.1",
     "pyparsing==3.2.3",
-    "pytest==8.3.5",
     "python-dateutil==2.9.0.post0",
     "pytz==2025.2",
     "pyyaml==6.0.2",
@@ -125,8 +123,10 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3.5",
+     "pytest>=8.3.5",
+    "pytest-cov>=6.0.0",
     "ruff>=0.11.9",
+    "twine>=6.1.0",
 ]
 
 [project.scripts]
@@ -134,7 +134,7 @@ firce = "FIRCE.ce_simulation:main"
 
 [tool.uv]
 default-groups = ["dev"]
-package = false
+package = true
 
 [tool.uv.sources]
 cade-firce = { git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git", rev = "dev" }
