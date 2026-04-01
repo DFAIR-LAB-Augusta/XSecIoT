@@ -1190,7 +1190,7 @@ def _log_results(
             plot_dir = Path("logging") / f"chunk_size_{config.chunk_size}"
         plot_dir.mkdir(parents=True, exist_ok=True)
         if "CETrain" in str(config.aggregated_path):
-                ds_type = "DFAIR"
+            ds_type = "DFAIR"
         elif "UNSW_NB15" in str(config.aggregated_path):
             ds_type = "NB15"
         elif "CIC_UNSW" in str(config.aggregated_path):
