@@ -1139,12 +1139,10 @@ def _log_results(
                 ds_type = "CIC_UNSW"
             else:
                 raise ValueError("Expect dataset name not in aggregated_path")
-            log_dir = log_dir / ds_type
-            log_dir.mkdir(exist_ok=True)
             if config.use_adaptive_chunking:
-                plot_path = log_dir / "ac" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_intervals.png"  # noqa: E501
+                plot_path = log_dir / "ac" / ds_type / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_intervals.png"  # noqa: E501
             else:
-                plot_path = log_dir / f"chunk_size_{config.chunk_size}" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_intervals.png"  # noqa: E501
+                plot_path = log_dir / f"chunk_size_{config.chunk_size}" / ds_type / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_intervals.png"  # noqa: E501
             plt.savefig(plot_path)
             logger.debug(f"Drift interval plot saved to '{plot_path}'")
 
@@ -1156,9 +1154,9 @@ def _log_results(
             plt.ylabel("Frequency")
             plt.grid(True)
             if config.use_adaptive_chunking:
-                hist_path = log_dir / "ac" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_interval_histogram.png"  # noqa: E501
+                hist_path = log_dir / "ac" / ds_type / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_interval_histogram.png"  # noqa: E501
             else:
-                hist_path = log_dir / f"chunk_size_{config.chunk_size}" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_interval_histogram.png"  # noqa: E501
+                hist_path = log_dir / f"chunk_size_{config.chunk_size}" / ds_type / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_interval_histogram.png"  # noqa: E501
             plt.tight_layout()
             plt.savefig(hist_path)
             logger.debug(f"Drift interval histogram saved to '{hist_path}'")
@@ -1197,9 +1195,7 @@ def _log_results(
             ds_type = "CIC_UNSW"
         else:
             raise ValueError("Expect dataset name not in aggregated_path")
-        plot_dir = plot_dir / ds_type
-        plot_dir.mkdir(parents=True, exist_ok=True)
-        ce_metric_plot = plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_ce_training_metrics.png"  # noqa: E501
+        ce_metric_plot = plot_dir / ds_type / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_ce_training_metrics.png"  # noqa: E501
         plt.savefig(ce_metric_plot)
         logger.debug(f"CE training metric plot saved to '{ce_metric_plot}'")
 
@@ -1235,9 +1231,7 @@ def _log_results(
             ds_type = "CIC_UNSW"
         else:
             raise ValueError("Expect dataset name not in aggregated_path")
-        plot_dir = plot_dir / ds_type
-        plot_dir.mkdir(parents=True, exist_ok=True)
-        ce_metric_plot = plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_classifier_training_metrics.png"  # noqa: E501
+        ce_metric_plot = plot_dir / ds_type / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_classifier_training_metrics.png"  # noqa: E501
         plt.savefig(ce_metric_plot)
         logger.debug(
             f"Classifier training metric plot saved to '{ce_metric_plot}'")
@@ -1267,9 +1261,7 @@ def _log_results(
             ds_type = "CIC_UNSW"
         else:
             raise ValueError("Expect dataset name not in aggregated_path")
-        chunk_plot_dir = chunk_plot_dir / ds_type
-        chunk_plot_dir.mkdir(parents=True, exist_ok=True)
-        chunk_plot_path = chunk_plot_dir / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_chunk_size_trace.png"  # noqa: E501
+        chunk_plot_path = chunk_plot_dir / ds_type/ f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_chunk_size_trace.png"  # noqa: E501
         plt.savefig(chunk_plot_path)
         logger.debug(f"Chunk size over time plot saved to '{chunk_plot_path}'")
 
