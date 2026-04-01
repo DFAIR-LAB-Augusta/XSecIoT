@@ -19,18 +19,14 @@ The simulation can be configured via CLI arguments and supports multiple model
 variants (e.g., KNN, SVM, Random Forest, XGBoost, Feedforward NN) and CE strategies.
 """
 
-import argparse
 import inspect
 import logging
 import time
 import warnings
 
-from pathlib import Path
-from statistics import mean, median, stdev
 from typing import Any, List, Optional, Tuple
 
 import joblib
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
@@ -42,6 +38,9 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
+from core.utils.grapher import graph_results
+from core.utils.logger import configure_sim_logging
+from core.utils.parser import parse_sim_args
 from src.core.adaptive_chunking import AdaptiveChunkController
 from src.core.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
 from src.core.config import CEType, ModelType, ModelVariant, MonitorType, SimulationConfig
@@ -250,180 +249,6 @@ UNSW_DROP_COLUMNS: List[str] = [
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s: %(message)s')
 logger = logging.getLogger(__name__)
-
-
-def _parse_args() -> argparse.Namespace:
-    """
-    Parse command-line arguments for CE simulation. Includes flags to enable PCA, file logging, and debug mode.
-
-    Returns:
-        argparse.Namespace: Parsed CLI arguments including paths, model/CE config, and flags.
-    """
-    p = argparse.ArgumentParser(description='CE sim: seed log and process CE flows')
-    p.add_argument('aggregated_file', type=Path)
-    p.add_argument('flows_file', type=Path)
-    p.add_argument('--log', type=Path, default=Path('ce_log.csv.gz'))
-    p.add_argument('--chunk_size', type=int, default=1000)
-    p.add_argument('--max_rows', type=int, default=10000)
-    p.add_argument('--seed', type=int, default=42)
-    p.add_argument('--runNum', type=int, default=0)
-    p.add_argument('--use-pca', action='store_true', help='Enable PCA during CE simulation')
-    p.add_argument('--log2File', action='store_true', help='Enable logging output to file')
-    p.add_argument('--modelVariant', type=ModelVariant, choices=list(ModelVariant), default='knn')
-    p.add_argument('--modelType', type=ModelType, choices=list(ModelType), default='binary')
-    p.add_argument(
-        '--ceType',
-        type=CEType,
-        choices=list(CEType),
-        default='cce',
-        help="Type of conformal evaluator to use; 'none' disables CE and retraining",
-    )
-    p.add_argument('--debug', action='store_true', help='Enable debug logging')
-    p.add_argument(
-        '--useCircularLogger',
-        action='store_true',
-        help='Use in-memory circular logger instead of disk-based RollingCSV',
-    )
-    p.add_argument(
-        '--useASC', action='store_true', help='Use adaptive significance value controller for CE drift detection'
-    )
-    p.add_argument('--useSVM', action='store_true', help='Use SVM model for CEs')
-    p.add_argument('--useAC', action='store_true', help='Use adaptive chunking')
-    p.add_argument('--unsw', action='store_true', help='Use UNSW-NB15 dataset format (default is DFAIR 2024)')
-    p.add_argument('--useMLP', action='store_true', help='Use MLP model for CEs')
-    p.add_argument(
-        '--monitorType',
-        type=MonitorType,
-        choices=list(MonitorType),
-        default='ce',
-        help='Runtime drift monitor backend to use',
-    )
-    p.add_argument(
-        '--cadeDims',
-        type=int,
-        nargs='+',
-        default=None,
-        help='CADE encoder dims, e.g. --cadeDims 96 512 128 32',
-    )
-    p.add_argument(
-        '--cadeMargin',
-        type=float,
-        default=10.0,
-        help='CADE contrastive margin',
-    )
-    p.add_argument(
-        '--cadeMadThreshold',
-        type=float,
-        default=3.5,
-        help='CADE MAD-based anomaly threshold',
-    )
-    p.add_argument(
-        '--cadeMinDriftRatio',
-        type=float,
-        default=0.05,
-        help='CADE chunk drift ratio threshold',
-    )
-    p.add_argument(
-        '--cadeMinDriftCount',
-        type=int,
-        default=1,
-        help='CADE chunk drift count threshold',
-    )
-    p.add_argument(
-        '--cadeBatchSize',
-        type=int,
-        default=64,
-        help='CADE contrastive AE batch size',
-    )
-    p.add_argument(
-        '--cadeEpochs',
-        type=int,
-        default=250,
-        help='CADE contrastive AE epochs',
-    )
-    p.add_argument(
-        '--cadeLr',
-        type=float,
-        default=1e-3,
-        help='CADE contrastive AE learning rate',
-    )
-    p.add_argument(
-        '--cadeLambda1',
-        type=float,
-        default=1e-1,
-        help='CADE contrastive loss lambda_1',
-    )
-    p.add_argument(
-        '--cadeSimilarRatio',
-        type=float,
-        default=0.25,
-        help='CADE similar pair ratio',
-    )
-    p.add_argument(
-        '--cadeDisplayInterval',
-        type=int,
-        default=10,
-        help='CADE training log interval',
-    )
-    p.add_argument(
-        '--cadeForceRetrain',
-        action='store_true',
-        help='Force retraining CADE weights even if a weights file exists',
-    )
-    p.add_argument(
-        '--cadeWeightsPath',
-        type=str,
-        default=None,
-        help='Optional path to CADE weights file',
-    )
-    p.add_argument(
-        '--cadeDevice',
-        type=str,
-        default='/CPU:0',
-        help='Optional device for CADE to run on',
-    )
-    return p.parse_args()
-
-
-def _configure_logging(config: SimulationConfig) -> None:
-    """
-    Configure logging to console, and optionally to a log file.
-
-    Args:
-        config (SimulationConfig): Configuration object containing model/CE info.
-    """
-    log_level = logging.DEBUG if config.debug else logging.INFO
-    log_handlers: list[logging.Handler] = [logging.StreamHandler()]
-
-    if config.log_to_file:
-        log_dir = Path('logging')
-        log_dir.mkdir(exist_ok=True)
-        if config.use_adaptive_chunking:
-            log_dir = log_dir / 'ac'
-        else:
-            log_dir = log_dir / f'chunk_size_{config.chunk_size}'
-        log_dir.mkdir(exist_ok=True)
-        if 'CETrain' in str(config.aggregated_path):
-            ds_type = 'DFAIR'
-        elif 'UNSW_NB15' in str(config.aggregated_path):
-            ds_type = 'NB15'
-        elif 'CIC_UNSW' in str(config.aggregated_path):
-            ds_type = 'CIC_UNSW'
-        else:
-            raise ValueError('Expect dataset name not in aggregated_path')
-        log_dir = log_dir / ds_type
-        log_dir.mkdir(exist_ok=True)
-        log_file = (
-            log_dir
-            / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_run.log'
-        )
-        file_handler = logging.FileHandler(log_file, mode='w')
-        log_handlers.append(file_handler)
-
-    logging.basicConfig(
-        level=log_level, format='%(asctime)s %(levelname)s %(name)s: %(message)s', handlers=log_handlers, force=True
-    )
-    logging.captureWarnings(True)
 
 
 def _simulate(
@@ -652,7 +477,7 @@ def _simulate(
             for chunkNum, chunk in enumerate(pd.read_csv(config.flows_path, chunksize=config.chunk_size)):
                 _sim_loop(config, rolling, scaler, pca, model, monitor, chunk, perf_stats, sig_controller, chunkNum)
 
-    _log_results(config, overall, perf_stats)
+    graph_results(config, overall, perf_stats)
 
 
 def _ensure_models_exist(config: SimulationConfig, perf_stats: PerformanceStats) -> None:
@@ -1167,284 +992,11 @@ def _retrain(
     return scaler, pca, model, monitor
 
 
-def _log_results(config: SimulationConfig, overall: float, perf_stats: PerformanceStats) -> None:
-    """
-    Log and visualize overall simulation metrics for CE-based drift detection.
-
-    This function aggregates, logs, and saves plots for performance metrics gathered
-    during conformal evaluation-based streaming simulation. It handles results including:
-    - Total runtime
-    - Accuracy trends over time (sliding average)
-    - Drift detection frequency and intervals
-    - CE and classifier performance metrics over retrainings
-    - Chunk size variation over time (if adaptive chunking is enabled)
-
-    Args:
-        config (SimulationConfig): Configuration object containing CE, model, and simulation settings.
-        overall (float): Time at the start of the simulation, used to compute total runtime.
-        perf_stats (PerformanceStats): Object containing logs of all runtime and performance metrics,
-            including accuracy logs, drift points, CE/classifier training scores, and chunk size history.
-
-    Side Effects:
-        - Saves multiple plots (accuracy, drift intervals, CE/classifier metrics, chunk size) to disk
-          in the appropriate logging subdirectory.
-        - Logs all summary statistics to the configured logging handler.
-    """
-    logger.info(f'[==OVERALL SIM STATS==] Total simulate time: {time.perf_counter() - overall:.4f}s')
-    logger.info(f'Full performance stats: {perf_stats = }')
-    logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
-
-    if perf_stats.correct_log:
-        final_accuracy = sum(perf_stats.correct_log) / len(perf_stats.correct_log)
-        logger.info(f'[==OVERALL STATS==] Final Accuracy on all simulated samples: {final_accuracy:.4f}')
-
-        window = 100
-        moving_avg = np.convolve(perf_stats.correct_log, np.ones(window) / window, mode='valid')
-        plt.figure(figsize=(10, 4))
-        plt.plot(moving_avg)
-        plt.title('Sliding Accuracy Over Time')
-        plt.xlabel('Flow Index')
-        plt.ylabel('Accuracy (Window Size = 100)')
-        plt.grid(True)
-        plt.tight_layout()
-        log_dir = Path('logging')
-        log_dir.mkdir(exist_ok=True)
-        if 'CETrain' in str(config.aggregated_path):
-            ds_type = 'DFAIR'
-        elif 'UNSW_NB15' in str(config.aggregated_path):
-            ds_type = 'NB15'
-        elif 'CIC_UNSW' in str(config.aggregated_path):
-            ds_type = 'CIC_UNSW'
-        else:
-            raise ValueError('Expect dataset name not in aggregated_path')
-        if config.use_adaptive_chunking:
-            plot_path = (
-                log_dir
-                / 'ac'
-                / ds_type
-                / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_accuracy_plot.png'
-            )
-        else:
-            plot_path = (
-                log_dir
-                / f'chunk_size_{config.chunk_size}'
-                / ds_type
-                / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_accuracy_plot.png'
-            )
-        plt.savefig(plot_path)
-        logger.debug(f"Accuracy over time plot saved to '{plot_path}'")
-        _summarize_timings('Per-Chunk Iteration Time', perf_stats.iteration_times)
-        _summarize_timings('Per-Row Drift Detection Time', perf_stats.drift_times)
-
-    if perf_stats.drift_detected_indices:
-        total_drift = len(perf_stats.drift_detected_indices)
-        drift_rate = total_drift / len(perf_stats.correct_log)
-
-        logger.info(f'[==OVERALL SIM STATS==] Total Drift Detections: {total_drift}')
-        logger.info(f'[==OVERALL SIM STATS==] Drift Detection Rate: {drift_rate:.4%}')
-
-        if perf_stats.drift_intervals:
-            avg_interval = np.mean(perf_stats.drift_intervals)
-            logger.info(f'[==OVERALL SIM STATS==] Average Chunks Between Drift Detections: {avg_interval:.2f}')
-            logger.info(f'[==OVERALL SIM STATS==] Drift Intervals (in chunks): {perf_stats.drift_intervals}')
-
-            plt.figure(figsize=(10, 4))
-            plt.plot(perf_stats.drift_intervals, marker='o')
-            plt.title('Drift Intervals Over Time')
-            plt.xlabel('Drift Detection Index')
-            plt.ylabel(f'Chunks Since Last Drift (Chunk Size: {config.chunk_size})')
-            plt.grid(True)
-            log_dir = Path('logging')
-            log_dir.mkdir(exist_ok=True)
-            if 'CETrain' in str(config.aggregated_path):
-                ds_type = 'DFAIR'
-            elif 'UNSW_NB15' in str(config.aggregated_path):
-                ds_type = 'NB15'
-            elif 'CIC_UNSW' in str(config.aggregated_path):
-                ds_type = 'CIC_UNSW'
-            else:
-                raise ValueError('Expect dataset name not in aggregated_path')
-            if config.use_adaptive_chunking:
-                plot_path = (
-                    log_dir
-                    / 'ac'
-                    / ds_type
-                    / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_intervals.png'
-                )
-            else:
-                plot_path = (
-                    log_dir
-                    / f'chunk_size_{config.chunk_size}'
-                    / ds_type
-                    / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_intervals.png'
-                )
-            plt.savefig(plot_path)
-            logger.debug(f"Drift interval plot saved to '{plot_path}'")
-
-            plt.figure(figsize=(8, 4))
-            plt.hist(perf_stats.drift_intervals, bins=range(1, max(perf_stats.drift_intervals) + 2), edgecolor='black')
-            plt.title('Histogram of Drift Intervals (Chunks)')
-            plt.xlabel('Chunks Between Drifts')
-            plt.ylabel('Frequency')
-            plt.grid(True)
-            if config.use_adaptive_chunking:
-                hist_path = (
-                    log_dir
-                    / 'ac'
-                    / ds_type
-                    / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_interval_histogram.png'
-                )
-            else:
-                hist_path = (
-                    log_dir
-                    / f'chunk_size_{config.chunk_size}'
-                    / ds_type
-                    / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_drift_interval_histogram.png'
-                )
-            plt.tight_layout()
-            plt.savefig(hist_path)
-            logger.debug(f"Drift interval histogram saved to '{hist_path}'")
-    else:
-        logger.info('[==OVERALL SIM STATS==] No Drift Detected')
-
-    if perf_stats.ce_stats.accuracies:
-        perf_stats.summarize_ce_metrics()
-
-        _fig, axs = plt.subplots(2, 2, figsize=(12, 8))
-        axs = axs.flatten()
-        metrics = [
-            ('Accuracy', perf_stats.ce_stats.accuracies),
-            ('Precision', perf_stats.ce_stats.precisions),
-            ('Recall', perf_stats.ce_stats.recalls),
-            ('F1 Score', perf_stats.ce_stats.f1s),
-        ]
-        for i, (title, data) in enumerate(metrics):
-            axs[i].plot(data, marker='o')
-            axs[i].set_title(f'CE {title} Over Calibrations')
-            axs[i].set_xlabel('CE Calibration Index')
-            axs[i].set_ylabel(title)
-            axs[i].grid(True)
-
-        plt.tight_layout()
-        if config.use_adaptive_chunking:
-            plot_dir = Path('logging') / 'ac'
-        else:
-            plot_dir = Path('logging') / f'chunk_size_{config.chunk_size}'
-        plot_dir.mkdir(parents=True, exist_ok=True)
-        if 'CETrain' in str(config.aggregated_path):
-            ds_type = 'DFAIR'
-        elif 'UNSW_NB15' in str(config.aggregated_path):
-            ds_type = 'NB15'
-        elif 'CIC_UNSW' in str(config.aggregated_path):
-            ds_type = 'CIC_UNSW'
-        else:
-            raise ValueError('Expect dataset name not in aggregated_path')
-        ce_metric_plot = (
-            plot_dir
-            / ds_type
-            / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_ce_training_metrics.png'
-        )
-        plt.savefig(ce_metric_plot)
-        logger.debug(f"CE training metric plot saved to '{ce_metric_plot}'")
-
-    if perf_stats.classifier_stats.accuracies:
-        perf_stats.summarize_classifier_metrics()
-
-        _fig, axs = plt.subplots(2, 2, figsize=(12, 8))
-        axs = axs.flatten()
-        metrics = [
-            ('Accuracy', perf_stats.classifier_stats.accuracies),
-            ('Precision', perf_stats.classifier_stats.precisions),
-            ('Recall', perf_stats.classifier_stats.recalls),
-            ('F1 Score', perf_stats.classifier_stats.f1s),
-        ]
-        for i, (title, data) in enumerate(metrics):
-            axs[i].plot(data, marker='o')
-            axs[i].set_title(f'Classifier {title} Over Calibrations')
-            axs[i].set_xlabel('Classifier Calibration Index')
-            axs[i].set_ylabel(title)
-            axs[i].grid(True)
-
-        plt.tight_layout()
-        if config.use_adaptive_chunking:
-            plot_dir = Path('logging') / 'ac'
-        else:
-            plot_dir = Path('logging') / f'chunk_size_{config.chunk_size}'
-        plot_dir.mkdir(parents=True, exist_ok=True)
-        if 'CETrain' in str(config.aggregated_path):
-            ds_type = 'DFAIR'
-        elif 'UNSW_NB15' in str(config.aggregated_path):
-            ds_type = 'NB15'
-        elif 'CIC_UNSW' in str(config.aggregated_path):
-            ds_type = 'CIC_UNSW'
-        else:
-            raise ValueError('Expect dataset name not in aggregated_path')
-        ce_metric_plot = (
-            plot_dir
-            / ds_type
-            / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_classifier_training_metrics.png'
-        )
-        plt.savefig(ce_metric_plot)
-        logger.debug(f"Classifier training metric plot saved to '{ce_metric_plot}'")
-
-    if perf_stats.chunk_sizes and config.use_adaptive_chunking:
-        logger.info(f'[==OVERALL SIM STATS==] Average Chunk Size: {mean(perf_stats.chunk_sizes):.2f}')
-        logger.info(f'[==OVERALL SIM STATS==] Median Chunk Size: {median(perf_stats.chunk_sizes):.2f}')
-        logger.info(f'[==OVERALL SIM STATS==] Standard Deviation of Chunk Sizes: {stdev(perf_stats.chunk_sizes):.2f}')
-        plt.figure(figsize=(10, 4))
-        plt.plot(perf_stats.chunk_sizes, marker='o')
-        plt.title('Adaptive Chunk Size Over Time')
-        plt.xlabel('Simulation Chunk Index')
-        plt.ylabel('Chunk Size')
-        plt.grid(True)
-        plt.tight_layout()
-
-        chunk_plot_dir = Path('logging') / 'ac'
-        chunk_plot_dir.mkdir(parents=True, exist_ok=True)
-        if 'CETrain' in str(config.aggregated_path):
-            ds_type = 'DFAIR'
-        elif 'UNSW_NB15' in str(config.aggregated_path):
-            ds_type = 'NB15'
-        elif 'CIC_UNSW' in str(config.aggregated_path):
-            ds_type = 'CIC_UNSW'
-        else:
-            raise ValueError('Expect dataset name not in aggregated_path')
-        chunk_plot_path = (
-            chunk_plot_dir
-            / ds_type
-            / f'{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_chunk_size_trace.png'
-        )
-        plt.savefig(chunk_plot_path)
-        logger.debug(f"Chunk size over time plot saved to '{chunk_plot_path}'")
-
-
-def _summarize_timings(name: str, times: list[float]) -> None:
-    """
-    Log summary statistics for a list of timing values.
-
-    Computes and logs the count, mean, median, standard deviation,
-    minimum, and maximum for the given list of timing durations (in seconds).
-    If the list is empty, logs that no timings were recorded.
-
-    Args:
-        name (str): Descriptive label for the timing category (e.g., "Drift Detection Time").
-        times (list[float]): List of timing values to summarize in seconds.
-    """
-    if not times:
-        logger.info(f'{name}: No timings recorded.')
-        return
-    logger.info(
-        f'[==OVERALL SIM STATS==] {name} — Count: {len(times)} | Mean: {mean(times):.4f}s | '
-        f'Median: {median(times):.4f}s | Std: {stdev(times):.4f}s | '
-        f'Min: {min(times):.4f}s | Max: {max(times):.4f}s'
-    )
-
-
 def main() -> None:
     """
     Parse CLI arguments, initialize configuration, and launch the CE simulation.
     """
-    args = _parse_args()
+    args = parse_sim_args()
     try:
         config = SimulationConfig(
             model_type=args.modelType,
@@ -1493,7 +1045,7 @@ def main() -> None:
         raise
 
     logger.info(f'Simulation configuration: {config}')
-    _configure_logging(config)
+    configure_sim_logging(config)
     logger.info(f'Simulation configuration: {config}')
     _simulate(config)
 

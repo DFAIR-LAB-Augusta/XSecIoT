@@ -13,4 +13,4 @@
 set -euo pipefail
 
 # Call your existing entrypoint
-exec bash src/core/run_sim.sh
+exec bash scripts/run_sim.sh
