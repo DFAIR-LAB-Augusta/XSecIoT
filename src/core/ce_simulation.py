@@ -1095,10 +1095,18 @@ def _log_results(
         plt.tight_layout()
         log_dir = Path("logging")
         log_dir.mkdir(exist_ok=True)
-        if config.use_adaptive_chunking:
-            plot_path = log_dir / "ac" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_accuracy_plot.png"  # noqa: E501
+        if "CETrain" in str(config.aggregated_path):
+            ds_type = "DFAIR"
+        elif "UNSW_NB15" in str(config.aggregated_path):
+            ds_type = "NB15"
+        elif "CIC_UNSW" in str(config.aggregated_path):
+            ds_type = "CIC_UNSW"
         else:
-            plot_path = log_dir / f"chunk_size_{config.chunk_size}" / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_accuracy_plot.png"  # noqa: E501
+            raise ValueError("Expect dataset name not in aggregated_path")
+        if config.use_adaptive_chunking:
+            plot_path = log_dir / "ac" / ds_type / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_accuracy_plot.png"  # noqa: E501
+        else:
+            plot_path = log_dir / f"chunk_size_{config.chunk_size}" / ds_type / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_accuracy_plot.png"  # noqa: E501
         plt.savefig(plot_path)
         logger.debug(f"Accuracy over time plot saved to '{plot_path}'")
         _summarize_timings("Per-Chunk Iteration Time",
@@ -1261,7 +1269,7 @@ def _log_results(
             ds_type = "CIC_UNSW"
         else:
             raise ValueError("Expect dataset name not in aggregated_path")
-        chunk_plot_path = chunk_plot_dir / ds_type/ f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_chunk_size_trace.png"  # noqa: E501
+        chunk_plot_path = chunk_plot_dir / ds_type / f"{config.model_variant.value}_{config.ce_type.value}_{config.model_type.value}_{config.seed}_{config.runNum}_chunk_size_trace.png"  # noqa: E501
         plt.savefig(chunk_plot_path)
         logger.debug(f"Chunk size over time plot saved to '{chunk_plot_path}'")
 
