@@ -1306,9 +1306,10 @@ def main() -> None:
     except ValidationError as e:
         logging.error(e)
         raise
-    logging.info(f"Simulation configuration: {config}")
 
+    logger.info(f"Simulation configuration: {config}")
     _configure_logging(config)
+    logger.info(f"Simulation configuration: {config}")
     _simulate(config)
 
 
