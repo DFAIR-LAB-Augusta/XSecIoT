@@ -152,7 +152,7 @@ class SimulationConfig(BaseModel):
     use_cuml: bool = False
     seed: int = 42
     runNum: int = 0
-    pipeline: str = ""
+    pipeline: str = ''
     monitor_type: MonitorType = MonitorType.CE
     monitor_kwargs: Dict[str, Any] = Field(default_factory=dict)
 
