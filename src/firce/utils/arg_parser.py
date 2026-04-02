@@ -135,6 +135,13 @@ def parse_sim_args() -> argparse.Namespace:
         default='/CPU:0',
         help='Optional device for CADE to run on',
     )
+    p.add_argument(
+    "--pipeline",
+    type=str,
+    choices=["simulation", "streaming"],
+    default="simulation",
+    help="Pipeline mode to run.",
+)
     return p.parse_args()
 
 

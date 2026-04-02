@@ -25,7 +25,7 @@ def main() -> None:
 
     configure_sim_logging(config)
     logger.info('Simulation configuration: %s', config)
-    _run_pipeline(config, args)
+    _run_pipeline(config)
 
 
 def _build_config_from_args(args) -> SimulationConfig:
@@ -39,26 +39,15 @@ def _build_config_from_args(args) -> SimulationConfig:
         Simulation configuration.
     """
     return SimulationConfig(
-        model_type=args.modelType,
-        model_variant=args.modelVariant,
-        ce_type=args.ceType,
         aggregated_path=args.aggregated_file,
-        flows_path=args.flows_file,
         ce_kwargs={'folds': 5, 'significance': 0.05, 'random_state': args.seed},
+        ce_type=args.ceType,
         chunk_size=args.chunk_size,
-        use_pca=args.use_pca,
-        use_ASC=args.useASC,
-        use_circular_logger=args.useCircularLogger,
         debug=args.debug,
+        flows_path=args.flows_file,
+        is_unsw=args.unsw,
         log_to_file=args.log2File,
         max_rows=args.max_rows,
-        use_svm=args.useSVM,
-        use_adaptive_chunking=args.useAC,
-        is_unsw=args.unsw,
-        use_mlp=args.useMLP,
-        seed=args.seed,
-        runNum=args.runNum,
-        monitor_type=args.monitorType,
         monitor_kwargs=(
             {
                 'dims': args.cadeDims,
@@ -79,10 +68,22 @@ def _build_config_from_args(args) -> SimulationConfig:
             if args.monitorType == MonitorType.CADE
             else {}
         ),
+        model_type=args.modelType,
+        model_variant=args.modelVariant,
+        monitor_type=args.monitorType,
+        pipeline=args.pipeline,
+        runNum=args.runNum,
+        seed=args.seed,
+        use_adaptive_chunking=args.useAC,
+        use_ASC=args.useASC,
+        use_circular_logger=args.useCircularLogger,
+        use_mlp=args.useMLP,
+        use_pca=args.use_pca,
+        use_svm=args.useSVM,
     )
 
 
-def _run_pipeline(config: SimulationConfig, args) -> None:
+def _run_pipeline(config: SimulationConfig) -> None:
     """
     Run the selected pipeline.
 
@@ -90,16 +91,15 @@ def _run_pipeline(config: SimulationConfig, args) -> None:
         config: Simulation configuration.
         args: Parsed CLI arguments.
     """
-    pipeline = getattr(args, 'pipeline', 'simulation')
-    if pipeline == 'simulation':
+    if config.pipeline == 'simulation':
         run_simulation_pipeline(config)
         return
 
-    if pipeline == 'streaming':
+    if config.pipeline == 'streaming':
         run_streaming_pipeline(config)
         return
 
-    raise ValueError(f'Unsupported pipeline: {pipeline}')
+    raise ValueError(f'Unsupported pipeline: {config.pipeline}')
 
 
 if __name__ == '__main__':
