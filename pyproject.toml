@@ -4,6 +4,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 only-include = ["src/fire", "src/firce"]
+sources = ["src"]
 
 [project]
 name = "xseciot"
@@ -130,7 +131,7 @@ dev = [
 ]
 
 [project.scripts]
-firce = "FIRCE.ce_simulation:main"
+firce = "firce.ce_simulation:main"
 
 [tool.uv]
 default-groups = ["dev"]

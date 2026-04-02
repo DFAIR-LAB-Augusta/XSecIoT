@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 import scipy.stats as stats
 
-from src.FIRE.preprocessing import (
+from fire.preprocessing import (
     _entropy,
     clean_data,
 )

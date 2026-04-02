@@ -1,4 +1,4 @@
-# src/core/config
+# src/firce/config
 """Pydantic-based configuration for CE simulation and training.
 
 This module defines enums for model type, model variant, and conformal

@@ -1,4 +1,4 @@
-# src.FIRE.main
+# fire.main
 
 import argparse
 import itertools
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description='Run complete FIRE process: preprocessing, modeling, simulations.')
+    parser = argparse.ArgumentParser(description='Run complete fire process: preprocessing, modeling, simulations.')
     parser.add_argument('dataset_path', type=str, help="Path to the raw dataset CSV (e.g., './datasets/DFAIR/...csv')")
     parser.add_argument('--window_size', type=str, default='5s', help='Window size for aggregation (default: 5s)')
     parser.add_argument('--step_size', type=str, default='1s', help='Step size for aggregation (default: 1s)')

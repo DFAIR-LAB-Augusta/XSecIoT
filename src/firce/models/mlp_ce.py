@@ -1,4 +1,4 @@
-# src/core/models/mlp_ce
+# src/firce/models/mlp_ce
 """
 CE-ready multilayer perceptron (MLP) for binary classification.
 

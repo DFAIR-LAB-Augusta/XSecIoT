@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-# Make sure our `src/` folder is on PYTHONPATH so import FIRE.main
+# Make sure our `src/` folder is on PYTHONPATH so import fire.main
 ROOT = Path(__file__).parent.parent
 SRC = ROOT / 'src'
 sys.path.insert(0, str(SRC))
 
-import src.FIRE.main as main_mod  # noqa: E402
+import fire.main as main_mod  # noqa: E402
 
 
 def make_dataset(tmp_path):

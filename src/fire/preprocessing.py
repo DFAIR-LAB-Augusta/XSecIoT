@@ -1,4 +1,4 @@
-# src.FIRE.preprocessing
+# fire.preprocessing
 
 import argparse
 import logging
@@ -18,7 +18,7 @@ np.random.seed(42)
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description='Unified preprocessing pipeline for FIRE')
+    parser = argparse.ArgumentParser(description='Unified preprocessing pipeline for fire')
     parser.add_argument('file_path', type=str, help='Path to the dataset CSV file')
     parser.add_argument('--window_size', type=str, default='5s', help="Window size (e.g., '5s')")
     parser.add_argument('--step_size', type=str, default='1s', help="Step size (e.g., '1s')")
@@ -116,7 +116,7 @@ def clean_data(data: pd.DataFrame, is_unsw: bool) -> pd.DataFrame:
         # if not pd.api.types.is_datetime64_any_dtype(data.index):
         #     data['time'] = pd.to_datetime(data['timestamp'])
         #     data.set_index('time', inplace=True)
-        # Commented out for FIRCE compatibility; req for FIRE
+        # Commented out for FIRCE compatibility; req for fire
         if not data.index.is_monotonic_increasing:
             data.sort_index(inplace=True)
         data.replace([np.inf, -np.inf], np.nan, inplace=True)

@@ -1,6 +1,6 @@
-def test_import_FIRE():
+def test_import_fire():
     try:
-        from src.FIRE import main, models, preprocessing  # noqa: F401
+        from fire import main, models, preprocessing  # noqa: F401
     except ImportError:
-        assert False, 'Failed to import FIRE modules'
+        assert False, 'Failed to import fire modules'
     assert True

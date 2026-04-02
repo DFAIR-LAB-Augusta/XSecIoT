@@ -12,7 +12,7 @@ ROOT = Path(__file__).parent.parent
 SRC = ROOT / 'src'
 sys.path.insert(0, str(SRC))
 
-from src.FIRE.simulations import (  # noqa: E402
+from fire.simulations import (  # noqa: E402
     _get_dataset_name,
     _parse_args,
     continuous_simulation,
@@ -109,7 +109,7 @@ def test_process_chunk_preds(setup_sim_dir, tmp_path, monkeypatch):
         'Attack',
     ]
 
-    from src.FIRE.simulations import load_simulation_objects
+    from fire.simulations import load_simulation_objects
 
     scaler, pca, model = load_simulation_objects(str(agg), 'binary', 'dt')
 

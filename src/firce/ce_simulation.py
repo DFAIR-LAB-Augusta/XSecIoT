@@ -1,4 +1,4 @@
-# src/core/ce_simulation
+# src/firce/ce_simulation
 """
 CE Simulation Pipeline
 
@@ -56,8 +56,8 @@ from firce.utils.grapher import graph_results
 from firce.utils.logger import configure_sim_logging
 from firce.utils.parser import parse_sim_args
 from firce.utils.rolling_csv import RollingCSV
-from FIRE.preprocessing import clean_data
-from FIRE.simulations import (
+from fire.preprocessing import clean_data
+from fire.simulations import (
     load_simulation_objects,
     preprocess_chunk,
 )

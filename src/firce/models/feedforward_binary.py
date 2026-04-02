@@ -1,4 +1,4 @@
-# src/core/models/feedforward_binary
+# src/firce/models/feedforward_binary
 """
 feedforward_binary
 ==================

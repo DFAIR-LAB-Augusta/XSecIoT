@@ -1,4 +1,4 @@
-# src/core/perf_stats
+# src/firce/perf_stats
 import logging
 
 from dataclasses import dataclass, field

@@ -1,4 +1,4 @@
-# src/core/rolling_csv
+# src/firce/rolling_csv
 """
 Rolling Log Utility for Streaming Simulations
 

@@ -1,4 +1,4 @@
-# src.fire.simulations
+# fire.simulations
 
 import argparse
 import logging
@@ -27,7 +27,7 @@ np.random.seed(42)
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description='Run simulation pipeline for FIRE process (Step 3)')
+    parser = argparse.ArgumentParser(description='Run simulation pipeline for fire process (Step 3)')
     parser.add_argument('aggregated_file', type=str, help='Path to aggregated_data.csv')
     parser.add_argument(
         '--mode',

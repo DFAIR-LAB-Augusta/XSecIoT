@@ -1,4 +1,4 @@
-# src/core/ce_model_training
+# src/firce/ce_model_training
 """
 CE Model Training Utilities
 

@@ -1,4 +1,4 @@
-# src.FIRE.models
+# fire.models
 
 import argparse
 import logging
@@ -37,7 +37,7 @@ def _parse_args() -> argparse.Namespace:
     """
     Parse command-line arguments.
     """
-    parser = argparse.ArgumentParser(description='Model training pipeline for FIRE (Step 2)')
+    parser = argparse.ArgumentParser(description='Model training pipeline for fire (Step 2)')
     parser.add_argument('aggregated_file', type=str, help='Path to the aggregated data CSV file')
     parser.add_argument('--unsw', action='store_true', help='Use multiclass labels')
     parser.add_argument('--pca', action='store_true', help='Enable PCA for feature reduction')
@@ -140,7 +140,7 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     """
     print(
         f'Agg Data Path: {aggregated_file}'
-    )  # caffeinate python3 -m FIRE.main datasets/CIC_UNSW/NF-CICIDS2018-v3.csv --unsw --window_size 3s --step_size 5s >> output/WS3_SS5/CICtest.txt  # noqa: E501
+    )  # caffeinate python3 -m fire.main datasets/CIC_UNSW/NF-CICIDS2018-v3.csv --unsw --window_size 3s --step_size 5s >> output/WS3_SS5/CICtest.txt  # noqa: E501
     data = pd.read_csv(aggregated_file)
     print(f'IsUNSW: {isUNSW}', file=sys.stderr, flush=True)
 

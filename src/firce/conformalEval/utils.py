@@ -1,4 +1,4 @@
-# src/core/conformalEval/utils
+# src/firce/conformalEval/utils
 import copy
 import inspect
 import logging
@@ -125,7 +125,7 @@ def compute_class_thresholds(calibration_scores, significance):
     return {cls: float(np.quantile(scores, 1 - significance)) for cls, scores in calibration_scores.items()}
 
 
-def load_conformal_config(path: Path = Path('src/core/conformalEval/conformal_config.toml')) -> dict:
+def load_conformal_config(path: Path = Path('src/firce/conformalEval/conformal_config.toml')) -> dict:
     """
     Load conformal evaluator configuration from TOML file.
 

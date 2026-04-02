@@ -1,4 +1,4 @@
-# src/core/circular_logger.py
+# src/firce/circular_logger.py
 """
 In-memory circular logger for simulation logs.
 

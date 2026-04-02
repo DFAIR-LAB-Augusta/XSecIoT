@@ -41,58 +41,38 @@ test:
 	PYTORCH_ENABLE_MPS_FALLBACK=1 \
 	$(UV) run pytest -q
 
-test-cov:
+test.cov:
 	OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
 	NUMEXPR_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
 	PYTORCH_ENABLE_MPS_FALLBACK=1 \
 	$(UV) run pytest --cov=src --cov-report=term-missing --cov-report=xml
 
-
-sim-bin: 
-	bash src/core/run_sim_bin.sh
-
-sim-mc: 
-	bash src/core/run_sim_mc.sh
-
-xseciot: 
-	bash src/core/run_xseciot.sh
-
-bin-test: 
-	PYTHONPATH='.' caffeinate $(UV) run $(PY) -m src.core.ce_simulation \
+bin.test: 
+	$(UV) run firce \
 		datasets/CETrain/combined_data.csv datasets/CEFlows/CE_MC_Flows_labeled_merged.csv \
 	 	--log2File --modelVariant "feedforward" --ceType "approx_tce" --max_rows 100000 \
 	 	--useCircularLogger --debug --useMLP --useAC 
 
-mc-test: 
-	PYTHONPATH='.' caffeinate $(UV) run $(PY) -m src.core.ce_simulation \
-		datasets/CETrain/combined_data.csv datasets/CEFlows/CE_MC_Flows_labeled_merged.csv \
-	 	--log2File --modelVariant "feedforward" --ceType "approx_tce" --max_rows 100000 \
-	 	--useCircularLogger --debug --useMLP --useAC --modelType "multi"
-
-bin-label: 
+label: 
 	@if [ -z "$(UNLABELED_DATASET_PATH)" ]; then echo "ERROR: set UNLABELED_DATASET_PATH=..."; exit 1; fi
-	$(UV) run $(PY) -m src.utils.bin_labeling --dataset_path "$(UNLABELED_DATASET_PATH)"
-
-mc-label: 
-	@if [ -z "$(UNLABELED_DATASET_PATH)" ]; then echo "ERROR: set UNLABELED_DATASET_PATH=..."; exit 1; fi
-	$(UV) run $(PY) -m src.utils.mc_labeling --dataset_path "$(UNLABELED_DATASET_PATH)" 
+	$(UV) run scripts/labeling.py --dataset_path "$(UNLABELED_DATASET_PATH)"
 
 merge:
 	@if [ -z "$(LABELED_DATASET_PATH)" ]; then echo "ERROR: set LABELED_DATASET_PATH=..."; exit 1; fi
-	$(UV) run $(PY) -m src.utils.merge --dataset_path "$(LABELED_DATASET_PATH)"
+	$(UV) run scripts/merge.py --dataset_path "$(LABELED_DATASET_PATH)"
 
-overall-perf: 
+overall.perf: 
 	@if [ -n "$(LOG_DIR)" ]; then \
-		$(UV) run $(PY) -m src.utils.overall_perf_stats --log_dir "$(LOG_DIR)"; \
+		$(UV) run scripts/overall_perf_stats.py --log_dir "$(LOG_DIR)"; \
 	else \
-		$(UV) run $(PY) -m src.utils.overall_perf_stats; \
+		$(UV) run scripts/overall_perf_stats.py
 	fi
 
-overall-scrape:
+overall.scrape:
 	@if [ -n "$(LOG_DIR)" ]; then \
-		$(UV) run $(PY) -m src.utils.overall_stats_scraper --log_dir "$(LOG_DIR)"; \
+		$(UV) run scripts/overall_stats_scraper.py --log_dir "$(LOG_DIR)"; \
 	else \
-		$(UV) run $(PY) -m src.utils.overall_stats_scraper; \
+		$(UV) run scripts/overall_stats_scraper.py
 	fi
 
 lint: 

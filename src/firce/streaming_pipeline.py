@@ -20,8 +20,8 @@ from sklearn.preprocessing import StandardScaler
 
 from firce.conformalEval.conformal_evaluators import ConformalEvaluator
 from firce.perf_stats import PerformanceStats
-from src.FIRE.preprocessing import clean_data
-from src.FIRE.simulations import load_simulation_objects, preprocess_chunk, process_chunk
+from fire.preprocessing import clean_data
+from fire.simulations import load_simulation_objects, preprocess_chunk, process_chunk
 
 logger = logging.getLogger(__name__)
 

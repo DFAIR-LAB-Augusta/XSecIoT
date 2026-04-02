@@ -1,4 +1,4 @@
-# src/core/torch_device
+# src/firce/torch_device
 """
 torch_device
 ============

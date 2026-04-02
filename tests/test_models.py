@@ -6,7 +6,7 @@ import pandas as pd
 
 sys.path.insert(0, os.path.abspath('src'))
 
-from src.FIRE.models import _explain_with_lime, _explain_with_shap, _parse_args, run_feature_engineering
+from fire.models import _explain_with_lime, _explain_with_shap, _parse_args, run_feature_engineering
 
 
 def test_parse_args_defaults(monkeypatch):

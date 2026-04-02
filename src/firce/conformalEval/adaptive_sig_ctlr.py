@@ -1,4 +1,4 @@
-# src/core/conformalEval/adaptive_sig_ctlr
+# src/firce/conformalEval/adaptive_sig_ctlr
 import logging
 
 from collections import deque
