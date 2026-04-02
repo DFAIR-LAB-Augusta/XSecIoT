@@ -1,10 +1,10 @@
-# 🧪 tests/
+#  tests/
 
 This directory contains unit tests for verifying the functionality and import integrity of the `core` and `FIRE` modules.
 
 ---
 
-## ✅ Test Structure
+##  Test Structure
 
 * `test_core.py`: Verifies that the core runtime components (e.g., `listener.py`) can be imported successfully.
 * `test_FIRE.py`: Checks that the FIRE ML pipeline modules (`main.py`, `models.py`, etc.) can be imported without errors.
@@ -12,7 +12,7 @@ This directory contains unit tests for verifying the functionality and import in
 
 ---
 
-## 🚀 Running Tests
+##  Running Tests
 
 To run all tests:
 
@@ -35,7 +35,7 @@ from core import listener
 
 ---
 
-## 🛠️ Guidelines
+##  Guidelines
 
 * Place all new test files in this directory.
 * Use descriptive names: `test_<module>.py`

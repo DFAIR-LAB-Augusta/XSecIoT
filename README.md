@@ -1,4 +1,4 @@
-# 🔥 FIRCE (XSecIoT): Streaming Conformal Evaluation for IoT IDS
+#  FIRCE (XSecIoT): Streaming Conformal Evaluation for IoT IDS
 
 **FIRCE** (Framework for **I**ntrusion **R**esponse and **C**onformal **E**valuation) is the streaming half of **XSecIoT**. It ingests flow records, performs ML classification, detects concept drift with Conformal Evaluators (ICE/CCE/Approx-CCE/TCE), and triggers adaptive retraining with rolling logs.
 
@@ -6,7 +6,7 @@ This repository also contains **FIRE** (offline preprocessing/modeling/simulatio
 
 ---
 
-## 📦 What You Get
+##  What You Get
 
 * **Streaming IDS pipeline** (`src/core/streaming_pipeline.py`) with:
 
@@ -23,7 +23,7 @@ This repository also contains **FIRE** (offline preprocessing/modeling/simulatio
 
 ---
 
-## 🗂️ Project Layout (focused on FIRCE)
+##  Project Layout (focused on FIRCE)
 
 ```
 XSecIoT/
@@ -68,14 +68,14 @@ XSecIoT/
 
 ---
 
-## ⚙️ Requirements
+##  Requirements
 
 * Python 3.10+
 * [UV](https://docs.astral.sh/uv/) (fast Python package/environment manager)
 
 ---
 
-## 🚀 Quick Start (FIRCE)
+##  Quick Start (FIRCE)
 
 1. **Install dependencies**
 
@@ -106,7 +106,7 @@ That’s it—FIRCE will load from `datasets/`, run the streaming CE pipeline, a
 
 ---
 
-## 🔧 Configuration Tips
+##  Configuration Tips
 
 * **Conformal Evaluators & thresholds:** edit `src/core/conformalEval/conformal_config.toml` to switch CE type (ICE/CCE/Approx-CCE/TCE), calibration window sizes, p-value thresholds, etc.
 * **Adaptive behavior:** tune `adaptive_chunking.py` and `adaptive_sig_ctlr.py` parameters if you need different responsiveness.
@@ -114,13 +114,13 @@ That’s it—FIRCE will load from `datasets/`, run the streaming CE pipeline, a
 
 ---
 
-## ⚠️ Disclaimer
+##  Disclaimer
 
 This is **research code** for academic use. Validate thoroughly before any production deployment.
 
 ---
 
-## 📢 Contact
+##  Contact
 
 - Seth Barrett | [GitHub](https://github.com/sethbarrett50) | [sebarrett@augusta.edu](mailto:sebarrett@augusta.edu)
 - Bradley Boswell | [GitHub](https://github.com/bradleyboswell) | [brboswell@augusta.edu](mailto:brboswell@augusta.edu)
@@ -128,4 +128,4 @@ This is **research code** for academic use. Validate thoroughly before any produ
 - Lin Li, PhD | [GitHub](https://github.com/linli786) | [lli1@augusta.edu](mailto:lli1@augusta.edu)
 - Gokila Dorai, PhD | [GitHub](https://github.com/gdorai) | [gdorai@augusta.edu](mailto:gdorai@augusta.edu)
 
-🔐 Securing IoT, one flow at a time.
+ Securing IoT, one flow at a time.

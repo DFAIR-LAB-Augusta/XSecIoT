@@ -1,10 +1,10 @@
-# 🔢 FIRE\_codebase/
+#  FIRE\_codebase/
 
 This directory contains the original implementation of the **FIRE (Fog-based Intrusion detection framework for Real-time security in IoT Environments)** framework. It includes scripts and notebooks used for data preprocessing, model training, and simulation-based evaluation of intrusion detection models.
 
 ---
 
-## 🔧 Core Files
+##  Core Files
 
 | File                   | Description                                                     |
 | ---------------------- | --------------------------------------------------------------- |
@@ -16,7 +16,7 @@ This directory contains the original implementation of the **FIRE (Fog-based Int
 
 ---
 
-## 📂 JuypterNotebooks/
+##  JuypterNotebooks/
 
 This folder contains the original Jupyter notebooks used during the development of the FIRE framework. These include exploratory experiments, model training iterations, and performance evaluations.
 
@@ -30,7 +30,7 @@ These are preserved for reference, experimentation, and visualization.
 
 ---
 
-## 🔁 Integration
+##  Integration
 
 This package can be executed independently or used within larger systems like `core`. You can run the entire FIRE pipeline using:
 
@@ -40,9 +40,9 @@ python -m FIRE.main ./datasets/DFAIR/combined_data_with_okpVacc_modified.csv > o
 
 ---
 
-💡 Use this codebase for batch experimentation, model benchmarking, and evaluation of dataset-specific performance.
+ Use this codebase for batch experimentation, model benchmarking, and evaluation of dataset-specific performance.
 
-## 📢 Contact
+##  Contact
 
 Seth Barrett | [GitHub](https://github.com/sethbarrett50) | [sebarrett@augusta.edu](mailto:sebarrett@augusta.edu)
 Bradley Boswell | [GitHub](https://github.com/bradleyboswell) | [brboswell@augusta.edu](mailto:brboswell@augusta.edu)

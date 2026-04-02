@@ -1,4 +1,4 @@
-# 🧰 `utils/` — Log & Metrics Utilities
+#  `scripts/` — Log & Metrics Utilities
 
 Helper scripts for inspecting, labeling, merging, and summarizing outputs produced by **FIRCE/FIRE**.
 All scripts can be executed with **UV**.
@@ -40,7 +40,7 @@ Then, for any script (examples below):
 
 ```bash
 # Show usage/flags (if implemented via argparse/click)
-uv run --project . utils/overall_perf_stats.py --help
+uv run --project . scripts/overall_perf_stats.py --help
 ```
 
 > If you prefer running from within this directory, you can also use:
@@ -58,7 +58,7 @@ uv run --project . utils/overall_perf_stats.py --help
 ### 1) Merge CSV shards from multiple runs
 
 ```bash
-uv run --project . utils/merge.py \
+uv run --project . scripts/merge.py \
   --input "logging/run_*/flows_*.csv" \
   --output logging/merged/flows_merged.csv
 ```
@@ -66,7 +66,7 @@ uv run --project . utils/merge.py \
 ### 2) Scrape “Full performance stats:” blocks from logs
 
 ```bash
-uv run --project . utils/overall_stats_scraper.py \
+uv run --project . scripts/overall_stats_scraper.py \
   --input "logging/run_*/perf.log" \
   --output logging/summary/perf_stats_raw.csv
 ```
@@ -74,7 +74,7 @@ uv run --project . utils/overall_stats_scraper.py \
 ### 3) Build an overall performance table
 
 ```bash
-uv run --project . utils/overall_perf_stats.py \
+uv run --project . scripts/overall_perf_stats.py \
   --input logging/summary/perf_stats_raw.csv \
   --output logging/summary/perf_overall.csv
 ```
@@ -82,7 +82,7 @@ uv run --project . utils/overall_perf_stats.py \
 ### 4) Apply or correct labels on merged flows
 
 ```bash
-uv run --project . utils/labeling.py \
+uv run --project . scripts/labeling.py \
   --input logging/merged/flows_merged.csv \
   --map datasets/label_maps/labels.json \
   --output logging/labeled/flows_labeled.csv
@@ -99,7 +99,7 @@ uv run --project . utils/labeling.py \
 
 --- 
 
-## 📢 Contact
+##  Contact
 
 Seth Barrett | [GitHub](https://github.com/sethbarrett50) | [sebarrett@augusta.edu](mailto:sebarrett@augusta.edu)
 Bradley Boswell | [GitHub](https://github.com/bradleyboswell) | [brboswell@augusta.edu](mailto:brboswell@augusta.edu)

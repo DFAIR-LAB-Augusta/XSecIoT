@@ -1,10 +1,10 @@
-# 📂 DFAIR Dataset
+#  DFAIR Dataset
 
 This directory contains the **DFAIR dataset**, derived from controlled experiments on IoT devices under real-world attack scenarios. The dataset has been processed with **CICFlowMeter** to extract flow-level features for machine learning-based intrusion detection.
 
 ---
 
-## 📃 Dataset File
+##  Dataset File
 
 * `combined_data_with_okpVacc_modified.csv`:
 
@@ -14,7 +14,7 @@ This directory contains the **DFAIR dataset**, derived from controlled experimen
 
 ---
 
-## 🚀 Data Collection Methodology
+##  Data Collection Methodology
 
 IoT traffic was collected in a **controlled lab environment** using a TP-Link TL-WR541N router running OpenWrt. Each IoT device was connected to this router and configured using a Samsung Galaxy A71 smartphone. Devices were assigned static IPs for consistent packet capture.
 
@@ -29,7 +29,7 @@ These attacks were performed 3 times per device, producing a diverse set of mali
 
 ---
 
-## 📅 IoT Devices
+##  IoT Devices
 
 | Device Name                   | Interaction Methods               |
 | ----------------------------- | --------------------------------- |
@@ -46,7 +46,7 @@ These attacks were performed 3 times per device, producing a diverse set of mali
 
 ---
 
-## 🔢 Full Feature Set
+##  Full Feature Set
 
 Below is the complete list of flow features extracted using CICFlowMeter:
 
@@ -91,13 +91,13 @@ Below is the complete list of flow features extracted using CICFlowMeter:
 
 ---
 
-## 🔒 Usage
+##  Usage
 
 This dataset is intended strictly for **research and educational purposes**. Redistribution or use in production environments is not permitted without explicit permission.
 
 ---
 
-## 📢 Contact
+##  Contact
 
 Seth Barrett | [GitHub](https://github.com/sethbarrett50) | [sebarrett@augusta.edu](mailto:sebarrett@augusta.edu)
 Bradley Boswell | [GitHub](https://github.com/bradleyboswell) | [brboswell@augusta.edu](mailto:brboswell@augusta.edu)

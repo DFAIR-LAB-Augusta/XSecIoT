@@ -1,13 +1,13 @@
-# 🔍 `core/`
+#  `firce/`
 
 This folder contains the **FIRCE** streaming runtime for XSecIoT: live flow ingestion, ML inference, **Conformal Evaluation** (ICE/CCE/Approx-CCE/TCE) for drift detection, and rolling logs for adaptive retraining.
 
 ---
 
-## 🗂️ Directory Layout
+##  Directory Layout
 
 ```text
-core/
+firce/
 ├── adaptive_chunking.py        # Adaptive chunk/window sizing for streaming & CE
 ├── ce_model_training.py        # Train CE-side classifiers for simulations/replay
 ├── ce_simulation.py            # CE simulation/replay harness (batch/stream)
@@ -38,7 +38,7 @@ core/
 
 ---
 
-## 🔧 Components
+##  Components
 
 | File/Dir                    | Purpose                                                                                                        |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -58,7 +58,7 @@ core/
 
 ---
 
-## ⚡ Runtime Flow
+##  Runtime Flow
 
 1. **Ingest** — CICFlowMeter (or equivalent) emits CSV flow batches → `listener.py` receives via HTTP POST.
 2. **Preprocess** — Normalize columns, select numeric features, apply scaler/PCA if configured.
@@ -68,24 +68,24 @@ core/
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 From the **repo root** (expects inputs in `datasets/`, writes artifacts to `logging/`, and models to `binary_models/` / `multiclass_models/`):
 
 ```bash
 uv sync
-./src/core/run_sim.sh
+./src/firce/run_sim.sh
 ```
 
 To run the end-to-end streaming stack (e.g., with CICFlowMeter):
 
 ```bash
-bash ./src/core/run_xseciot.sh
+bash ./src/firce/run_xseciot.sh
 ```
 
 --- 
 
-## 📢 Contact
+##  Contact
 
 Seth Barrett | [GitHub](https://github.com/sethbarrett50) | [sebarrett@augusta.edu](mailto:sebarrett@augusta.edu)
 Bradley Boswell | [GitHub](https://github.com/bradleyboswell) | [brboswell@augusta.edu](mailto:brboswell@augusta.edu)

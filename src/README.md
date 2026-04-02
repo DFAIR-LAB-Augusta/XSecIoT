@@ -1,14 +1,13 @@
-# 📂 `src/`
+#  `src/`
 
 This directory contains the **source code** for XSecIoT. It is organized into three branches:
 
-* **`core/`** — FIRCE: the real-time streaming IDS + Conformal Evaluation engine
-* **`FIRE/`** — offline preprocessing, modeling, and simulation framework
-* **`utils/`** — Python utilities for processing/logging experiment outputs
+* **`firce/`** — FIRCE: the real-time streaming IDS + Conformal Evaluation engine
+* **`fire/`** — FIRE: offline preprocessing, modeling, and simulation framework
 
 ---
 
-## 🔍 `core/` — FIRCE (Streaming Runtime)
+##  `firce/` — FIRCE (Streaming Runtime)
 
 The **production-style** pipeline that ingests CICFlowMeter-style flows, classifies in real time, detects concept drift via Conformal Evaluators (ICE/CCE/Approx-CCE/TCE), and logs for adaptive retraining.
 
@@ -20,7 +19,7 @@ The **production-style** pipeline that ingests CICFlowMeter-style flows, classif
 * **`adaptive_chunking.py`** — adjusts chunk/window sizes in response to runtime conditions
 * **`circular_logger.py` / `rolling_csv.py`** — high-throughput, size-bounded flow logging
 * **`perf_stats.py`** — runtime metrics & performance aggregation
-* **`config.py`** — central configuration for paths/flags used by the core pipeline
+* **`config.py`** — central configuration for paths/flags used by the firce pipeline
 * **`run_sim.sh`** — one-liner launcher for FIRCE simulation (UV compatible)
 * **`run_xseciot.sh`** — convenience script to run the end-to-end streaming stack (e.g., with cicflowmeter)
 
@@ -50,12 +49,12 @@ The **production-style** pipeline that ingests CICFlowMeter-style flows, classif
 
 ```bash
 uv sync
-./src/core/run_sim.sh
+./src/firce/run_sim.sh
 ```
 
 ---
 
-## 🔬 `FIRE/` — Offline Research Framework
+##  `fire/` — Offline Research Framework
 
 The **research-grade** pipeline for dataset preparation, model training, and controlled simulations.
 
@@ -70,14 +69,14 @@ The **research-grade** pipeline for dataset preparation, model training, and con
 **Example**
 
 ```bash
-uv run --project . src/FIRE/main.py ./datasets/DFAIR/combined_data_with_okpVacc_modified.csv
+uv run --project . src/fire/main.py ./datasets/DFAIR/combined_data_with_okpVacc_modified.csv
 ```
 
 ---
 
-## 🧰 `utils/` — Log & Metrics Utilities
+##  `utils/` — Log & Metrics Utilities
 
-Helpers for working with run artifacts and logs produced by FIRCE/FIRE.
+Helpers for working with run artifacts and logs produced by FIRCE/fire.
 
 * **`labeling.py`** — programmatic labeling support for flows/segments
 * **`merge.py`** — safe merges of log shards and intermediate CSVs
@@ -86,7 +85,7 @@ Helpers for working with run artifacts and logs produced by FIRCE/FIRE.
 
 ---
 
-## 📢 Contact
+##  Contact
 
 Seth Barrett | [GitHub](https://github.com/sethbarrett50) | [sebarrett@augusta.edu](mailto:sebarrett@augusta.edu)
 Bradley Boswell | [GitHub](https://github.com/bradleyboswell) | [brboswell@augusta.edu](mailto:brboswell@augusta.edu)

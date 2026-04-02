@@ -1,4 +1,4 @@
-# 🧠 `models/`
+#  `models/`
 
 Model definitions used by **FIRCE** (streaming runtime) and **FIRE** (offline pipeline).
 
@@ -37,7 +37,7 @@ Both accept preprocessed numeric feature tensors (e.g., CICFlowMeter features, o
 
 --- 
 
-## 📢 Contact
+##  Contact
 
 Seth Barrett | [GitHub](https://github.com/sethbarrett50) | [sebarrett@augusta.edu](mailto:sebarrett@augusta.edu)
 Bradley Boswell | [GitHub](https://github.com/bradleyboswell) | [brboswell@augusta.edu](mailto:brboswell@augusta.edu)

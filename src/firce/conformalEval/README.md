@@ -1,4 +1,4 @@
-# 📐 Conformal Evaluation Module
+#  Conformal Evaluation Module
 
 Implements a suite of **Conformal Evaluators** for uncertainty-aware detection of **concept drift** using nonconformity scores and conformal **p-values**. Supported evaluators:
 
@@ -13,7 +13,7 @@ Use the factory in **`conformal_evaluators.py`** to instantiate by name:
 
 ---
 
-## 🔢 Core Concepts
+##  Core Concepts
 
 ### 1) Nonconformity Measure (NCM)
 
@@ -59,7 +59,7 @@ Empirically, (\tau_y) is the ((1-\varepsilon))-quantile of calibration scores in
 
 ---
 
-## 🛠️ Evaluator Variants & Asymptotics
+##  Evaluator Variants & Asymptotics
 
 We follow the paper’s notation: dataset size (n), proper-training fraction (p), calibration fraction (1-p), and (k = 1/(1-p)) folds. Assuming per-class calibration scores are pre-sorted or histogrammed, test-time lookup is ( \mathcal{O}(1) ).
 
@@ -80,7 +80,7 @@ We follow the paper’s notation: dataset size (n), proper-training fraction (p)
 
 ---
 
-## 🌟 Approx-CCE (Proposed)
+##  Approx-CCE (Proposed)
 
 **Motivation.** CCE is robust but expensive in streaming due to (k) refits.
 **Design.** Train a **single shared model**; partition calibration into (k) folds to collect CCE-like coverage **without refitting**; thresholds are per-class ((1-\alpha))-quantiles.
@@ -92,7 +92,7 @@ We follow the paper’s notation: dataset size (n), proper-training fraction (p)
 
 ---
 
-## ⚙️ Usage
+##  Usage
 
 ```python
 from core.conformalEval.conformal_evaluators import ConformalEvaluator
@@ -115,12 +115,12 @@ y_pred      = ce.evaluator.predict(X_new)
 drift_mask  = p_vals < ce.thresholds_[y_pred]    # per-class thresholds
 
 if drift_mask.any():
-    print("⚠️ Concept drift detected — consider retraining/recalibration.")
+    print(" Concept drift detected — consider retraining/recalibration.")
 ```
 
 ---
 
-## 📚 Formulas (as used in the paper)
+##  Formulas (as used in the paper)
 
 1. **Nonconformity:**
    ![Formula](../../../assets/form1.svg)
@@ -143,7 +143,7 @@ For implementation details, see `utils.py` (calibration buffers, empirical CDF/h
 
 --- 
 
-## 📢 Contact
+##  Contact
 
 Seth Barrett | [GitHub](https://github.com/sethbarrett50) | [sebarrett@augusta.edu](mailto:sebarrett@augusta.edu)
 Bradley Boswell | [GitHub](https://github.com/bradleyboswell) | [brboswell@augusta.edu](mailto:brboswell@augusta.edu)
