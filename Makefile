@@ -55,6 +55,14 @@ bin.test:
 	 	--useCircularLogger --debug --useMLP --useAC \
 		--pipeline simulation
 
+bin.unsw:
+	$(UV) run firce \
+		datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
+		datasets/CEFlows2/CEFlows2_merged.csv \
+	 	--log2File --modelVariant "feedforward" --ceType "approx_tce" --max_rows 100000 \
+	 	--useCircularLogger --debug --useMLP --useAC -unsw \
+		--pipeline simulation
+
 label: 
 	@if [ -z "$(UNLABELED_DATASET_PATH)" ]; then echo "ERROR: set UNLABELED_DATASET_PATH=..."; exit 1; fi
 	$(UV) run scripts/labeling.py --dataset_path "$(UNLABELED_DATASET_PATH)"
