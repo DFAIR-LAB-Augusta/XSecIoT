@@ -1,0 +1,44 @@
+name: style
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ruff-style:
+    runs-on: [self-hosted, dfair-gha-runner]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install Python
+        run: uv python install 3.11
+
+      - name: Show Python
+        run: uv run --python 3.11 python --version
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('uv.lock', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Sync dependencies
+        run: uv sync --frozen --python 3.11
+
+      - name: Ruff format (check only)
+        run: uv run --python 3.11 ruff format --check .
+
+      - name: Ruff lint
+        run: uv run --python 3.11 ruff check .
