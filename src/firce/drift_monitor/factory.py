@@ -4,8 +4,8 @@ import logging
 
 from typing import Any
 
-from firce.config import MonitorType, SimulationConfig
 from firce.drift_monitor.conformal_monitor import ConformalDriftMonitor
+from firce.utils.config import MonitorType, SimulationConfig
 
 logger = logging.getLogger(__name__)
 

@@ -7,8 +7,8 @@ from statistics import mean, median, stdev
 import matplotlib.pyplot as plt
 import numpy as np
 
-from firce.config import SimulationConfig
-from firce.perf_stats import PerformanceStats
+from firce.utils.config import SimulationConfig
+from firce.utils.perf_stats import PerformanceStats
 
 logger = logging.getLogger(__name__)
 
@@ -284,3 +284,7 @@ def _summarize_timings(name: str, times: list[float]) -> None:
         f'Median: {median(times):.4f}s | Std: {stdev(times):.4f}s | '
         f'Min: {min(times):.4f}s | Max: {max(times):.4f}s'
     )
+
+
+if __name__ == '__main__':
+    raise NotImplementedError('This module is not intended to be run directly. ')

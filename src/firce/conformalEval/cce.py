@@ -36,7 +36,7 @@ from firce.conformalEval.utils import (
     compute_p_values,
     load_conformal_config,
 )
-from firce.perf_stats import PerformanceStats
+from firce.utils.perf_stats import PerformanceStats
 
 logger = logging.getLogger(__name__)
 STATIC_VALS: Dict = load_conformal_config()

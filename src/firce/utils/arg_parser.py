@@ -2,7 +2,7 @@ import argparse
 
 from pathlib import Path
 
-from firce.config import CEType, ModelType, ModelVariant, MonitorType
+from firce.utils.config import CEType, ModelType, ModelVariant, MonitorType
 
 
 def parse_sim_args() -> argparse.Namespace:
@@ -136,3 +136,7 @@ def parse_sim_args() -> argparse.Namespace:
         help='Optional device for CADE to run on',
     )
     return p.parse_args()
+
+
+if __name__ == '__main__':
+    raise NotImplementedError('This module is not intended to be run directly. ')

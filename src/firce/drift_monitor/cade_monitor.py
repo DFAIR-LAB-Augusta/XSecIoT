@@ -11,8 +11,8 @@ from firce.drift_monitor.base import DriftDetectionResult
 from .cade_config import CadeMonitorConfig
 
 if TYPE_CHECKING:
-    from firce.config import SimulationConfig
-    from firce.perf_stats import PerformanceStats
+    from firce.utils.config import SimulationConfig
+    from firce.utils.perf_stats import PerformanceStats
 
 
 class CadeDriftMonitor:

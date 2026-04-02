@@ -18,8 +18,8 @@ Typical usage:
 
 import logging
 
-from firce.config import AdaptiveChunkConfig
-from firce.perf_stats import PerformanceStats
+from firce.utils.config import AdaptiveChunkConfig
+from firce.utils.perf_stats import PerformanceStats
 
 logger = logging.getLogger(__name__)
 

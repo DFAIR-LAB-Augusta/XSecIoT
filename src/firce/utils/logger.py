@@ -2,7 +2,7 @@ import logging
 
 from pathlib import Path
 
-from firce.config import SimulationConfig
+from firce.utils.config import SimulationConfig
 
 
 def configure_sim_logging(config: SimulationConfig) -> None:
@@ -44,3 +44,7 @@ def configure_sim_logging(config: SimulationConfig) -> None:
         level=log_level, format='%(asctime)s %(levelname)s %(name)s: %(message)s', handlers=log_handlers, force=True
     )
     logging.captureWarnings(True)
+
+
+if __name__ == '__main__':
+    raise NotImplementedError('This module is not intended to be run directly. ')

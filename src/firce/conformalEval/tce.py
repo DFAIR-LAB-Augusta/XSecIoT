@@ -23,7 +23,7 @@ from sklearn.metrics import accuracy_score, classification_report, f1_score, pre
 
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
 from firce.conformalEval.utils import compute_p_values, load_conformal_config
-from firce.perf_stats import PerformanceStats
+from firce.utils.perf_stats import PerformanceStats
 
 logger = logging.getLogger(__name__)
 

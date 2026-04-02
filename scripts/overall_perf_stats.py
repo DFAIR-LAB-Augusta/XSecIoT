@@ -1,4 +1,4 @@
-# src/utils/perf_stats_ce_only_plots.py
+# scripts/perf_stats_ce_only_plots.py
 """
 Classifier dashboards: 5x4 grid of CE + Classifier metrics per classifier.
 
@@ -14,7 +14,7 @@ Outputs (per classifier):
   - <out-dir>/<classifier>_ce_metrics.csv   # long-form CSV: series, run, ce_type, metric, step, value
 
 Usage:
-    uv run python -m src.utils.perf_stats_ce_only_plots \
+    uv run python scripts/perf_stats_ce_only_plots \
         --log-dir ./logging/DFAIR/acDFAIR \
         --out-dir ./logging/acDFAIRGraphs \
         --verbose

@@ -33,7 +33,7 @@ from firce.conformalEval.utils import (
     compute_p_values,
     load_conformal_config,
 )
-from firce.perf_stats import PerformanceStats
+from firce.utils.perf_stats import PerformanceStats
 
 STATIC_VALS: Dict = load_conformal_config()
 SIGNIFICANCE = STATIC_VALS['conformal_eval_config']['significance']

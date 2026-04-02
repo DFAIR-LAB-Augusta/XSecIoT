@@ -29,13 +29,13 @@ from typing import Any, Dict, Optional
 import numpy as np
 import pandas as pd
 
-from firce.config import CEType
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
 from firce.conformalEval.approx_cce import ApproxCrossConformalEvaluator as _ApproxCCEImpl
 from firce.conformalEval.cce import CrossConformalEvaluator as _CCEImpl
 from firce.conformalEval.ice import InductiveConformalEvaluator as _ICEImpl
 from firce.conformalEval.tce import ApproximateTransductiveConformalEvaluator as _ApproxTCEImpl
-from firce.perf_stats import PerformanceStats
+from firce.utils.config import CEType
+from firce.utils.perf_stats import PerformanceStats
 
 logger = logging.getLogger(__name__)
 

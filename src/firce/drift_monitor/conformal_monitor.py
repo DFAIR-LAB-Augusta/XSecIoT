@@ -6,11 +6,11 @@ import numpy as np
 
 from firce.conformalEval.conformal_evaluators import ConformalEvaluator
 from firce.drift_monitor.base import DriftDetectionResult
-from firce.perf_stats import PerformanceStats
+from firce.utils.perf_stats import PerformanceStats
 
 if TYPE_CHECKING:
-    from firce.config import CEType
     from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+    from firce.utils.config import CEType
 
 
 class ConformalDriftMonitor:

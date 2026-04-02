@@ -40,7 +40,6 @@ from sklearn.svm import SVC
 
 from firce.adaptive_chunking import AdaptiveChunkController
 from firce.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
-from firce.config import CEType, ModelType, ModelVariant, MonitorType, SimulationConfig
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
 from firce.conformalEval.approx_cce import ApproxCrossConformalEvaluator
 from firce.conformalEval.cce import CrossConformalEvaluator
@@ -50,11 +49,12 @@ from firce.drift_monitor.base import DriftMonitor
 from firce.drift_monitor.factory import build_monitor
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.mlp_ce import MLP_CE
-from firce.perf_stats import PerformanceStats
+from firce.utils.arg_parser import parse_sim_args
 from firce.utils.circular_logger import CircularDequeLogger
+from firce.utils.config import CEType, ModelType, ModelVariant, MonitorType, SimulationConfig
 from firce.utils.grapher import graph_results
 from firce.utils.logger import configure_sim_logging
-from firce.utils.parser import parse_sim_args
+from firce.utils.perf_stats import PerformanceStats
 from firce.utils.rolling_csv import RollingCSV
 from fire.preprocessing import clean_data
 from fire.simulations import (

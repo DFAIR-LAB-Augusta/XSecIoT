@@ -43,9 +43,9 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from torch.utils.data import DataLoader, Subset, TensorDataset
 
-from firce.config import ModelVariant, SimulationConfig
 from firce.models.feedforward_binary import FeedForwardBinary
-from firce.perf_stats import PerformanceStats
+from firce.utils.config import ModelVariant, SimulationConfig
+from firce.utils.perf_stats import PerformanceStats
 from fire.preprocessing import clean_data
 
 if TYPE_CHECKING:
