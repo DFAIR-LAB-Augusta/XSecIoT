@@ -24,7 +24,7 @@ import logging
 import time
 import warnings
 
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Tuple
 
 import joblib
 import numpy as np
@@ -52,9 +52,9 @@ from firce.models.mlp_ce import MLP_CE
 from firce.utils.arg_parser import parse_sim_args
 from firce.utils.circular_logger import CircularDequeLogger
 from firce.utils.config import CEType, ModelType, ModelVariant, MonitorType, SimulationConfig
-from firce.utils.grapher import graph_results
 from firce.utils.logger import configure_sim_logging
 from firce.utils.perf_stats import PerformanceStats
+from firce.utils.plotter import plot_results
 from firce.utils.rolling_csv import RollingCSV
 from fire.preprocessing import clean_data
 from fire.simulations import (
@@ -477,7 +477,7 @@ def _simulate(
             for chunkNum, chunk in enumerate(pd.read_csv(config.flows_path, chunksize=config.chunk_size)):
                 _sim_loop(config, rolling, scaler, pca, model, monitor, chunk, perf_stats, sig_controller, chunkNum)
 
-    graph_results(config, overall, perf_stats)
+    plot_results(config, overall, perf_stats)
 
 
 def _ensure_models_exist(config: SimulationConfig, perf_stats: PerformanceStats) -> None:
@@ -548,12 +548,12 @@ def _sim_loop(
     config: SimulationConfig,
     rolling: RollingCSV | CircularDequeLogger,
     scaler: StandardScaler,
-    pca: Optional[PCA],
+    pca: PCA | None,
     model: ClassifierMixin | xgb.Booster | FeedForwardBinary,
     monitor: DriftMonitor | None,
     chunk: pd.DataFrame,
     perf_stats: PerformanceStats,
-    sig_controller: Optional[AdaptiveSignificanceController] = None,
+    sig_controller: AdaptiveSignificanceController | None = None,
     chunkNum: int = 0,
 ) -> None:
     """
@@ -770,7 +770,7 @@ def _predict_row(
     row: pd.DataFrame,
     drop_cols: List[str],
     scaler: StandardScaler,
-    pca: Optional[PCA],
+    pca: PCA | None,
     config: SimulationConfig,
     model: ClassifierMixin | xgb.Booster | FeedForwardBinary,
     threshold: float,
@@ -854,13 +854,13 @@ def _predict_row(
 def _retrain(
     config: SimulationConfig,
     scaler: StandardScaler,
-    pca: Optional[PCA],
+    pca: PCA | None,
     model: Any,
     monitor: DriftMonitor | None,
     rolling: RollingCSV | CircularDequeLogger,
     perf_stats: PerformanceStats,
-    sig_controller: Optional[AdaptiveSignificanceController] = None,
-) -> Tuple[StandardScaler, Optional[PCA], Any, DriftMonitor | None]:
+    _sig_controller: AdaptiveSignificanceController | None = None,
+) -> Tuple[StandardScaler, PCA | None, Any, DriftMonitor | None]:
     """
     Retrain model and CE using the latest samples from the rolling log file.
     This overwrites the existing trained model artifacts.
