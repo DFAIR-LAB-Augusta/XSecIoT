@@ -104,7 +104,7 @@ for run in "${RUNS[@]}"; do
 
             # --- Chunk-size runs --- Dont need chunk
             #   run_one "DFAIR chunk model=$model ce=$ce chunk=$cs" \
-            #     env PYTHONPATH=. $UV run src/FIRCE/ce_simulation.py \
+            #     $UV run firce \
             #       datasets/CETrain/combined_data.csv \
             #       datasets/CEFlows2/CEFlows2_merged.csv \
             #       --log2File \
@@ -118,7 +118,7 @@ for run in "${RUNS[@]}"; do
             #     || exit 1
 
             #   run_one "UNSW chunk model=$model ce=$ce chunk=$cs" \
-            #     env PYTHONPATH=. $UV run src/FIRCE/ce_simulation.py \
+            #     $UV run firce \
             #       datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
             #       datasets/CEFlows2/CEFlows2_merged.csv \
             #       --log2File \
@@ -133,7 +133,7 @@ for run in "${RUNS[@]}"; do
             #     || exit 1
 
             #   run_one "CIC chunk model=$model ce=$ce chunk=$cs" \
-            #     env PYTHONPATH=. $UV run src/FIRCE/ce_simulation.py \
+            #     $UV run firce \
             #       datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
             #       datasets/CEFlows2/CEFlows2_merged.csv \
             #       --log2File \
@@ -149,7 +149,7 @@ for run in "${RUNS[@]}"; do
 
               # --- Adaptive chunking runs ---
             run_one "DFAIR AC model=$model ce=$ce" \
-                env PYTHONPATH=. $UV run src/FIRCE/ce_simulation.py \
+                $UV run firce \
                 datasets/CETrain/combined_data.csv \
                 datasets/CEFlows2/CEFlows2_merged.csv \
                 --log2File \
@@ -166,7 +166,7 @@ for run in "${RUNS[@]}"; do
                 || exit 1
 
             run_one "UNSW AC model=$model ce=$ce" \
-                env PYTHONPATH=. $UV run src/FIRCE/ce_simulation.py \
+                $UV run firce \
                 datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
                 datasets/CEFlows2/CEFlows2_merged.csv \
                 --log2File \
@@ -184,7 +184,7 @@ for run in "${RUNS[@]}"; do
                 || exit 1
 
             run_one "CIC AC model=$model ce=$ce" \
-                env PYTHONPATH=. $UV run src/FIRCE/ce_simulation.py \
+                $UV run firce \
                 datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
                 datasets/CEFlows2/CEFlows2_merged.csv \
                 --log2File \
@@ -205,8 +205,8 @@ for run in "${RUNS[@]}"; do
             done
             #   # --- CADE Adaptive chunking runs ---
             # run_one "DFAIR AC model=$model monitor=cade" \
-            #     env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
-            #     "$UV" run src/FIRCE/ce_simulation.py \
+            #     XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
+            #     "$UV" run firce \
             #     datasets/CETrain/combined_data.csv \
             #     datasets/CEFlows2/CEFlows2_merged.csv \
             #     --log2File \
@@ -235,8 +235,8 @@ for run in "${RUNS[@]}"; do
             #     || exit 1
 
             # run_one "UNSW AC model=$model monitor=cade" \
-            #     env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
-            #     "$UV" run src/FIRCE/ce_simulation.py \
+            #     XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
+            #     "$UV" run firce \
             #     datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
             #     datasets/CEFlows2/CEFlows2_merged.csv \
             #     --log2File \
@@ -266,8 +266,8 @@ for run in "${RUNS[@]}"; do
             #     || exit 1
 
             # run_one "CIC AC model=$model monitor=cade" \
-            #     env PYTHONPATH=. XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
-            #     "$UV" run src/FIRCE/ce_simulation.py \
+            #     XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/nvidia-cuda-toolkit \
+            #     "$UV" run firce \
             #     datasets/CIC_UNSW/NF-CICIDS2018-v3.csv \
             #     datasets/CEFlows2/CEFlows2_merged.csv \
             #     --log2File \

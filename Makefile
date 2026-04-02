@@ -49,7 +49,8 @@ test.cov:
 
 bin.test: 
 	$(UV) run firce \
-		datasets/CETrain/combined_data.csv datasets/CEFlows/CE_MC_Flows_labeled_merged.csv \
+		datasets/CETrain/combined_data.csv \
+		datasets/CEFlows2/CEFlows2_merged.csv \
 	 	--log2File --modelVariant "feedforward" --ceType "approx_tce" --max_rows 100000 \
 	 	--useCircularLogger --debug --useMLP --useAC 
 
