@@ -23,7 +23,7 @@ jobs:
         run: uv python install 3.11
 
       - name: Show Python
-        run: uv run --python 3.11 python --version
+        run: uv python find 3.11
 
       - name: Sync dependencies
         run: uv sync --frozen --python 3.11
