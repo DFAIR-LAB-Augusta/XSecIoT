@@ -1,131 +1,203 @@
-#  FIRCE (XSecIoT): Streaming Conformal Evaluation for IoT IDS
+# FIRCE and FIRE for IoT Intrusion Detection
 
-**FIRCE** (Framework for **I**ntrusion **R**esponse and **C**onformal **E**valuation) is the streaming half of **XSecIoT**. It ingests flow records, performs ML classification, detects concept drift with Conformal Evaluators (ICE/CCE/Approx-CCE/TCE), and triggers adaptive retraining with rolling logs.
+`xseciot` provides two related components for machine learning-based intrusion detection in IoT environments.
 
-This repository also contains **FIRE** (offline preprocessing/modeling/simulation), but the primary entrypoint for users is **FIRCE**. The FIRE repo can be found in its state at publication in the `FIRE_bkp` branch on this repository.
+`FIRCE` is the streaming and evaluation side of the project. It supports flow classification, concept drift detection through conformal evaluation, adaptive retraining, and runtime monitoring.
 
----
+`FIRE` is the offline experimentation side of the project. It contains preprocessing, model development, and simulation-oriented code used to support the broader research workflow.
 
-##  What You Get
+For most users of this repository, the primary entrypoint is `FIRCE`.
 
-* **Streaming IDS pipeline** (`src/core/streaming_pipeline.py`) with:
+## Features
 
-  * Conformal Evaluation (ICE, CCE, Approx-CCE, TCE)
-  * Adaptive chunking and adaptive significance control
-  * Rolling log + optional circular logger
-* **Batteries-included runner**: `./src/core/run_sim.sh`
-* **Configurable CE settings**: `src/core/conformalEval/conformal_config.toml`
-* **Artifacts and outputs**:
+`FIRCE` includes support for:
 
-  * `binary_models/` and `multiclass_models/` (saved models)
-  * `logging/` (run logs, performance summaries)
-  * `datasets/` (your input data)
+- streaming or replay-style intrusion detection workflows
+- conformal evaluators including ICE, CCE, Approx-CCE, and Approx-TCE
+- adaptive chunking
+- adaptive significance control
+- rolling logging and optional circular logging
+- binary and multiclass model workflows
 
----
+`FIRE` includes support for:
 
-##  Project Layout (focused on FIRCE)
+- offline preprocessing
+- model training support
+- simulation utilities
+- supporting research workflows for IoT IDS experiments
 
-```
-XSecIoT/
-├── datasets/                 # ← Input datasets (CSV flows, calibration sets)
-├── binary_models/            # ← Output: saved binary classifiers
-├── multiclass_models/        # ← Output: saved multiclass classifiers
-├── logging/                  # ← Output: run logs & performance stats
+## Repository Layout
+
+```text
+.
+├── scripts/                      # Helper scripts for labeling, merging, and summary stats
 ├── src/
-│   ├── core/
+│   ├── firce/                    # Streaming and conformal-evaluation pipeline
+│   │   ├── cli.py
 │   │   ├── ce_simulation.py
-│   │   ├── streaming_pipeline.py
-│   │   ├── run_sim.sh        # ← Main launcher for FIRCE simulation
-│   │   ├── conformalEval/
-│   │   │   ├── approx_cce.py
-│   │   │   ├── cce.py
-│   │   │   ├── ice.py
-│   │   │   ├── tce.py
-│   │   │   ├── utils.py
-│   │   │   └── conformal_config.toml
-│   │   ├── models/           # MLP/FFN CE models + device helpers
 │   │   ├── adaptive_chunking.py
-│   │   ├── adaptive_sig_ctlr.py
-│   │   ├── circular_logger.py
-│   │   ├── rolling_csv.py
-│   │   └── perf_stats.py
-│   ├── FIRE/                 # Offline pipeline (preprocess/train/simulate)
-│   └── utils/                # Python utils for processing log output
-│       ├── labeling.py
-│       ├── merge.py
-│       ├── overall_perf_stats.py
-│       └── overall_stats_scraper.py
-├── tests/
+│   │   ├── conformalEval/
+│   │   ├── drift_monitor/
+│   │   ├── models/
+│   │   ├── pipelines/
+│   │   ├── runtime/
+│   │   └── utils/
+│   └── fire/                     # Offline preprocessing, modeling, and simulation support
+├── README.md
 ├── pyproject.toml
 └── uv.lock
 ```
 
+## Requirements
 
-> **Directory semantics:**
->
-> * `datasets/` is an **input** directory.
-> * `binary_models/`, `multiclass_models/`, and `logging/` are **output** directories.
+* Python 3.11 or newer
+* `uv`
 
----
+## Installation
 
-##  Requirements
-
-* Python 3.10+
-* [UV](https://docs.astral.sh/uv/) (fast Python package/environment manager)
-
----
-
-##  Quick Start (FIRCE)
-
-1. **Install dependencies**
+Clone the repository and sync the environment:
 
 ```bash
 uv sync
 ```
 
-2. **Place your CSV flows** in `datasets/`
-
-   * Minimum: one **calibration**/train CSV and one **stream** CSV.
-   * Example:
-
-     ```
-     datasets/
-     ├── CETrain/
-     │   └── combined_data.csv
-     └── CEFlows/
-         └── your_stream_flows.csv
-     ```
-
-3. **Run FIRCE**
+To verify the package builds correctly:
 
 ```bash
-./src/core/run_sim.sh
+uv build
 ```
 
-That’s it—FIRCE will load from `datasets/`, run the streaming CE pipeline, and write artifacts/metrics to `logging/` and trained models to `binary_models/` or `multiclass_models/` as applicable.
+## FIRCE Usage
 
----
+The `firce` CLI is the main interface for the streaming framework.
 
-##  Configuration Tips
+### 1. Offline simulation from saved flow CSV files
 
-* **Conformal Evaluators & thresholds:** edit `src/core/conformalEval/conformal_config.toml` to switch CE type (ICE/CCE/Approx-CCE/TCE), calibration window sizes, p-value thresholds, etc.
-* **Adaptive behavior:** tune `adaptive_chunking.py` and `adaptive_sig_ctlr.py` parameters if you need different responsiveness.
-* **Hardware selection:** `src/core/models/torch_device.py` auto-selects device; override via env var if needed.
+This mode is intended for replaying previously generated flow records.
 
----
+Example:
 
-##  Disclaimer
+```bash
+uv run firce \
+  datasets/CETrain/combined_data.csv \
+  datasets/CEFlows2/CEFlows2_merged.csv \
+  --log2File \
+  --modelVariant feedforward \
+  --ceType approx_tce \
+  --max_rows 100000 \
+  --useCircularLogger \
+  --debug \
+  --useMLP \
+  --useAC \
+  --pipeline simulation
+```
 
-This is **research code** for academic use. Validate thoroughly before any production deployment.
+UNSW example:
 
----
+```bash
+uv run firce \
+  datasets/UNSW_NB15/NF-UNSW-NB15-v3.csv \
+  datasets/CEFlows2/CEFlows2_merged.csv \
+  --log2File \
+  --modelVariant feedforward \
+  --ceType approx_tce \
+  --max_rows 100000 \
+  --useCircularLogger \
+  --debug \
+  --useMLP \
+  --useAC \
+  --unsw \
+  --pipeline simulation
+```
 
-##  Contact
+### 2. Live usage with `cicflowmeter`
 
-- Seth Barrett | [GitHub](https://github.com/sethbarrett50) | [sebarrett@augusta.edu](mailto:sebarrett@augusta.edu)
-- Bradley Boswell | [GitHub](https://github.com/bradleyboswell) | [brboswell@augusta.edu](mailto:brboswell@augusta.edu)
-- Swarnamugi Rajaganapathy, PhD | [GitHub](https://github.com/swarna6384) | [swarnamugi@dfairlab.com](mailto:swarnamugi@dfairlab.com)
-- Lin Li, PhD | [GitHub](https://github.com/linli786) | [lli1@augusta.edu](mailto:lli1@augusta.edu)
-- Gokila Dorai, PhD | [GitHub](https://github.com/gdorai) | [gdorai@augusta.edu](mailto:gdorai@augusta.edu)
+This mode is intended for near-real-time operation, where packet captures are converted into flow features and then consumed by the FIRCE pipeline.
 
- Securing IoT, one flow at a time.
+The general workflow is:
+
+1. capture traffic
+2. generate flow records through `cicflowmeter`
+3. feed those flow records into the FIRCE runtime pipeline
+
+Because live deployment details depend on your interface, traffic source, and how `cicflowmeter` is launched in your environment, this repository should document the exact operational command you want users to run once your live workflow is finalized.
+
+At minimum, the README should state that FIRCE supports operation alongside `cicflowmeter` for live flow generation.
+
+## Configuration
+
+Important FIRCE components include:
+
+* `src/firce/conformalEval/conformal_config.toml` for conformal-evaluation settings
+* `src/firce/adaptive_chunking.py` for adaptive chunk-size behavior
+* `src/firce/models/torch_device.py` for runtime device selection
+* `src/firce/drift_monitor/` for drift-monitoring implementations
+* `src/firce/pipelines/` for pipeline orchestration
+
+## Utility Scripts
+
+The repository also includes helper scripts for common data-processing tasks.
+
+Label a dataset:
+
+```bash
+uv run scripts/labeling.py --dataset_path datasets/CEFlows/unlabeled
+```
+
+Merge labeled data:
+
+```bash
+uv run scripts/merge.py --dataset_path datasets/CEFlows/mc_labeled
+```
+
+Aggregate performance statistics:
+
+```bash
+uv run scripts/overall_perf_stats.py
+```
+
+Scrape summary statistics from logs:
+
+```bash
+uv run scripts/overall_stats_scraper.py
+```
+
+## Development
+
+Run tests:
+
+```bash
+uv run pytest -q
+```
+
+Run formatting and lint fixes:
+
+```bash
+uv run ruff format .
+uv run ruff check . --fix
+```
+
+Run dependency checks:
+
+```bash
+uv run deptry .
+```
+
+Run a build and metadata check before publishing:
+
+```bash
+uv build
+uv tool run twine check dist/*
+```
+
+## Research Use Notice
+
+This repository contains research-oriented code intended for experimentation and evaluation. Validate behavior, datasets, and model assumptions carefully before using it in operational environments.
+
+## Authors
+
+* Seth Barrett
+* Bradley Boswell
+* Swarnamugi Rajaganapathy
+* Lin Li
+* Gokila Dorai

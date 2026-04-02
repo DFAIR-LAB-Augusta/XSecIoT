@@ -33,7 +33,7 @@ help:
 	@echo "  make overall-scrape LOG_DIR=logs"
 
 sync: 
-	$(UV) sync
+	$(UV) sync --group torch
 
 test: 
 	OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
