@@ -70,7 +70,7 @@ def _build_config_from_args(args) -> SimulationConfig:
         ),
         model_type=args.modelType,
         model_variant=args.modelVariant,
-        monitor_type=args.monitorType,
+        monitor_type=args.monitorType if args.ceType != 'none' else MonitorType.NONE,
         pipeline=args.pipeline,
         runNum=args.runNum,
         seed=args.seed,
