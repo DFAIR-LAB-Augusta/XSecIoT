@@ -55,7 +55,7 @@ def _run_adaptive_chunk_loop(runtime: SimulationRuntime) -> None:
     """
     chunker = AdaptiveChunkController(runtime.config.adaptive_chunk_config)
     logger.info(
-        "[AdaptiveChunking] Enabled. Initial chunk size: %d",
+        '[AdaptiveChunking] Enabled. Initial chunk size: %d',
         chunker.get_chunk_size(),
     )
 

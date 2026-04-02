@@ -1,178 +1,87 @@
-# firce.streaming_pipeline
-
+# src/firce/pipelines/streaming_pipeline.py
 """
-TODO: FIX lol
+Live streaming pipeline for CE-based drift detection.
+
+This pipeline bootstraps exactly like the offline simulation pipeline using
+an initial aggregated dataset, then listens for live CSV batches and processes
+them through the same chunk-processing, drift-detection, and retraining flow.
 """
 
-import argparse
+from __future__ import annotations
+
 import logging
+import time
 
-from typing import Any, List, cast
+from typing import TYPE_CHECKING
 
-import pandas as pd
-import xgboost as xgb
+from firce.runtime.bootstrap import SimulationRuntime, initialize_simulation_runtime
+from firce.runtime.inference import process_chunk
+from firce.utils.listener import StreamingBatchServer
+from firce.utils.plotter import plot_results
 
-from sklearn.base import ClassifierMixin
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-
-from firce.conformalEval.conformal_evaluators import ConformalEvaluator
-from firce.listener import run_server
-from firce.utils.perf_stats import PerformanceStats
-from firce.utils.rolling_csv import RollingCSV
-from fire.preprocessing import clean_data
-from fire.simulations import load_simulation_objects, preprocess_chunk, process_chunk
+if TYPE_CHECKING:
+    from firce.utils.config import SimulationConfig
 
 logger = logging.getLogger(__name__)
 
-# --- Configuration ---
-MODEL_TYPE = 'binary'
-MODEL_VARIANT = 'feedforward'
-CE_TYPE = 'cce'
-CE_KWARGS = {'calibration_split': 0.2, 'random_state': 42}
-THRESHOLD = 0.5
-IS_UNSW = False
 
-# Path for rolling log of labeled streaming data
-LOG_PATH = 'streamed_labeled_data.csv.gz'
+def run_streaming_pipeline(config: SimulationConfig) -> None:
+    """
+    Run the live streaming pipeline.
 
-# Global holders
-initialized: bool = False
-scaler: StandardScaler | None = None
-pca: PCA | None = None
-mode: ClassifierMixin | xgb.Booster | None = None
-ce: ConformalEvaluator | None = None
-rolling_csv: RollingCSV | None = None
+    This function initializes the runtime from an aggregated dataset, starts
+    a local HTTP listener for incoming CSV batches, and processes each live
+    batch through the same chunk-processing path used by the offline
+    simulation pipeline.
 
-DROP_COLS: List[str] = [
-    'Label',
-    'BinLabel',
-    'src_ip',
-    'dst_ip',
-    'start_time',
-    'end_time_x',
-    'end_time_y',
-    'time_diff',
-    'time_diff_seconds',
-    'Attack',
-]
+    Args:
+        config: Simulation configuration.
+    """
+    overall = time.perf_counter()
+    runtime = initialize_simulation_runtime(config)
 
-
-def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description='Streaming pipeline for real-time data processing and model inference')
-    parser.add_argument('--log', type=str, default='5s', help='Enable logging for testing purposes')
-
-    return parser.parse_args()
-
-
-def _initialize_models():
-    """Load scaler, PCA, and trained model"""
-    global scaler, pca, model, ce, rolling_csv
-    scaler, pca, model = load_simulation_objects(
-        aggregated_file='',  # not used for loading path resolution
-        model_type=MODEL_TYPE,
-        model_variant=MODEL_VARIANT,
+    server = StreamingBatchServer(
+        host=getattr(config, 'listener_host', '127.0.0.1'),
+        port=getattr(config, 'listener_port', 2048),
     )
-    ce = ConformalEvaluator(CE_TYPE, model, **CE_KWARGS)
-    RollingCSV(LOG_PATH, max_rows=10000)
 
+    logger.info(
+        'Starting live streaming pipeline with listener on %s:%d',
+        server.host,
+        server.port,
+    )
 
-def _retrain_on_logged_data():
-    """Retrain scaler, PCA, model, and recalibrate CE using the rolling log."""
-    global scaler, pca, model, ce
-
-    # Load the last max_rows entries with true labels
-    df_log = pd.read_csv(LOG_PATH, compression='gzip')
-    # The last two columns are our 'pred' and 'drift_flag'
-    feature_cols = df_log.columns[:-2]
-    data = df_log[feature_cols]
-
-    # Clean and prepare features
-    clean = clean_data(data, IS_UNSW)
-    X_df = preprocess_chunk(clean, DROP_COLS).select_dtypes(include=['number'])
-    y = clean['BinLabel'] if MODEL_TYPE == 'binary' else clean['Label']
-
-    # Refit scaler and PCA
-    scaler = StandardScaler().fit(X_df)
-    X_scaled = scaler.transform(X_df)
-    pca = PCA(n_components=0.95).fit(X_scaled)
-    X_pca = pca.transform(X_scaled)
-
-    # Retrain model
-    assert model is not None
-
-    if hasattr(model, 'fit'):
-        cast('Any', model).fit(X_pca, y)
-    else:
-        # It’s an xgb.Booster — no .fit(), so retraining would require rebuilding via xgb.train. Skip or log a warning.
-        logging.warning('Cannot call .fit() on xgb.Booster; skipping retrain for Booster models.')
-
-    # Recreate and recalibrate CE
-    ce = ConformalEvaluator(CE_TYPE, model, **CE_KWARGS)
-    ce.calibrate(X_pca, y.to_numpy(), PerformanceStats())
-
-    logging.info('Model retrained and CE recalibrated on logged data')
-
-
-def _handle_batch(df: pd.DataFrame):
-    """Callback for each incoming CSV batch"""
-    global initialized
-    # 1: Clean data
-    clean = clean_data(df, IS_UNSW)
-
-    # 2: On first batch, initialize and calibrate CE
-    if not initialized:
-        _initialize_models()
-        assert scaler is not None
-        assert pca is not None
-        assert ce is not None
-        # prepare features & labels for calibration
-        X_df = preprocess_chunk(clean, DROP_COLS).select_dtypes(include=['number'])
-        X_arr = scaler.transform(X_df) if hasattr(scaler, 'transform') else X_df.values
-        X_pca = pca.transform(X_arr) if hasattr(pca, 'transform') else X_arr
-        y = clean['BinLabel'] if MODEL_TYPE == 'binary' else clean['Label']
-        ce.calibrate(X_pca, y.to_numpy(), PerformanceStats())
-        initialized = True
-        logging.info('CE calibrated on first batch')
-        return
-
-    # 3: Process batch: inference
-    assert scaler is not None
-    assert pca is not None
-    assert ce is not None
-    assert model is not None
-    preds = process_chunk(clean, DROP_COLS, scaler, pca, model, MODEL_VARIANT, MODEL_TYPE, THRESHOLD)
-    logging.info('Predictions:', preds)
-
-    # 4: Drift detection
-    X_df = preprocess_chunk(clean, DROP_COLS).select_dtypes(include=['number'])
-    X_arr = scaler.transform(X_df)
-    X_pca = pca.transform(X_arr)
-    drift_mask = ce.detect_drift(X_pca)
-    if drift_mask.any():
-        logging.info('[stream][DRIFT] Concept drift detected! Retraining model...')
-        _retrain_on_logged_data()
-    else:
-        logging.info('No drift')
-
-    # 5: Label & Log new data:
-    assert rolling_csv is not None, 'rolling_csv should have been initialized'
-    for row_vals, pred in zip(clean.itertuples(index=False, name=None), preds):
-        # Convert namedtuple to list, append prediction and drift flag
-        drift_flag = int(drift_mask.any())  # or per-row logic if available
-        log_row = list(row_vals) + [pred, drift_flag]
-        rolling_csv.append(log_row)
-
-
-def run_streaming():
-    """Start the listener and pass batches to _handle_batch"""
-    logging.info('Starting streaming server...')
     try:
-        run_server(callback=_handle_batch)
+        server.start()
+        _run_live_loop(runtime, server)
     finally:
-        if rolling_csv is not None:
-            rolling_csv.close()
+        server.stop()
+        plot_results(config, overall, runtime.perf_stats)
 
 
-if __name__ == '__main__':
-    run_streaming()
+def _run_live_loop(
+    runtime: SimulationRuntime,
+    server: StreamingBatchServer,
+) -> None:
+    """
+    Process incoming live batches indefinitely.
+
+    Args:
+        runtime: Mutable simulation runtime.
+        server: Running streaming batch server.
+    """
+    chunk_index = 0
+
+    for batch in server.iter_batches():
+        if batch.empty:
+            logger.warning('Received empty live batch; skipping')
+            continue
+
+        logger.info(
+            'Processing live batch %d with %d rows and %d columns',
+            chunk_index,
+            len(batch),
+            len(batch.columns),
+        )
+        process_chunk(runtime, batch, chunk_index)
+        chunk_index += 1

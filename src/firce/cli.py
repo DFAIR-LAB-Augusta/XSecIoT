@@ -20,11 +20,11 @@ def main() -> None:
     try:
         config = _build_config_from_args(args)
     except ValidationError as exc:
-        logger.error("%s", exc)
+        logger.error('%s', exc)
         raise
 
     configure_sim_logging(config)
-    logger.info("Simulation configuration: %s", config)
+    logger.info('Simulation configuration: %s', config)
     _run_pipeline(config, args)
 
 
@@ -44,7 +44,7 @@ def _build_config_from_args(args) -> SimulationConfig:
         ce_type=args.ceType,
         aggregated_path=args.aggregated_file,
         flows_path=args.flows_file,
-        ce_kwargs={"folds": 5, "significance": 0.05, "random_state": args.seed},
+        ce_kwargs={'folds': 5, 'significance': 0.05, 'random_state': args.seed},
         chunk_size=args.chunk_size,
         use_pca=args.use_pca,
         use_ASC=args.useASC,
@@ -61,20 +61,20 @@ def _build_config_from_args(args) -> SimulationConfig:
         monitor_type=args.monitorType,
         monitor_kwargs=(
             {
-                "dims": args.cadeDims,
-                "margin": args.cadeMargin,
-                "mad_threshold": args.cadeMadThreshold,
-                "min_drift_ratio": args.cadeMinDriftRatio,
-                "min_drift_count": args.cadeMinDriftCount,
-                "batch_size": args.cadeBatchSize,
-                "epochs": args.cadeEpochs,
-                "lr": args.cadeLr,
-                "cae_lambda_1": args.cadeLambda1,
-                "similar_ratio": args.cadeSimilarRatio,
-                "display_interval": args.cadeDisplayInterval,
-                "force_retrain": args.cadeForceRetrain,
-                "weights_path": args.cadeWeightsPath,
-                "device": args.cadeDevice,
+                'dims': args.cadeDims,
+                'margin': args.cadeMargin,
+                'mad_threshold': args.cadeMadThreshold,
+                'min_drift_ratio': args.cadeMinDriftRatio,
+                'min_drift_count': args.cadeMinDriftCount,
+                'batch_size': args.cadeBatchSize,
+                'epochs': args.cadeEpochs,
+                'lr': args.cadeLr,
+                'cae_lambda_1': args.cadeLambda1,
+                'similar_ratio': args.cadeSimilarRatio,
+                'display_interval': args.cadeDisplayInterval,
+                'force_retrain': args.cadeForceRetrain,
+                'weights_path': args.cadeWeightsPath,
+                'device': args.cadeDevice,
             }
             if args.monitorType == MonitorType.CADE
             else {}
@@ -90,21 +90,21 @@ def _run_pipeline(config: SimulationConfig, args) -> None:
         config: Simulation configuration.
         args: Parsed CLI arguments.
     """
-    pipeline = getattr(args, "pipeline", "simulation")
-    if pipeline == "simulation":
+    pipeline = getattr(args, 'pipeline', 'simulation')
+    if pipeline == 'simulation':
         run_simulation_pipeline(config)
         return
 
-    if pipeline == "streaming":
+    if pipeline == 'streaming':
         run_streaming_pipeline(config)
         return
 
-    raise ValueError(f"Unsupported pipeline: {pipeline}")
+    raise ValueError(f'Unsupported pipeline: {pipeline}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     try:
         main()
     except Exception as exc:
-        logger.exception("Fatal error during pipeline execution: %s", exc)
+        logger.exception('Fatal error during pipeline execution: %s', exc)
         raise

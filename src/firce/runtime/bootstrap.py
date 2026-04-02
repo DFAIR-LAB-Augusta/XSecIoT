@@ -1,8 +1,6 @@
 import logging
 import time
 
-from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -21,6 +19,7 @@ from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.mlp_ce import MLP_CE
 from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, ROLLING_COLS
 from firce.runtime.monitoring import filter_ce_kwargs
+from firce.runtime.sim_types import SimulationRuntime
 from firce.utils.circular_logger import CircularDequeLogger
 from firce.utils.config import ModelType, ModelVariant, MonitorType, SimulationConfig
 from firce.utils.perf_stats import PerformanceStats
@@ -29,21 +28,6 @@ from fire.preprocessing import clean_data
 from fire.simulations import load_simulation_objects, preprocess_chunk
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class SimulationRuntime:
-    """Mutable runtime state for a simulation run."""
-
-    config: SimulationConfig
-    perf_stats: PerformanceStats
-    sig_controller: AdaptiveSignificanceController | None
-    rolling: RollingCSV | CircularDequeLogger
-    scaler: StandardScaler
-    pca: PCA | None
-    model: ClassifierMixin | xgb.Booster | FeedForwardBinary
-    monitor: DriftMonitor | None
-    train_df: pd.DataFrame
 
 
 def initialize_simulation_runtime(config: SimulationConfig) -> SimulationRuntime:
@@ -128,31 +112,23 @@ def load_training_frame(config: SimulationConfig) -> pd.DataFrame:
         RuntimeError: If UNSW columns do not match expected constraints.
     """
     df_train = pd.read_csv(config.aggregated_path)
-    df_train = df_train.drop(columns=["device_id", "session_id"], errors="ignore")
+    df_train = df_train.drop(columns=['device_id', 'session_id'], errors='ignore')
 
-    if (
-        config.model_type == ModelType.BINARY
-        and "BinLabel" not in df_train.columns
-        and "Label" in df_train.columns
-    ):
+    if config.model_type == ModelType.BINARY and 'BinLabel' not in df_train.columns and 'Label' in df_train.columns:
         if config.is_unsw:
-            df_train["BinLabel"] = df_train["Label"]
+            df_train['BinLabel'] = df_train['Label']
         else:
-            df_train["BinLabel"] = (
-                df_train["Label"].map({"Benign": 0}).fillna(1).astype(int)
-            )
+            df_train['BinLabel'] = df_train['Label'].map({'Benign': 0}).fillna(1).astype(int)
 
-    df_train = df_train.drop(columns="Label", errors="ignore")
-    df_train = df_train.drop(columns="Unnamed: 0", errors="ignore")
+    df_train = df_train.drop(columns='Label', errors='ignore')
+    df_train = df_train.drop(columns='Unnamed: 0', errors='ignore')
 
     if config.is_unsw:
         df_train = _unsw_clean(clean_data(df_train, config.is_unsw))
         extra_features = set(df_train.columns) - set(FINAL_LOG_COLUMNS)
-        logger.debug("UNSW extra features beyond mandatory set: %s", extra_features)
+        logger.debug('UNSW extra features beyond mandatory set: %s', extra_features)
         if extra_features:
-            raise RuntimeError(
-                "Unexpected UNSW features found. Diagnose before retraining."
-            )
+            raise RuntimeError('Unexpected UNSW features found. Diagnose before retraining.')
 
     return df_train
 
@@ -174,14 +150,11 @@ def ensure_model_artifacts(
         start = time.perf_counter()
         train_ce_binary(config, str(config.aggregated_path), perf_stats)
         logger.info(
-            "Binary CE training completed in %.4fs",
+            'Binary CE training completed in %.4fs',
             time.perf_counter() - start,
         )
 
-    if (
-        config.model_variant != ModelVariant.FEEDFORWARD
-        and config.model_type == ModelType.MULTI
-    ):
+    if config.model_variant != ModelVariant.FEEDFORWARD and config.model_type == ModelType.MULTI:
         logger.info(
             "CE multiclass artifacts missing for '%s'; training now...",
             dataset_name,
@@ -195,7 +168,7 @@ def ensure_model_artifacts(
                 use_pca=config.use_pca,
             )
             logger.info(
-                "Multiclass CE training completed in %.4fs",
+                'Multiclass CE training completed in %.4fs',
                 time.perf_counter() - start,
             )
         except NotImplementedError as exc:
@@ -221,10 +194,10 @@ def create_rolling_logger(
     columns = get_rolling_columns(config)
 
     if config.use_circular_logger:
-        logger.info("Using in-memory CircularDequeLogger.")
+        logger.info('Using in-memory CircularDequeLogger.')
         return CircularDequeLogger(None, max_rows=config.max_rows, columns=columns)
 
-    logger.info("Using disk-based RollingCSV.")
+    logger.info('Using disk-based RollingCSV.')
     return RollingCSV(str(config.log_path), max_rows=config.max_rows, columns=columns)
 
 
@@ -235,7 +208,7 @@ def get_seed_drop_columns() -> list[str]:
     Returns:
         Columns excluded from seeded rolling history.
     """
-    return ["timestamp", "dst_port", "dst_ip", "protocol", "src_ip", "src_port"]
+    return ['timestamp', 'dst_port', 'dst_ip', 'protocol', 'src_ip', 'src_port']
 
 
 def get_rolling_columns(config: SimulationConfig) -> list[str]:
@@ -272,11 +245,7 @@ def build_seed_frame(
     drop_before_seed = get_seed_drop_columns()
     rolling_cols = get_rolling_columns(config)
 
-    seed_df = (
-        train_df.tail(config.max_rows)
-        .copy()
-        .drop(columns=drop_before_seed, errors="ignore")
-    )
+    seed_df = train_df.tail(config.max_rows).copy().drop(columns=drop_before_seed, errors='ignore')
     return seed_df.reindex(columns=rolling_cols)
 
 
@@ -294,24 +263,24 @@ def seed_rolling_logger(
         train_df: Cleaned training dataframe.
     """
     start = time.perf_counter()
-    logger.info("Seeding log from aggregated data...")
+    logger.info('Seeding log from aggregated data...')
 
     seed_df = build_seed_frame(config, train_df)
 
-    if "BinLabel" in seed_df.columns:
-        values = seed_df["BinLabel"]
+    if 'BinLabel' in seed_df.columns:
+        values = seed_df['BinLabel']
         logger.debug(
-            "[pre-clean] BinLabel dtype=%s, n_rows=%d",
+            '[pre-clean] BinLabel dtype=%s, n_rows=%d',
             values.dtype,
             len(values),
         )
         logger.debug(
-            "[pre-clean] BinLabel nunique(excl NaN)=%d, n_nan=%d",
+            '[pre-clean] BinLabel nunique(excl NaN)=%d, n_nan=%d',
             values.nunique(dropna=True),
             int(values.isna().sum()),
         )
         logger.debug(
-            "[pre-clean] BinLabel unique values (raw): %s",
+            '[pre-clean] BinLabel unique values (raw): %s',
             list(pd.unique(values)),
         )
 
@@ -320,23 +289,23 @@ def seed_rolling_logger(
 
     rolling.flush()
     logger.info(
-        "Seeded %d rows in %.4fs",
+        'Seeded %d rows in %.4fs',
         min(len(train_df), config.max_rows),
         time.perf_counter() - start,
     )
-    logger.info("Rolling log initialized with columns: %s", rolling.columns)
+    logger.info('Rolling log initialized with columns: %s', rolling.columns)
 
     if isinstance(rolling, CircularDequeLogger) and config.use_mlp and config.is_unsw:
         df_log = rolling.to_dataframe().tail(config.max_rows)
-        logger.debug("Unique rolling log cols: %s", df_log.columns)
-        values = df_log["BinLabel"]
+        logger.debug('Unique rolling log cols: %s', df_log.columns)
+        values = df_log['BinLabel']
         logger.debug(
-            "[pre-clean] BinLabel dtype=%s, n_rows=%d",
+            '[pre-clean] BinLabel dtype=%s, n_rows=%d',
             values.dtype,
             len(values),
         )
         logger.debug(
-            "[pre-clean] BinLabel nunique(excl NaN)=%d, n_nan=%d",
+            '[pre-clean] BinLabel nunique(excl NaN)=%d, n_nan=%d',
             values.nunique(dropna=True),
             int(values.isna().sum()),
         )
@@ -391,32 +360,22 @@ def build_runtime_monitor(
         Initialized drift monitor, or None if disabled.
     """
     if config.monitor_type == MonitorType.NONE:
-        logger.info("No drift monitor enabled; skipping monitor fit")
+        logger.info('No drift monitor enabled; skipping monitor fit')
         return None
 
     ce_kwargs = filter_ce_kwargs(config) if config.monitor_type == MonitorType.CE else {}
 
-    x_train = preprocess_chunk(train_df.copy(), FULL_DROP_COLS).select_dtypes(
-        include=["number"]
-    )
-    logger.info("Monitor features: %s", x_train.columns)
+    x_train = preprocess_chunk(train_df.copy(), FULL_DROP_COLS).select_dtypes(include=['number'])
+    logger.info('Monitor features: %s', x_train.columns)
 
     x_scaled = scaler.transform(x_train)
     x_monitor = (
         pca.transform(x_scaled)
-        if (
-            config.monitor_type == MonitorType.CE
-            and config.use_pca
-            and pca is not None
-        )
+        if (config.monitor_type == MonitorType.CE and config.use_pca and pca is not None)
         else x_scaled
     )
 
-    y_train = (
-        train_df["BinLabel"]
-        if config.model_type == ModelType.BINARY
-        else train_df["Label"]
-    )
+    y_train = train_df['BinLabel'] if config.model_type == ModelType.BINARY else train_df['Label']
 
     monitor_model = _build_monitor_model(
         config=config,
@@ -440,7 +399,7 @@ def build_runtime_monitor(
 
     start = time.perf_counter()
     monitor.fit(x_monitor, y_train.to_numpy(), perf_stats) if monitor is not None else None
-    logger.info("Initial monitor fit in %.4fs", time.perf_counter() - start)
+    logger.info('Initial monitor fit in %.4fs', time.perf_counter() - start)
     return monitor
 
 
@@ -469,27 +428,28 @@ def _build_monitor_model(
         shrinking = config.max_rows >= 100_000
         return SVC(
             probability=True,
-            kernel="linear",
+            kernel='linear',
             verbose=False,
             random_state=config.seed,
             shrinking=shrinking,
         )
 
     if config.use_mlp:
-        ce_kwargs.setdefault("n_jobs", 1)
+        ce_kwargs.setdefault('n_jobs', 1)
         return MLP_CE(
             input_dim=input_dim,
-            widths=tuple(ce_kwargs.get("widths", (256, 128, 64))),
-            p_drop=float(ce_kwargs.get("dropout", 0.2)),
-            threshold=float(ce_kwargs.get("threshold", 0.5)),
-            lr=float(ce_kwargs.get("lr", 1e-3)),
-            epochs=int(ce_kwargs.get("epochs", 20)),
-            batch_size=ce_kwargs.get("batch_size", None),
+            widths=tuple(ce_kwargs.get('widths', (256, 128, 64))),
+            p_drop=float(ce_kwargs.get('dropout', 0.2)),
+            threshold=float(ce_kwargs.get('threshold', 0.5)),
+            lr=float(ce_kwargs.get('lr', 1e-3)),
+            epochs=int(ce_kwargs.get('epochs', 20)),
+            batch_size=ce_kwargs.get('batch_size', None),
             random_state=config.seed,
             device=config.device,
         )
 
     return model
+
 
 if __name__ == '__main__':
     raise NotImplementedError('This module is not intended to be run directly. ')

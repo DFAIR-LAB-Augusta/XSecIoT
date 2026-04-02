@@ -21,7 +21,7 @@ variants (e.g., KNN, SVM, Random Forest, XGBoost, Feedforward NN) and CE strateg
 
 from firce.pipelines.simulation_pipeline import run_simulation_pipeline
 
-__all__ = ["run_simulation_pipeline"]
+__all__ = ['run_simulation_pipeline']
 
 
 import inspect
@@ -458,7 +458,6 @@ def _sim_loop(
             row_to_log[label_col] = pred_raw
 
         if config.is_unsw:
-            
             allowed = ROLLING_COLS
 
             if isinstance(rolling, CircularDequeLogger) and hasattr(rolling, 'columns') and rolling.columns is not None:
@@ -568,7 +567,7 @@ def main() -> None:
     """
     Parse CLI arguments, initialize configuration, and launch the CE simulation.
     """
-    raise Exception("No longer used, but kept for posterity")
+    raise Exception('No longer used, but kept for posterity')
     args = parse_sim_args()
     try:
         config = SimulationConfig(

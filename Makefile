@@ -52,7 +52,8 @@ bin.test:
 		datasets/CETrain/combined_data.csv \
 		datasets/CEFlows2/CEFlows2_merged.csv \
 	 	--log2File --modelVariant "feedforward" --ceType "approx_tce" --max_rows 100000 \
-	 	--useCircularLogger --debug --useMLP --useAC 
+	 	--useCircularLogger --debug --useMLP --useAC \
+		--pipeline simulation
 
 label: 
 	@if [ -z "$(UNLABELED_DATASET_PATH)" ]; then echo "ERROR: set UNLABELED_DATASET_PATH=..."; exit 1; fi
@@ -99,3 +100,6 @@ clean: ## Remove build & test artifacts
 preflight: ## Build + run twine metadata checks
 	$(UV) build
 	uv tool run twine check dist/*
+
+deps.check: ## Check for dependency issues
+	uv run deptry .

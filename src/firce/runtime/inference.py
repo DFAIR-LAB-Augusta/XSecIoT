@@ -1,4 +1,5 @@
 import logging
+import time
 import warnings
 
 import numpy as np
@@ -11,16 +12,6 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 from firce.models.feedforward_binary import FeedForwardBinary
-from firce.utils.config import ModelVariant, SimulationConfig
-import logging
-import time
-import warnings
-
-import numpy as np
-import pandas as pd
-
-from firce.drift_monitor.base import DriftMonitor
-from firce.runtime.bootstrap import SimulationRuntime
 from firce.runtime.constants import (
     DROP_COLS,
     FULL_DROP_COLS,
@@ -28,10 +19,12 @@ from firce.runtime.constants import (
     ROLLING_COLS,
 )
 from firce.runtime.retraining import retrain_runtime
+from firce.runtime.sim_types import SimulationRuntime
 from firce.utils.circular_logger import CircularDequeLogger
-from firce.utils.config import ModelType, MonitorType
+from firce.utils.config import ModelType, ModelVariant, MonitorType, SimulationConfig
 from fire.preprocessing import clean_data
 from fire.simulations import preprocess_chunk
+
 logger = logging.getLogger(__name__)
 
 
@@ -120,7 +113,6 @@ def predict_row(
     raise TypeError(f'Unsupported model type for prediction: {type(model)}')
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -163,25 +155,21 @@ def _prepare_chunk(
     Returns:
         Tuple of cleaned chunk and optional ground-truth series.
     """
-    logger.debug("Chunk initially has %d columns", len(chunk.columns))
+    logger.debug('Chunk initially has %d columns', len(chunk.columns))
     clean_chunk = clean_data(chunk, False)
-    logger.debug("Chunk has %d columns post-cleaning", len(clean_chunk.columns))
+    logger.debug('Chunk has %d columns post-cleaning', len(clean_chunk.columns))
 
-    ground_truth = (
-        clean_chunk["BinLabel"].reset_index(drop=True)
-        if "BinLabel" in clean_chunk.columns
-        else None
-    )
+    ground_truth = clean_chunk['BinLabel'].reset_index(drop=True) if 'BinLabel' in clean_chunk.columns else None
 
-    if "BinLabel" in clean_chunk.columns:
-        clean_chunk = clean_chunk.drop(columns=["BinLabel"])
+    if 'BinLabel' in clean_chunk.columns:
+        clean_chunk = clean_chunk.drop(columns=['BinLabel'])
 
     if runtime.config.is_unsw:
         to_drop = clean_chunk.columns.difference(ROLLING_COLS[:-1])
         clean_chunk = clean_chunk.drop(columns=to_drop)
-        logger.debug("Chunk has %d columns post-column drop", len(clean_chunk.columns))
+        logger.debug('Chunk has %d columns post-column drop', len(clean_chunk.columns))
 
-    logger.debug("Chunk has rows %d", clean_chunk.shape[0])
+    logger.debug('Chunk has rows %d', clean_chunk.shape[0])
     return clean_chunk, ground_truth
 
 
@@ -203,12 +191,12 @@ def _process_chunk_rows(
         raw_row = clean_chunk.iloc[row_index]
 
         if raw_row.isnull().all():
-            logger.warning("Row %d is empty.", row_index)
+            logger.warning('Row %d is empty.', row_index)
 
         x_row = _build_row_features(raw_row)
 
         if x_row.empty:
-            logger.warning("Row %d is empty after preprocessing.", row_index)
+            logger.warning('Row %d is empty after preprocessing.', row_index)
 
         row_to_log = x_row.copy()
         prediction = predict_row(
@@ -222,9 +210,9 @@ def _process_chunk_rows(
         )
 
         if prediction not in [0, 1]:
-            logger.error("Row %d prediction: %r", row_index, prediction)
+            logger.error('Row %d prediction: %r', row_index, prediction)
 
-        logger.debug("Classified row in %.4fs", time.perf_counter() - start)
+        logger.debug('Classified row in %.4fs', time.perf_counter() - start)
 
         _record_prediction_outcome(
             runtime=runtime,
@@ -250,7 +238,7 @@ def _build_row_features(raw_row: pd.Series) -> pd.DataFrame:
     return preprocess_chunk(
         pd.DataFrame([raw_row]),
         FULL_DROP_COLS,
-    ).select_dtypes(include=["number"])
+    ).select_dtypes(include=['number'])
 
 
 def _record_prediction_outcome(
@@ -273,8 +261,8 @@ def _record_prediction_outcome(
         ground_truth: Optional ground-truth labels.
     """
     if runtime.config.model_type == ModelType.BINARY:
-        row_to_log["BinLabel"] = prediction
-        logger.debug("Row %d prediction: %r", row_index, prediction)
+        row_to_log['BinLabel'] = prediction
+        logger.debug('Row %d prediction: %r', row_index, prediction)
 
         if ground_truth is not None:
             true_value = ground_truth.iloc[row_index]
@@ -282,20 +270,20 @@ def _record_prediction_outcome(
             runtime.perf_stats.correct_log.append(is_correct)
 
             logger.debug(
-                "[Index %d] Predicted=%s, Actual=%s",
+                '[Index %d] Predicted=%s, Actual=%s',
                 row_index,
                 prediction,
                 true_value,
             )
             if not is_correct:
                 logger.info(
-                    "[Incorrect] Predicted=%s, Actual=%s",
+                    '[Incorrect] Predicted=%s, Actual=%s',
                     prediction,
                     true_value,
                 )
-                logger.debug("Row %d details: %s", row_index, raw_row.to_json())
+                logger.debug('Row %d details: %s', row_index, raw_row.to_json())
     else:
-        row_to_log["Label"] = prediction
+        row_to_log['Label'] = prediction
 
 
 def _append_row_to_rolling_log(
@@ -336,12 +324,11 @@ def _append_unsw_row(
 
     if (
         isinstance(logger_obj, CircularDequeLogger)
-        and hasattr(logger_obj, "columns")
+        and hasattr(logger_obj, 'columns')
         and logger_obj.columns is not None
     ):
         assert list(logger_obj.columns) == allowed, (
-            f"[rolling] Logger schema mismatch: "
-            f"logger has {len(logger_obj.columns)} cols, allowed has {len(allowed)}"
+            f'[rolling] Logger schema mismatch: logger has {len(logger_obj.columns)} cols, allowed has {len(allowed)}'
         )
 
     series = row_to_log.iloc[0]
@@ -352,12 +339,12 @@ def _append_unsw_row(
 
     if extras and not runtime.config.use_mlp:
         logger.warning(
-            "[rolling] dropping extras: %s%s",
+            '[rolling] dropping extras: %s%s',
             extras[:10],
-            " ..." if len(extras) > 10 else "",
+            ' ...' if len(extras) > 10 else '',
         )
         logger.info(
-            "[rolling] cols before=%d, kept=%d, dropped=%d, missing=%d",
+            '[rolling] cols before=%d, kept=%d, dropped=%d, missing=%d',
             len(series.index),
             len(kept),
             len(extras),
@@ -365,11 +352,9 @@ def _append_unsw_row(
         )
 
     pruned = series.reindex(index=allowed)
-    pruned["BinLabel"] = _coerce_binary_label(pruned["BinLabel"])
+    pruned['BinLabel'] = _coerce_binary_label(pruned['BinLabel'])
 
-    assert len(pruned) == len(allowed), (
-        f"[rolling] row width mismatch: {len(pruned)} vs expected {len(allowed)}"
-    )
+    assert len(pruned) == len(allowed), f'[rolling] row width mismatch: {len(pruned)} vs expected {len(allowed)}'
     logger_obj.append(pruned.tolist())
 
 
@@ -388,28 +373,26 @@ def _coerce_binary_label(value: object) -> int:
     """
     if isinstance(value, str):
         label_map = {
-            "BENIGN": 0,
-            "Benign": 0,
-            "benign": 0,
-            "NORMAL": 0,
-            "Normal": 0,
-            "normal": 0,
-            "0": 0,
-            "ATTACK": 1,
-            "Attack": 1,
-            "attack": 1,
-            "MALICIOUS": 1,
-            "Malicious": 1,
-            "malicious": 1,
-            "1": 1,
+            'BENIGN': 0,
+            'Benign': 0,
+            'benign': 0,
+            'NORMAL': 0,
+            'Normal': 0,
+            'normal': 0,
+            '0': 0,
+            'ATTACK': 1,
+            'Attack': 1,
+            'attack': 1,
+            'MALICIOUS': 1,
+            'Malicious': 1,
+            'malicious': 1,
+            '1': 1,
         }
         value = label_map.get(value, value)
 
-    numeric = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
+    numeric = pd.to_numeric(pd.Series([value]), errors='coerce').iloc[0]
     if pd.isna(numeric) or numeric not in (0, 1):
-        raise ValueError(
-            f"[rolling] Bad BinLabel before append: raw={value!r} -> coerced={numeric}"
-        )
+        raise ValueError(f'[rolling] Bad BinLabel before append: raw={value!r} -> coerced={numeric}')
     return int(numeric)
 
 
@@ -428,9 +411,7 @@ def _detect_chunk_drift(
         True if drift was detected, else False.
     """
     if runtime.monitor is None:
-        logger.warning(
-            "Drift monitor is disabled; skipping drift detection and retraining."
-        )
+        logger.warning('Drift monitor is disabled; skipping drift detection and retraining.')
         return False
 
     start = time.perf_counter()
@@ -457,41 +438,32 @@ def _prepare_monitor_chunk_features(
     if runtime.config.is_unsw:
         x_chunk = preprocess_chunk(clean_chunk, FULL_DROP_COLS)
     else:
-        x_chunk = preprocess_chunk(clean_chunk, FULL_DROP_COLS).select_dtypes(
-            include=["number"]
-        )
+        x_chunk = preprocess_chunk(clean_chunk, FULL_DROP_COLS).select_dtypes(include=['number'])
 
     with warnings.catch_warnings():
         warnings.filterwarnings(
-            "ignore",
-            message=(
-                "X does not have valid feature names, but StandardScaler "
-                "was fitted with feature names"
-            ),
+            'ignore',
+            message=('X does not have valid feature names, but StandardScaler was fitted with feature names'),
         )
         expected = (
             list(runtime.scaler.get_feature_names_out())
-            if hasattr(runtime.scaler, "get_feature_names_out")
+            if hasattr(runtime.scaler, 'get_feature_names_out')
             else list(runtime.scaler.feature_names_in_)
         )
 
         extra = [column for column in x_chunk.columns if column not in expected]
         if extra:
             logger.debug(
-                "Dropping unseen features: %s%s",
+                'Dropping unseen features: %s%s',
                 extra[:10],
-                " ..." if len(extra) > 10 else "",
+                ' ...' if len(extra) > 10 else '',
             )
             x_chunk = x_chunk.drop(columns=extra)
 
         x_chunk = x_chunk.reindex(columns=expected)
         x_scaled = runtime.scaler.transform(x_chunk)
 
-    if (
-        runtime.config.monitor_type == MonitorType.CE
-        and runtime.config.use_pca
-        and runtime.pca is not None
-    ):
+    if runtime.config.monitor_type == MonitorType.CE and runtime.config.use_pca and runtime.pca is not None:
         return runtime.pca.transform(x_scaled)
     return x_scaled
 
@@ -508,5 +480,5 @@ def _handle_detected_drift(
         chunk_num: Current chunk index.
     """
     runtime.perf_stats.log_drift(chunk_num)
-    logger.info("Drift detected in the chunk. Retraining model and recalibrating CE...")
+    logger.info('Drift detected in the chunk. Retraining model and recalibrating CE...')
     retrain_runtime(runtime)

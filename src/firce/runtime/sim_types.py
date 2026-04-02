@@ -18,7 +18,7 @@ from firce.utils.rolling_csv import RollingCSV
 
 @dataclass
 class SimulationRuntime:
-    """Mutable runtime state for a simulation pipeline run."""
+    """Mutable runtime state for a simulation run."""
 
     config: SimulationConfig
     perf_stats: PerformanceStats
@@ -28,5 +28,4 @@ class SimulationRuntime:
     pca: PCA | None
     model: ClassifierMixin | xgb.Booster | FeedForwardBinary
     monitor: DriftMonitor | None
-    train_df: pd.DataFrame  # maybe remove this for mem
-
+    train_df: pd.DataFrame
