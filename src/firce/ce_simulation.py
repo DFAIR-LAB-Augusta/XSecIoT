@@ -19,17 +19,19 @@ The simulation can be configured via CLI arguments and supports multiple model
 variants (e.g., KNN, SVM, Random Forest, XGBoost, Feedforward NN) and CE strategies.
 """
 
+from firce.pipelines.simulation_pipeline import run_simulation_pipeline
+
+__all__ = ["run_simulation_pipeline"]
+
+
 import inspect
 import logging
 import time
 import warnings
 
-from typing import Any, List, Tuple
+from typing import Any
 
-import joblib
-import numpy as np
 import pandas as pd
-import torch
 import xgboost as xgb
 
 from pydantic import ValidationError
@@ -49,6 +51,9 @@ from firce.drift_monitor.base import DriftMonitor
 from firce.drift_monitor.factory import build_monitor
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.mlp_ce import MLP_CE
+from firce.runtime.constants import DROP_COLS, FINAL_LOG_COLUMNS, FULL_DROP_COLS, PRED_THRESHOLD, ROLLING_COLS
+from firce.runtime.inference import predict_row
+from firce.runtime.retraining import retrain
 from firce.utils.arg_parser import parse_sim_args
 from firce.utils.circular_logger import CircularDequeLogger
 from firce.utils.config import CEType, ModelType, ModelVariant, MonitorType, SimulationConfig
@@ -61,191 +66,6 @@ from fire.simulations import (
     load_simulation_objects,
     preprocess_chunk,
 )
-
-PRED_THRESHOLD: float = 0.5
-DROP_COLS: List[str] = [
-    'Label',
-    'src_ip',
-    'dst_ip',
-    'start_time',
-    'end_time_x',
-    'end_time_y',
-    'time_diff',
-    'time_diff_seconds',
-    'Attack',
-]
-CE_EXTRA_DROP: List[str] = ['device_id', 'session_id', 'src_port', 'dst_port', 'protocol', 'timestamp', 'BinLabel']
-FULL_DROP_COLS: List[str] = DROP_COLS + CE_EXTRA_DROP
-FINAL_LOG_COLUMNS: List[str] = [
-    'src_ip',
-    'dst_ip',
-    'src_port',
-    'dst_port',
-    'protocol',
-    'timestamp',
-    'flow_duration',
-    'flow_byts_s',
-    'flow_pkts_s',
-    'fwd_pkts_s',
-    'bwd_pkts_s',
-    'tot_fwd_pkts',
-    'tot_bwd_pkts',
-    'totlen_fwd_pkts',
-    'totlen_bwd_pkts',
-    'fwd_pkt_len_max',
-    'fwd_pkt_len_min',
-    'fwd_pkt_len_mean',
-    'fwd_pkt_len_std',
-    'bwd_pkt_len_max',
-    'bwd_pkt_len_min',
-    'bwd_pkt_len_mean',
-    'bwd_pkt_len_std',
-    'pkt_len_max',
-    'pkt_len_min',
-    'pkt_len_mean',
-    'pkt_len_std',
-    'pkt_len_var',
-    'fwd_header_len',
-    'bwd_header_len',
-    'fwd_seg_size_min',
-    'fwd_act_data_pkts',
-    'flow_iat_mean',
-    'flow_iat_max',
-    'flow_iat_min',
-    'flow_iat_std',
-    'fwd_iat_tot',
-    'fwd_iat_max',
-    'fwd_iat_min',
-    'fwd_iat_mean',
-    'fwd_iat_std',
-    'bwd_iat_tot',
-    'bwd_iat_max',
-    'bwd_iat_min',
-    'bwd_iat_mean',
-    'bwd_iat_std',
-    'fwd_psh_flags',
-    'bwd_psh_flags',
-    'fwd_urg_flags',
-    'bwd_urg_flags',
-    'fin_flag_cnt',
-    'syn_flag_cnt',
-    'rst_flag_cnt',
-    'psh_flag_cnt',
-    'ack_flag_cnt',
-    'urg_flag_cnt',
-    'ece_flag_cnt',
-    'down_up_ratio',
-    'pkt_size_avg',
-    'init_fwd_win_byts',
-    'init_bwd_win_byts',
-    'active_max',
-    'active_min',
-    'active_mean',
-    'active_std',
-    'idle_max',
-    'idle_min',
-    'idle_mean',
-    'idle_std',
-    'fwd_byts_b_avg',
-    'fwd_pkts_b_avg',
-    'bwd_byts_b_avg',
-    'bwd_pkts_b_avg',
-    'fwd_blk_rate_avg',
-    'bwd_blk_rate_avg',
-    'fwd_seg_size_avg',
-    'bwd_seg_size_avg',
-    'cwr_flag_count',
-    'subflow_fwd_pkts',
-    'subflow_bwd_pkts',
-    'subflow_fwd_byts',
-    'subflow_bwd_byts',
-    'BinLabel',
-]
-
-UNSW_DROP_COLUMNS: List[str] = [
-    'bwd_pkt_len_max',
-    'idle_max',
-    'bwd_iat_tot',
-    'rst_flag_cnt',
-    'ece_flag_cnt',
-    'fwd_seg_size_avg',
-    'subflow_fwd_byts',
-    'bwd_pkts_s',
-    'bwd_psh_flags',
-    'subflow_fwd_pkts',
-    'fwd_iat_min',
-    'tot_fwd_pkts',
-    'timestamp',
-    'pkt_len_min',
-    'idle_std',
-    'flow_iat_mean',
-    'bwd_pkts_b_avg',
-    'flow_iat_std',
-    'flow_byts_s',
-    'fwd_pkts_b_avg',
-    'bwd_pkt_len_std',
-    'bwd_blk_rate_avg',
-    'subflow_bwd_byts',
-    'active_mean',
-    'pkt_len_std',
-    'pkt_size_avg',
-    'fwd_psh_flags',
-    'totlen_fwd_pkts',
-    'dst_port',
-    'totlen_bwd_pkts',
-    'fin_flag_cnt',
-    'fwd_iat_tot',
-    'src_ip',
-    'active_std',
-    'flow_iat_min',
-    'psh_flag_cnt',
-    'bwd_iat_max',
-    'fwd_iat_std',
-    'flow_pkts_s',
-    'fwd_blk_rate_avg',
-    'pkt_len_var',
-    'protocol',
-    'idle_mean',
-    'bwd_header_len',
-    'active_max',
-    'fwd_pkt_len_mean',
-    'fwd_pkts_s',
-    'bwd_pkt_len_mean',
-    'active_min',
-    'fwd_seg_size_min',
-    'fwd_pkt_len_min',
-    'cwr_flag_count',
-    'fwd_act_data_pkts',
-    'bwd_seg_size_avg',
-    'bwd_urg_flags',
-    'bwd_iat_min',
-    'urg_flag_cnt',
-    'fwd_pkt_len_max',
-    'flow_iat_max',
-    'fwd_pkt_len_std',
-    'syn_flag_cnt',
-    'subflow_bwd_pkts',
-    'bwd_byts_b_avg',
-    'idle_min',
-    'bwd_pkt_len_min',
-    'init_fwd_win_byts',
-    'bwd_iat_mean',
-    'bwd_iat_std',
-    'init_bwd_win_byts',
-    'src_port',
-    'tot_bwd_pkts',
-    'down_up_ratio',
-    'flow_duration',
-    'fwd_byts_b_avg',
-    'ack_flag_cnt',
-    'fwd_urg_flags',
-    'fwd_header_len',
-    'dst_ip',
-    'pkt_len_mean',
-    'fwd_iat_mean',
-    'fwd_iat_max',
-    'pkt_len_max',
-]
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s: %(message)s')
 logger = logging.getLogger(__name__)
@@ -613,7 +433,7 @@ def _sim_loop(
             logging.warning(f'Row {i} is empty after preprocessing.')
 
         row_to_log = X_row.copy()
-        pred_raw = _predict_row(X_row, DROP_COLS, scaler, pca, config, model, PRED_THRESHOLD)
+        pred_raw = predict_row(X_row, DROP_COLS, scaler, pca, config, model, PRED_THRESHOLD)
         if pred_raw not in [0, 1]:
             logging.error(f'Row {i} prediction: {pred_raw!r}')
         logger.debug(f'Classified row in {time.perf_counter() - tc:.4f}s')
@@ -638,30 +458,8 @@ def _sim_loop(
             row_to_log[label_col] = pred_raw
 
         if config.is_unsw:
-            rolling_cols = [
-                'totlen_bwd_pkts',
-                'tot_bwd_pkts',
-                'totlen_fwd_pkts',
-                'tot_fwd_pkts',
-                'flow_duration',
-                'fwd_iat_min',
-                'fwd_iat_max',
-                'fwd_iat_mean',
-                'fwd_iat_std',
-                'bwd_iat_min',
-                'bwd_iat_max',
-                'bwd_iat_mean',
-                'bwd_iat_std',
-                'fwd_pkt_len_mean',
-                'bwd_pkt_len_mean',
-                'pkt_len_mean',
-                'flow_iat_mean',
-                'down_up_ratio',
-                'fwd_iat_tot',
-                'bwd_iat_tot',
-                'BinLabel',
-            ]
-            allowed = rolling_cols
+            
+            allowed = ROLLING_COLS
 
             if isinstance(rolling, CircularDequeLogger) and hasattr(rolling, 'columns') and rolling.columns is not None:
                 assert list(rolling.columns) == allowed, (
@@ -760,242 +558,17 @@ def _sim_loop(
     if drift_result is not None and drift_result.chunk_drift:
         perf_stats.log_drift(chunkNum)
         logger.info('Drift detected in the chunk. Retraining model and recalibrating CE...')
-        scaler, pca, model, monitor = _retrain(config, scaler, pca, model, monitor, rolling, perf_stats, sig_controller)
+        scaler, pca, model, monitor = retrain(config, scaler, pca, model, monitor, rolling, perf_stats, sig_controller)
 
     elapsed_iter = time.perf_counter() - start_iter
     perf_stats.iteration_times.append(elapsed_iter)
-
-
-def _predict_row(
-    row: pd.DataFrame,
-    drop_cols: List[str],
-    scaler: StandardScaler,
-    pca: PCA | None,
-    config: SimulationConfig,
-    model: ClassifierMixin | xgb.Booster | FeedForwardBinary,
-    threshold: float,
-) -> int:
-    """
-    Predict on a single preprocessed row using the CE model pipeline.
-
-    Args:
-        row (pd.Series): One row of raw CE flow data.
-        drop_cols (List[str]): Columns to drop before prediction.
-        scaler (StandardScaler): Pre-fitted scaler.
-        pca (Optional[PCA]): Pre-fitted PCA model (optional).
-        model (ClassifierMixin | xgb.Booster): Trained model.
-        threshold (float): Threshold for binarizing predictions (for FNN).
-
-    Returns:
-        int | str: Predicted class label or name.
-
-    Raises:
-        TypeError: If the model type is unsupported for prediction.
-    """
-    row_df = row.drop(columns=drop_cols, errors='ignore')
-    row_df = row_df.select_dtypes(include=[np.number])
-
-    if hasattr(scaler, 'feature_names_in_'):
-        feat = list(scaler.feature_names_in_)
-        means = getattr(scaler, 'mean_', None)
-        arr = []
-        for idx, name in enumerate(feat):
-            if name in row_df.columns:
-                arr.append(row_df[name].item())
-            else:
-                fill = means[idx] if means is not None else 0.0
-                arr.append(fill)
-        X_row = np.array(arr).reshape(1, -1)
-    else:
-        X_row = row_df.to_numpy()
-
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            'ignore', message='X does not have valid feature names, but StandardScaler was fitted with feature names'
-        )
-        X_s = scaler.transform(X_row)
-    X_p = pca.transform(X_s) if config.use_pca and pca is not None else X_s
-
-    if config.model_variant == ModelVariant.XGB and isinstance(model, xgb.Booster):
-        fnames = [f'f_{i}' for i in range(X_p.shape[1])]
-        dtest = xgb.DMatrix(X_p, feature_names=fnames)
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                'ignore',
-                message='X does not have valid feature names, but StandardScaler was fitted with feature names',
-            )
-            pred = model.predict(dtest)[0]
-        return int(pred)
-
-    if config.model_variant == ModelVariant.FEEDFORWARD and isinstance(model, FeedForwardBinary):
-        dev = config.device
-        xt = torch.from_numpy(np.asarray(X_p, dtype=np.float32)).to(dev)
-        model.eval()
-        with torch.no_grad():
-            logits = model(xt)
-            prob = torch.sigmoid(logits).flatten().item()
-        logger.debug(f'[predict_row][ff] prob={prob:.6f}, thr={threshold}')
-        return int(prob > threshold)
-
-    if hasattr(model, 'predict'):
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                'ignore',
-                message='X does not have valid feature names, but StandardScaler was fitted with feature names',
-            )
-            pred = model.predict(X_p)  # type: ignore
-        out = int(np.asarray(pred).reshape(-1)[0])
-        logger.debug(f'[predict_row][sk] pred={out}')
-        return out
-
-    raise TypeError(f'Unsupported model type for prediction: {type(model)}')
-
-
-def _retrain(
-    config: SimulationConfig,
-    scaler: StandardScaler,
-    pca: PCA | None,
-    model: Any,
-    monitor: DriftMonitor | None,
-    rolling: RollingCSV | CircularDequeLogger,
-    perf_stats: PerformanceStats,
-    _sig_controller: AdaptiveSignificanceController | None = None,
-) -> Tuple[StandardScaler, PCA | None, Any, DriftMonitor | None]:
-    """
-    Retrain model and CE using the latest samples from the rolling log file.
-    This overwrites the existing trained model artifacts.
-
-    Args:
-        config (SimulationConfig): Simulation configuration.
-        scaler (StandardScaler): Current scaler (to be replaced).
-        pca (Optional[PCA]): Current PCA object (to be replaced).
-        model (Any): Current model (to be replaced).
-        ce (ConformalEvaluator): Current CE object (to be replaced).
-
-    Returns:
-        Tuple of updated (scaler, pca, model, ce).
-    """
-    if monitor is None:
-        raise RuntimeError('CE is disabled; retraining should not have been triggered.')
-
-    start = time.perf_counter()
-    if isinstance(rolling, CircularDequeLogger):
-        df_log = rolling.to_dataframe().tail(config.max_rows)
-        logging.debug('Retraining model using last %d rows of the in-memory circular log', len(df_log))
-    else:
-        df_log = pd.read_csv(config.log_path, compression='gzip').tail(config.max_rows)
-
-    vals = df_log['BinLabel']
-
-    logger.debug(f'[pre-clean] BinLabel dtype={vals.dtype}, n_rows={len(vals)}')
-    logger.debug(f'[pre-clean] BinLabel nunique(excl NaN)={vals.nunique(dropna=True)}, n_nan={int(vals.isna().sum())}')
-    uniques = pd.unique(vals)
-    logger.debug(f'[pre-clean] BinLabel unique values (raw): {list(uniques)}')
-    logger.debug('Retraining model using last %d rows of the rolling log', len(df_log))
-
-    if config.is_unsw:
-        ce_columns = [
-            'totlen_bwd_pkts',
-            'tot_bwd_pkts',
-            'totlen_fwd_pkts',
-            'tot_fwd_pkts',
-            'flow_duration',
-            'fwd_iat_min',
-            'fwd_iat_max',
-            'fwd_iat_mean',
-            'fwd_iat_std',
-            'bwd_iat_min',
-            'bwd_iat_max',
-            'bwd_iat_mean',
-            'bwd_iat_std',
-            'fwd_pkt_len_mean',
-            'bwd_pkt_len_mean',
-            'pkt_len_mean',
-            'flow_iat_mean',
-            'down_up_ratio',
-            'fwd_iat_tot',
-            'bwd_iat_tot',
-        ]
-        to_drop = set(df_log.columns) - set(ce_columns) - set(['Label', 'BinLabel'])
-        df_log = df_log.drop(columns=to_drop)
-
-    model_dir = train_ce_binary(config, config.log_path.as_posix(), perf_stats, df_log)
-
-    scaler = joblib.load(model_dir / 'scaler_binary.pkl')
-
-    if config.use_pca:
-        pca = joblib.load(model_dir / 'pca_binary.pkl')
-    else:
-        pca = None
-
-    if config.model_variant == ModelVariant.FEEDFORWARD:
-        logger.debug(f'Loading Torch feedforward model from {model_dir / "feedforward_model_binary.pt"}')
-        ckpt = torch.load(model_dir / 'feedforward_model_binary.pt', map_location='cpu')
-
-        input_dim = int(ckpt.get('input_dim'))
-        p_drop = float(ckpt.get('dropout', 0.3))
-        state_dict = ckpt['state_dict']
-
-        logger.debug(f'Rebuilding FeedForwardBinary(input_dim={input_dim}, p_drop={p_drop}) on device={config.device}')
-
-        model = FeedForwardBinary(input_dim=input_dim, p_drop=p_drop)
-        missing, unexpected = model.load_state_dict(state_dict, strict=False)
-        if missing:
-            logger.debug(f'Missing keys while loading state_dict: {missing}')
-        if unexpected:
-            logger.debug(f'Unexpected keys while loading state_dict: {unexpected}')
-
-        model.to(config.device)
-        model.eval()
-        logger.debug('Torch feedforward model loaded and set to eval()')
-    else:
-        model = joblib.load(model_dir / f'{config.model_variant.value}_model_binary.pkl')
-        logger.debug(f'Loaded sklearn model from {model_dir / f"{config.model_variant.value}_model_binary.pkl"}')
-
-    clean = clean_data(df_log, config.is_unsw)
-    X_df = preprocess_chunk(clean, FULL_DROP_COLS).select_dtypes(include=['number'])
-
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            'ignore', message='X does not have valid feature names, but StandardScaler was fitted with feature names'
-        )
-        Xs = scaler.transform(X_df)
-    if config.use_pca and pca is not None:
-        Xp = pca.transform(Xs)
-        logger.debug('PCA applied to retraining data before CE calibration.')
-        logger.debug(f'Input to PCA (Xs) has shape: {Xs.shape}')
-        logger.debug(f'Output from PCA (Xp) has shape: {Xp.shape}')
-        logger.debug(f'PCA was fit with {pca.n_components_} components')
-    else:
-        Xp = Xs
-    y = clean['BinLabel'] if config.model_type == ModelType.BINARY else clean['Label']
-
-    if y.nunique() < 2:
-        logger.warning('Only one class (%s) found in retrain data — skipping retrain.', y.unique())
-        return scaler, pca, model, monitor
-    elif len(y.unique()) > 2:
-        logger.warning(f'More than 2 unique values in y: {y.unique()}')
-
-    logger.debug(f'[pre-clean] BinLabel dtype={y.dtype}, n_rows={len(y)}')
-    logger.debug(f'[pre-clean] BinLabel nunique(excl NaN)={y.nunique(dropna=True)}, n_nan={int(y.isna().sum())}')
-
-    uniques = pd.unique(y)
-    logger.debug(f'[pre-clean] BinLabel unique values (raw): {list(uniques)}')
-
-    if monitor is not None:
-        X_monitor = (
-            pca.transform(Xs) if (config.monitor_type == MonitorType.CE and config.use_pca and pca is not None) else Xs
-        )
-        monitor.fit(X_monitor, y.to_numpy(), perf_stats)
-
-    logger.debug('Retraining complete in %.4fs', time.perf_counter() - start)
-    return scaler, pca, model, monitor
 
 
 def main() -> None:
     """
     Parse CLI arguments, initialize configuration, and launch the CE simulation.
     """
+    raise Exception("No longer used, but kept for posterity")
     args = parse_sim_args()
     try:
         config = SimulationConfig(
