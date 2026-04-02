@@ -590,7 +590,7 @@ def main() -> None:
             use_mlp=args.useMLP,
             seed=args.seed,
             runNum=args.runNum,
-            monitor_type=args.monitorType,
+            monitor_type=args.monitorType if args.ceType != 'none' else MonitorType.NONE,
             monitor_kwargs=(
                 {
                     'dims': args.cadeDims,
