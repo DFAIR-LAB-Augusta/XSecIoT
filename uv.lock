@@ -49,8 +49,8 @@ wheels = [
 
 [[package]]
 name = "cade-firce"
-version = "0.3.6"
-source = { git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=dev#ff06db624b6815f8149f5d33be1f3179100ba1e5" }
+version = "0.3.11"
+source = { git = "https://github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=dev#2bc22bf751c493b3385f0487c184eeec13bea17c" }
 dependencies = [
     { name = "joblib" },
     { name = "matplotlib" },
@@ -2544,7 +2544,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cade-firce", git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=dev" },
+    { name = "cade-firce", git = "https://github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git?rev=dev" },
     { name = "dask", specifier = "==2025.5.1" },
     { name = "joblib", specifier = "==1.5.1" },
     { name = "lime", specifier = "==0.2.0.1" },

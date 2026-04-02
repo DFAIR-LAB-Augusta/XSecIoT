@@ -63,7 +63,7 @@ default-groups = ["dev"]
 package = true
 
 [tool.uv.sources]
-cade-firce = { git = "ssh://git@github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git", rev = "dev" }
+cade-firce = { git = "https://github.com/DFAIR-LAB-Augusta/CADE_FIRCE.git", rev = "dev" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
