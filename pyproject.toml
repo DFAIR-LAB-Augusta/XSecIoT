@@ -8,8 +8,8 @@ sources = ["src"]
 
 [project]
 name = "xseciot"
-version = "0.1.0"
-description = "ML-based IoT intrusion detection with XAI"
+version = "1.0.0"
+description = "ML-based IoT intrusion detection with XAI & CE"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
