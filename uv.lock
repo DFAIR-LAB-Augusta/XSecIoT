@@ -2,19 +2,33 @@ version = 1
 revision = 3
 requires-python = "==3.11.*"
 resolution-markers = [
-    "extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
     "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'linux' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform != 'darwin' and sys_platform != 'linux' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
 ]
 conflicts = [[
     { package = "xseciot", group = "tensorflow" },
@@ -101,7 +115,7 @@ name = "cffi"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pycparser", marker = "(implementation_name != 'PyPy' and sys_platform == 'linux') or (implementation_name != 'PyPy' and extra == 'group-7-xseciot-lambda-torch') or (implementation_name != 'PyPy' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "pycparser", marker = "(implementation_name != 'PyPy' and sys_platform == 'linux') or (implementation_name != 'PyPy' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (implementation_name != 'PyPy' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (implementation_name == 'PyPy' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/eb/56/b1ba7935a17738ae8453301356628e8147c79dbb825bcbc73dc7401f9846/cffi-2.0.0.tar.gz", hash = "sha256:44d1b5909021139fe36001ae048dbdde8214afa20200eda0f64c068cac5d5529", size = 523588, upload-time = "2025-09-08T23:24:04.541Z" }
 wheels = [
@@ -236,7 +250,7 @@ name = "cryptography"
 version = "46.0.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cffi", marker = "(platform_python_implementation != 'PyPy' and sys_platform == 'linux') or (platform_python_implementation != 'PyPy' and extra == 'group-7-xseciot-lambda-torch') or (platform_python_implementation != 'PyPy' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "cffi", marker = "(platform_python_implementation != 'PyPy' and sys_platform == 'linux') or (platform_python_implementation != 'PyPy' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (platform_python_implementation != 'PyPy' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (platform_python_implementation == 'PyPy' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a4/ba/04b1bd4218cbc58dc90ce967106d51582371b898690f3ae0402876cc4f34/cryptography-46.0.6.tar.gz", hash = "sha256:27550628a518c5c6c903d84f637fbecf287f6cb9ced3804838a1295dc1fd0759", size = 750542, upload-time = "2026-03-25T23:34:53.396Z" }
 wheels = [
@@ -281,7 +295,7 @@ name = "cuda-bindings"
 version = "12.9.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cuda-pathfinder" },
+    { name = "cuda-pathfinder", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a9/2b/ebcbb60aa6dba830474cd360c42e10282f7a343c0a1f58d24fbd3b7c2d77/cuda_bindings-12.9.4-cp311-cp311-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:a6a429dc6c13148ff1e27c44f40a3dd23203823e637b87fd0854205195988306", size = 11840604, upload-time = "2025-10-21T14:51:34.565Z" },
@@ -923,6 +937,9 @@ wheels = [
 name = "nvidia-cublas-cu12"
 version = "12.8.4.1"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/29/99/db44d685f0e257ff0e213ade1964fc459b4a690a73293220e98feb3307cf/nvidia_cublas_cu12-12.8.4.1-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:b86f6dd8935884615a0683b663891d43781b819ac4f2ba2b0c9604676af346d0", size = 590537124, upload-time = "2025-03-07T01:43:53.556Z" },
     { url = "https://files.pythonhosted.org/packages/dc/61/e24b560ab2e2eaeb3c839129175fb330dfcfc29e5203196e5541a4c44682/nvidia_cublas_cu12-12.8.4.1-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:8ac4e771d5a348c551b2a426eda6193c19aa630236b418086020df5ba9667142", size = 594346921, upload-time = "2025-03-07T01:44:31.254Z" },
@@ -946,6 +963,9 @@ wheels = [
 name = "nvidia-cuda-cupti-cu12"
 version = "12.8.90"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d5/1f/b3bd73445e5cb342727fd24fe1f7b748f690b460acadc27ea22f904502c8/nvidia_cuda_cupti_cu12-12.8.90-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:4412396548808ddfed3f17a467b104ba7751e6b58678a4b840675c56d21cf7ed", size = 9533318, upload-time = "2025-03-07T01:40:10.421Z" },
     { url = "https://files.pythonhosted.org/packages/f8/02/2adcaa145158bf1a8295d83591d22e4103dbfd821bcaf6f3f53151ca4ffa/nvidia_cuda_cupti_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:ea0cb07ebda26bb9b29ba82cda34849e73c166c18162d3913575b0c9db9a6182", size = 10248621, upload-time = "2025-03-07T01:40:21.213Z" },
@@ -979,6 +999,9 @@ wheels = [
 name = "nvidia-cuda-nvrtc-cu12"
 version = "12.8.93"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/05/6b/32f747947df2da6994e999492ab306a903659555dddc0fbdeb9d71f75e52/nvidia_cuda_nvrtc_cu12-12.8.93-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:a7756528852ef889772a84c6cd89d41dfa74667e24cca16bb31f8f061e3e9994", size = 88040029, upload-time = "2025-03-07T01:42:13.562Z" },
     { url = "https://files.pythonhosted.org/packages/eb/d1/e50d0acaab360482034b84b6e27ee83c6738f7d32182b987f9c7a4e32962/nvidia_cuda_nvrtc_cu12-12.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:fc1fec1e1637854b4c0a65fb9a8346b51dd9ee69e61ebaccc82058441f15bce8", size = 43106076, upload-time = "2025-03-07T01:41:59.817Z" },
@@ -1002,6 +1025,9 @@ wheels = [
 name = "nvidia-cuda-runtime-cu12"
 version = "12.8.90"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7c/75/f865a3b236e4647605ea34cc450900854ba123834a5f1598e160b9530c3a/nvidia_cuda_runtime_cu12-12.8.90-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:52bf7bbee900262ffefe5e9d5a2a69a30d97e2bc5bb6cc866688caa976966e3d", size = 965265, upload-time = "2025-03-07T01:39:43.533Z" },
     { url = "https://files.pythonhosted.org/packages/0d/9b/a997b638fcd068ad6e4d53b8551a7d30fe8b404d6f1804abf1df69838932/nvidia_cuda_runtime_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:adade8dcbd0edf427b7204d480d6066d33902cab2a4707dcfc48a2d0fd44ab90", size = 954765, upload-time = "2025-03-07T01:40:01.615Z" },
@@ -1028,8 +1054,11 @@ wheels = [
 name = "nvidia-cudnn-cu12"
 version = "9.10.2.21"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
 dependencies = [
-    { name = "nvidia-cublas-cu12", version = "12.8.4.1", source = { registry = "https://pypi.org/simple" } },
+    { name = "nvidia-cublas-cu12", version = "12.8.4.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fa/41/e79269ce215c857c935fd86bcfe91a451a584dfc27f1e068f568b9ad1ab7/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:c9132cc3f8958447b4910a1720036d9eff5928cc3179b0a51fb6d167c6cc87d8", size = 705026878, upload-time = "2025-06-06T21:52:51.348Z" },
@@ -1057,8 +1086,11 @@ wheels = [
 name = "nvidia-cufft-cu12"
 version = "11.3.3.83"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" } },
+    { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/60/bc/7771846d3a0272026c416fbb7e5f4c1f146d6d80704534d0b187dd6f4800/nvidia_cufft_cu12-11.3.3.83-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:848ef7224d6305cdb2a4df928759dca7b1201874787083b6e7550dd6765ce69a", size = 193109211, upload-time = "2025-03-07T01:44:56.873Z" },
@@ -1092,6 +1124,9 @@ wheels = [
 name = "nvidia-curand-cu12"
 version = "10.3.9.90"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/45/5e/92aa15eca622a388b80fbf8375d4760738df6285b1e92c43d37390a33a9a/nvidia_curand_cu12-10.3.9.90-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:dfab99248034673b779bc6decafdc3404a8a6f502462201f2f31f11354204acd", size = 63625754, upload-time = "2025-03-07T01:46:10.735Z" },
     { url = "https://files.pythonhosted.org/packages/fb/aa/6584b56dc84ebe9cf93226a5cde4d99080c8e90ab40f0c27bda7a0f29aa1/nvidia_curand_cu12-10.3.9.90-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:b32331d4f4df5d6eefa0554c565b626c7216f87a06a4f56fab27c3b68a830ec9", size = 63619976, upload-time = "2025-03-07T01:46:23.323Z" },
@@ -1120,10 +1155,13 @@ wheels = [
 name = "nvidia-cusolver-cu12"
 version = "11.7.3.90"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
 dependencies = [
-    { name = "nvidia-cublas-cu12", version = "12.8.4.1", source = { registry = "https://pypi.org/simple" } },
-    { name = "nvidia-cusparse-cu12", version = "12.5.8.93", source = { registry = "https://pypi.org/simple" } },
-    { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" } },
+    { name = "nvidia-cublas-cu12", version = "12.8.4.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "nvidia-cusparse-cu12", version = "12.5.8.93", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/32/f7cd6ce8a7690544d084ea21c26e910a97e077c9b7f07bf5de623ee19981/nvidia_cusolver_cu12-11.7.3.90-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:db9ed69dbef9715071232caa9b69c52ac7de3a95773c2db65bdba85916e4e5c0", size = 267229841, upload-time = "2025-03-07T01:46:54.356Z" },
@@ -1151,8 +1189,11 @@ wheels = [
 name = "nvidia-cusparse-cu12"
 version = "12.5.8.93"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" } },
+    { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bc/f7/cd777c4109681367721b00a106f491e0d0d15cfa1fd59672ce580ce42a97/nvidia_cusparse_cu12-12.5.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:9b6c161cb130be1a07a27ea6923df8141f3c295852f4b260c65f18f3e0a091dc", size = 288117129, upload-time = "2025-03-07T01:47:40.407Z" },
@@ -1186,6 +1227,9 @@ wheels = [
 name = "nvidia-nccl-cu12"
 version = "2.27.5"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bb/1c/857979db0ef194ca5e21478a0612bcdbbe59458d7694361882279947b349/nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:31432ad4d1fb1004eb0c56203dc9bc2178a1ba69d1d9e02d64a6938ab5e40e7a", size = 322400625, upload-time = "2025-06-26T04:11:04.496Z" },
     { url = "https://files.pythonhosted.org/packages/6e/89/f7a07dc961b60645dbbf42e80f2bc85ade7feb9a491b11a1e973aa00071f/nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:ad730cf15cb5d25fe849c6e6ca9eb5b76db16a80f13f425ac68d8e2e55624457", size = 322348229, upload-time = "2025-06-26T04:11:28.385Z" },
@@ -1208,6 +1252,9 @@ wheels = [
 name = "nvidia-nvjitlink-cu12"
 version = "12.8.93"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f6/74/86a07f1d0f42998ca31312f998bd3b9a7eff7f52378f4f270c8679c77fb9/nvidia_nvjitlink_cu12-12.8.93-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:81ff63371a7ebd6e6451970684f916be2eab07321b73c9d244dc2b4da7f73b88", size = 39254836, upload-time = "2025-03-07T01:49:55.661Z" },
     { url = "https://files.pythonhosted.org/packages/2a/a2/8cee5da30d13430e87bf99bb33455d2724d0a4a9cb5d7926d80ccb96d008/nvidia_nvjitlink_cu12-12.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:adccd7161ace7261e01bb91e44e88da350895c270d23f744f0820c818b7229e7", size = 38386204, upload-time = "2025-03-07T01:49:43.612Z" },
@@ -1280,23 +1327,23 @@ wheels = [
 
 [[package]]
 name = "pandas"
-version = "2.2.3"
+version = "3.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "python-dateutil" },
-    { name = "pytz" },
-    { name = "tzdata" },
+    { name = "tzdata", marker = "sys_platform == 'emscripten' or sys_platform == 'win32' or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9c/d6/9f8431bacc2e19dca897724cd097b1bb224a6ad5433784a44b587c7c13af/pandas-2.2.3.tar.gz", hash = "sha256:4f18ba62b61d7e192368b84517265a99b4d7ee8912f8708660fb4a366cc82667", size = 4399213, upload-time = "2024-09-20T13:10:04.827Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2e/0c/b28ed414f080ee0ad153f848586d61d1878f91689950f037f976ce15f6c8/pandas-3.0.1.tar.gz", hash = "sha256:4186a699674af418f655dbd420ed87f50d56b4cd6603784279d9eef6627823c8", size = 4641901, upload-time = "2026-02-17T22:20:16.434Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a8/44/d9502bf0ed197ba9bf1103c9867d5904ddcaf869e52329787fc54ed70cc8/pandas-2.2.3-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:66108071e1b935240e74525006034333f98bcdb87ea116de573a6a0dccb6c039", size = 12602222, upload-time = "2024-09-20T13:08:56.254Z" },
-    { url = "https://files.pythonhosted.org/packages/52/11/9eac327a38834f162b8250aab32a6781339c69afe7574368fffe46387edf/pandas-2.2.3-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:7c2875855b0ff77b2a64a0365e24455d9990730d6431b9e0ee18ad8acee13dbd", size = 11321274, upload-time = "2024-09-20T13:08:58.645Z" },
-    { url = "https://files.pythonhosted.org/packages/45/fb/c4beeb084718598ba19aa9f5abbc8aed8b42f90930da861fcb1acdb54c3a/pandas-2.2.3-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:cd8d0c3be0515c12fed0bdbae072551c8b54b7192c7b1fda0ba56059a0179698", size = 15579836, upload-time = "2024-09-20T19:01:57.571Z" },
-    { url = "https://files.pythonhosted.org/packages/cd/5f/4dba1d39bb9c38d574a9a22548c540177f78ea47b32f99c0ff2ec499fac5/pandas-2.2.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c124333816c3a9b03fbeef3a9f230ba9a737e9e5bb4060aa2107a86cc0a497fc", size = 13058505, upload-time = "2024-09-20T13:09:01.501Z" },
-    { url = "https://files.pythonhosted.org/packages/b9/57/708135b90391995361636634df1f1130d03ba456e95bcf576fada459115a/pandas-2.2.3-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:63cc132e40a2e084cf01adf0775b15ac515ba905d7dcca47e9a251819c575ef3", size = 16744420, upload-time = "2024-09-20T19:02:00.678Z" },
-    { url = "https://files.pythonhosted.org/packages/86/4a/03ed6b7ee323cf30404265c284cee9c65c56a212e0a08d9ee06984ba2240/pandas-2.2.3-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:29401dbfa9ad77319367d36940cd8a0b3a11aba16063e39632d98b0e931ddf32", size = 14440457, upload-time = "2024-09-20T13:09:04.105Z" },
-    { url = "https://files.pythonhosted.org/packages/ed/8c/87ddf1fcb55d11f9f847e3c69bb1c6f8e46e2f40ab1a2d2abadb2401b007/pandas-2.2.3-cp311-cp311-win_amd64.whl", hash = "sha256:3fc6873a41186404dad67245896a6e440baacc92f5b716ccd1bc9ed2995ab2c5", size = 11617166, upload-time = "2024-09-20T13:09:06.917Z" },
+    { url = "https://files.pythonhosted.org/packages/ff/07/c7087e003ceee9b9a82539b40414ec557aa795b584a1a346e89180853d79/pandas-3.0.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:de09668c1bf3b925c07e5762291602f0d789eca1b3a781f99c1c78f6cac0e7ea", size = 10323380, upload-time = "2026-02-17T22:18:16.133Z" },
+    { url = "https://files.pythonhosted.org/packages/c1/27/90683c7122febeefe84a56f2cde86a9f05f68d53885cebcc473298dfc33e/pandas-3.0.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:24ba315ba3d6e5806063ac6eb717504e499ce30bd8c236d8693a5fd3f084c796", size = 9923455, upload-time = "2026-02-17T22:18:19.13Z" },
+    { url = "https://files.pythonhosted.org/packages/0e/f1/ed17d927f9950643bc7631aa4c99ff0cc83a37864470bc419345b656a41f/pandas-3.0.1-cp311-cp311-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:406ce835c55bac912f2a0dcfaf27c06d73c6b04a5dde45f1fd3169ce31337389", size = 10753464, upload-time = "2026-02-17T22:18:21.134Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/7c/870c7e7daec2a6c7ff2ac9e33b23317230d4e4e954b35112759ea4a924a7/pandas-3.0.1-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:830994d7e1f31dd7e790045235605ab61cff6c94defc774547e8b7fdfbff3dc7", size = 11255234, upload-time = "2026-02-17T22:18:24.175Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/39/3653fe59af68606282b989c23d1a543ceba6e8099cbcc5f1d506a7bae2aa/pandas-3.0.1-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:a64ce8b0f2de1d2efd2ae40b0abe7f8ae6b29fbfb3812098ed5a6f8e235ad9bf", size = 11767299, upload-time = "2026-02-17T22:18:26.824Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/31/1daf3c0c94a849c7a8dab8a69697b36d313b229918002ba3e409265c7888/pandas-3.0.1-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:9832c2c69da24b602c32e0c7b1b508a03949c18ba08d4d9f1c1033426685b447", size = 12333292, upload-time = "2026-02-17T22:18:28.996Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/67/af63f83cd6ca603a00fe8530c10a60f0879265b8be00b5930e8e78c5b30b/pandas-3.0.1-cp311-cp311-win_amd64.whl", hash = "sha256:84f0904a69e7365f79a0c77d3cdfccbfb05bf87847e3a51a41e1426b0edb9c79", size = 9892176, upload-time = "2026-02-17T22:18:31.79Z" },
+    { url = "https://files.pythonhosted.org/packages/79/ab/9c776b14ac4b7b4140788eca18468ea39894bc7340a408f1d1e379856a6b/pandas-3.0.1-cp311-cp311-win_arm64.whl", hash = "sha256:4a68773d5a778afb31d12e34f7dd4612ab90de8c6fb1d8ffe5d4a03b955082a1", size = 9151328, upload-time = "2026-02-17T22:18:35.721Z" },
 ]
 
 [[package]]
@@ -1493,15 +1540,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pytz"
-version = "2026.1.post1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/56/db/b8721d71d945e6a8ac63c0fc900b2067181dbb50805958d4d4661cf7d277/pytz-2026.1.post1.tar.gz", hash = "sha256:3378dde6a0c3d26719182142c56e60c7f9af7e968076f31aae569d72a0358ee1", size = 321088, upload-time = "2026-03-03T07:47:50.683Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/10/99/781fe0c827be2742bcc775efefccb3b048a3a9c6ce9aec0cbf4a101677e5/pytz-2026.1.post1-py2.py3-none-any.whl", hash = "sha256:f2fd16142fda348286a75e1a524be810bb05d444e5a081f37f7affc635035f7a", size = 510489, upload-time = "2026-03-03T07:47:49.167Z" },
-]
-
-[[package]]
 name = "pywin32-ctypes"
 version = "0.2.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1655,7 +1693,7 @@ wheels = [
 
 [[package]]
 name = "scikit-learn"
-version = "1.6.1"
+version = "1.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "joblib" },
@@ -1663,13 +1701,14 @@ dependencies = [
     { name = "scipy" },
     { name = "threadpoolctl" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9e/a5/4ae3b3a0755f7b35a280ac90b28817d1f380318973cff14075ab41ef50d9/scikit_learn-1.6.1.tar.gz", hash = "sha256:b4fc2525eca2c69a59260f583c56a7557c6ccdf8deafdba6e060f94c1c59738e", size = 7068312, upload-time = "2025-01-10T08:07:55.348Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0e/d4/40988bf3b8e34feec1d0e6a051446b1f66225f8529b9309becaeef62b6c4/scikit_learn-1.8.0.tar.gz", hash = "sha256:9bccbb3b40e3de10351f8f5068e105d0f4083b1a65fa07b6634fbc401a6287fd", size = 7335585, upload-time = "2025-12-10T07:08:53.618Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6c/2a/e291c29670795406a824567d1dfc91db7b699799a002fdaa452bceea8f6e/scikit_learn-1.6.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:72abc587c75234935e97d09aa4913a82f7b03ee0b74111dcc2881cba3c5a7b33", size = 12102620, upload-time = "2025-01-10T08:06:16.675Z" },
-    { url = "https://files.pythonhosted.org/packages/25/92/ee1d7a00bb6b8c55755d4984fd82608603a3cc59959245068ce32e7fb808/scikit_learn-1.6.1-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:b3b00cdc8f1317b5f33191df1386c0befd16625f49d979fe77a8d44cae82410d", size = 11116234, upload-time = "2025-01-10T08:06:21.83Z" },
-    { url = "https://files.pythonhosted.org/packages/30/cd/ed4399485ef364bb25f388ab438e3724e60dc218c547a407b6e90ccccaef/scikit_learn-1.6.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:dc4765af3386811c3ca21638f63b9cf5ecf66261cc4815c1db3f1e7dc7b79db2", size = 12592155, upload-time = "2025-01-10T08:06:27.309Z" },
-    { url = "https://files.pythonhosted.org/packages/a8/f3/62fc9a5a659bb58a03cdd7e258956a5824bdc9b4bb3c5d932f55880be569/scikit_learn-1.6.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:25fc636bdaf1cc2f4a124a116312d837148b5e10872147bdaf4887926b8c03d8", size = 13497069, upload-time = "2025-01-10T08:06:32.515Z" },
-    { url = "https://files.pythonhosted.org/packages/a1/a6/c5b78606743a1f28eae8f11973de6613a5ee87366796583fb74c67d54939/scikit_learn-1.6.1-cp311-cp311-win_amd64.whl", hash = "sha256:fa909b1a36e000a03c382aade0bd2063fd5680ff8b8e501660c0f59f021a6415", size = 11139809, upload-time = "2025-01-10T08:06:35.514Z" },
+    { url = "https://files.pythonhosted.org/packages/c9/92/53ea2181da8ac6bf27170191028aee7251f8f841f8d3edbfdcaf2008fde9/scikit_learn-1.8.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:146b4d36f800c013d267b29168813f7a03a43ecd2895d04861f1240b564421da", size = 8595835, upload-time = "2025-12-10T07:07:39.385Z" },
+    { url = "https://files.pythonhosted.org/packages/01/18/d154dc1638803adf987910cdd07097d9c526663a55666a97c124d09fb96a/scikit_learn-1.8.0-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:f984ca4b14914e6b4094c5d52a32ea16b49832c03bd17a110f004db3c223e8e1", size = 8080381, upload-time = "2025-12-10T07:07:41.93Z" },
+    { url = "https://files.pythonhosted.org/packages/8a/44/226142fcb7b7101e64fdee5f49dbe6288d4c7af8abf593237b70fca080a4/scikit_learn-1.8.0-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:5e30adb87f0cc81c7690a84f7932dd66be5bac57cfe16b91cb9151683a4a2d3b", size = 8799632, upload-time = "2025-12-10T07:07:43.899Z" },
+    { url = "https://files.pythonhosted.org/packages/36/4d/4a67f30778a45d542bbea5db2dbfa1e9e100bf9ba64aefe34215ba9f11f6/scikit_learn-1.8.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:ada8121bcb4dac28d930febc791a69f7cb1673c8495e5eee274190b73a4559c1", size = 9103788, upload-time = "2025-12-10T07:07:45.982Z" },
+    { url = "https://files.pythonhosted.org/packages/89/3c/45c352094cfa60050bcbb967b1faf246b22e93cb459f2f907b600f2ceda5/scikit_learn-1.8.0-cp311-cp311-win_amd64.whl", hash = "sha256:c57b1b610bd1f40ba43970e11ce62821c2e6569e4d74023db19c6b26f246cb3b", size = 8081706, upload-time = "2025-12-10T07:07:48.111Z" },
+    { url = "https://files.pythonhosted.org/packages/3d/46/5416595bb395757f754feb20c3d776553a386b661658fb21b7c814e89efe/scikit_learn-1.8.0-cp311-cp311-win_arm64.whl", hash = "sha256:2838551e011a64e3053ad7618dda9310175f7515f1742fa2d756f7c874c05961", size = 7688451, upload-time = "2025-12-10T07:07:49.873Z" },
 ]
 
 [[package]]
@@ -1711,8 +1750,8 @@ name = "secretstorage"
 version = "3.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cryptography", marker = "sys_platform == 'linux' or extra == 'group-7-xseciot-lambda-torch' or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow')" },
-    { name = "jeepney", marker = "sys_platform == 'linux' or extra == 'group-7-xseciot-lambda-torch' or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow')" },
+    { name = "cryptography", marker = "sys_platform == 'linux' or (sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "jeepney", marker = "sys_platform == 'linux' or (sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/1c/03/e834bcd866f2f8a49a85eaff47340affa3bfa391ee9912a952a1faa68c7b/secretstorage-3.5.0.tar.gz", hash = "sha256:f04b8e4689cbce351744d5537bf6b1329c6fc68f91fa666f60a380edddcd11be", size = 19884, upload-time = "2025-11-23T19:02:53.191Z" }
 wheels = [
@@ -2115,23 +2154,21 @@ wheels = [
 
 [[package]]
 name = "xgboost"
-version = "3.0.2"
+version = "3.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
-    { name = "nvidia-nccl-cu12", version = "2.23.4", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'group-7-xseciot-tensorflow') or (platform_machine == 'aarch64' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (platform_machine == 'aarch64' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (platform_machine == 'aarch64' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (platform_machine == 'aarch64' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform != 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'linux' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform != 'linux' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
-    { name = "nvidia-nccl-cu12", version = "2.27.5", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-torch') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (platform_machine == 'aarch64' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform != 'linux' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform != 'linux' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "nvidia-nccl-cu12", version = "2.23.4", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow') or (sys_platform == 'linux' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "nvidia-nccl-cu12", version = "2.27.5", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform == 'linux' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
     { name = "scipy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/29/42/e6abc9e8c65033e5ff4117efc765e3d670c81c64ebd40ca6283bf4536994/xgboost-3.0.2.tar.gz", hash = "sha256:0ea95fef12313f8563458bbf49458db434d620af27b1991ddb8f46806cb305a5", size = 1159083, upload-time = "2025-05-25T09:09:11.291Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/91/bb/1eb0242409d22db725d7a88088e6cfd6556829fb0736f9ff69aa9f1e9455/xgboost-3.2.0.tar.gz", hash = "sha256:99b0e9a2a64896cdaf509c5e46372d336c692406646d20f2af505003c0c5d70d", size = 1263936, upload-time = "2026-02-10T11:03:05.542Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0b/6b/f47143ecab6313272497f324ffe2eafaf2851c0781a9022040adf80f9aab/xgboost-3.0.2-py3-none-macosx_10_15_x86_64.whl", hash = "sha256:923f46cd1b25c0a39fc98e969fa0a72a1a84feb7f55797cb3385962cd8d3b2d4", size = 2246653, upload-time = "2025-05-25T09:09:35.431Z" },
-    { url = "https://files.pythonhosted.org/packages/09/c9/5f0be8e51d55df60a1bd7d09e7b05380e04c38de9554105f6cacffac3886/xgboost-3.0.2-py3-none-macosx_12_0_arm64.whl", hash = "sha256:5c4e377c86df815669939646b3abe7a20559e4d4c0f5c2ab10c31252e7a9d7d9", size = 2025769, upload-time = "2025-05-25T09:09:37.22Z" },
-    { url = "https://files.pythonhosted.org/packages/c0/eb/4b5036a16628dc375544ba5375768ddc3653a3372af6f947d73d11d1c3f2/xgboost-3.0.2-py3-none-manylinux2014_aarch64.whl", hash = "sha256:e9acf97b3b2a628b33f1dc80ee3f16a658e1f9f43c4ed2aa85b0a824c87dbde5", size = 4841549, upload-time = "2025-05-25T09:09:41.172Z" },
-    { url = "https://files.pythonhosted.org/packages/db/71/347f78ac21eb9221231bebf7d7a3eaea20b09377d9d602cee15fe9c7aeba/xgboost-3.0.2-py3-none-manylinux2014_x86_64.whl", hash = "sha256:7d1ad8c5ae361161ce5288a04916c89d13d247b9a98e25c4b3983783cfad0377", size = 4904451, upload-time = "2025-05-25T09:09:44.273Z" },
-    { url = "https://files.pythonhosted.org/packages/47/a4/949c50325c6417bfae2b846c43f4a8ad6557278d26b6a526c5c22f2204aa/xgboost-3.0.2-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:a112df38f2faaae31f1c00d373ff35fb5965a65e74de2eea9081dbef7a9ddffe", size = 4603350, upload-time = "2025-05-25T09:09:46.497Z" },
-    { url = "https://files.pythonhosted.org/packages/cc/f5/1b5d88e5a65168b435e8339b53d027e3e7adecb0c7d157bc86d18f78471b/xgboost-3.0.2-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:d534242489265621397ff403bb1c6235d2e6c66938639239fdf2d6b39d27e339", size = 253887220, upload-time = "2025-05-25T09:10:24.541Z" },
-    { url = "https://files.pythonhosted.org/packages/29/22/e3ff2dfafe862a91733dfa0aecdb4794aa1d9a18e09a14e118bde0cbc2db/xgboost-3.0.2-py3-none-win_amd64.whl", hash = "sha256:b4c89b71d134da9fa6318e3c9f5459317d1013b4d57059d10ed2840750e2f7e1", size = 149974575, upload-time = "2025-05-25T09:11:23.554Z" },
+    { url = "https://files.pythonhosted.org/packages/2d/49/6e4cdd877c24adf56cb3586bc96d93d4dcd780b5ea1efb32e1ee0de08bae/xgboost-3.2.0-py3-none-macosx_10_15_x86_64.whl", hash = "sha256:2f661966d3e322536d9c448090a870fcba1e32ee5760c10b7c46bac7a342079a", size = 2507014, upload-time = "2026-02-10T10:50:57.44Z" },
+    { url = "https://files.pythonhosted.org/packages/93/f1/c09ef1add609453aa3ba5bafcd0d1c1a805c1263c0b60138ec968f8ec296/xgboost-3.2.0-py3-none-macosx_12_0_arm64.whl", hash = "sha256:eabbd40d474b8dbf6cb3536325f9150b9e6f0db32d18de9914fb3227d0bef5b7", size = 2328527, upload-time = "2026-02-10T10:51:17.502Z" },
+    { url = "https://files.pythonhosted.org/packages/96/9f/d9914a7b8df842832850b1a18e5f47aaa071c217cdd1da2ae9deb291018b/xgboost-3.2.0-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:852eabc6d3b3702a59bf78dbfdcd1cb9c4d3a3b6e5ed1f8781d8b9512354fdd2", size = 131100954, upload-time = "2026-02-10T11:02:42.704Z" },
+    { url = "https://files.pythonhosted.org/packages/79/98/679de17c2caa4fd3b0b4386ecf7377301702cb0afb22930a07c142fcb1d8/xgboost-3.2.0-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:99b4a6bbcb47212fec5cf5fbe12347215f073c08967431b0122cfbd1ee70312c", size = 131748579, upload-time = "2026-02-10T10:54:40.424Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/3d/1661dd114a914a67e3f7ab66fa1382e7599c2a8c340f314ad30a3e2b4d08/xgboost-3.2.0-py3-none-win_amd64.whl", hash = "sha256:0d169736fd836fc13646c7ab787167b3a8110351c2c6bc770c755ee1618f0442", size = 101681668, upload-time = "2026-02-10T10:59:31.202Z" },
 ]
 
 [[package]]
@@ -2191,16 +2228,16 @@ requires-dist = [
     { name = "lime", specifier = "==0.2.0.1" },
     { name = "matplotlib", specifier = "==3.10.8" },
     { name = "numpy", specifier = "==2.1.3" },
-    { name = "pandas", specifier = "==2.2.3" },
+    { name = "pandas", specifier = "==3.0.1" },
     { name = "pyarrow", specifier = "==23.0.1" },
     { name = "pydantic", specifier = "==2.11.9" },
-    { name = "scikit-learn", specifier = "==1.6.1" },
+    { name = "scikit-learn", specifier = "==1.8.0" },
     { name = "scipy", specifier = "==1.15.3" },
     { name = "shap", specifier = "==0.47.2" },
     { name = "shortuuid", specifier = "==1.0.13" },
     { name = "toml", specifier = "==0.10.2" },
     { name = "tqdm", specifier = "==4.67.1" },
-    { name = "xgboost", specifier = "==3.0.2" },
+    { name = "xgboost", specifier = "==3.2.0" },
 ]
 
 [package.metadata.requires-dev]
