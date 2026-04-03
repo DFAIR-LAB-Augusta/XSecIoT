@@ -170,3 +170,5 @@ logging/*
 .DS_Store
 datasets/CEFlows/*
 *.tmp
+
+.continue/*

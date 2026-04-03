@@ -1,10 +1,9 @@
-
 import numpy as np
 import pandas as pd
 import pytest
 import scipy.stats as stats
 
-from src.FIRE.preprocessing import (
+from fire.preprocessing import (
     _entropy,
     clean_data,
 )
@@ -13,7 +12,7 @@ from src.FIRE.preprocessing import (
 # Fixture for temporary CSV files\@pytest.fixture
 def tmp_csv(tmp_path, request):
     df = request.param
-    file_path = tmp_path / "data.csv"
+    file_path = tmp_path / 'data.csv'
     df.to_csv(file_path, index=False)
     return str(file_path)
 
@@ -30,7 +29,7 @@ DEFAULT_DF = pd.DataFrame({
     'tot_fwd_pkt': [1, 2, 3],
     'tot_bwd_pkts': [0, 1, 0],
     'totlen_fwd_pkts': [100, 200, 300],
-    'totlen_bwd_pkts': [0, 100, 0]
+    'totlen_bwd_pkts': [0, 100, 0],
 })
 
 # Sample UNSW dataset
@@ -54,15 +53,12 @@ UNSW_DF = pd.DataFrame({
     'DST_TO_SRC_IAT_MIN': [0],
     'DST_TO_SRC_IAT_MAX': [1],
     'DST_TO_SRC_IAT_AVG': [0.5],
-    'DST_TO_SRC_IAT_STDDEV': [0.1]
+    'DST_TO_SRC_IAT_STDDEV': [0.1],
 })
 
 
 # Tests for _clean_data
-@pytest.mark.parametrize("df, is_unsw", [
-    (DEFAULT_DF.copy(), False),
-    (UNSW_DF.copy(), True)
-])
+@pytest.mark.parametrize('df, is_unsw', [(DEFAULT_DF.copy(), False), (UNSW_DF.copy(), True)])
 def test_clean_data(df, is_unsw):
     cleaned = clean_data(df, is_unsw)
     # Should set index
@@ -76,4 +72,3 @@ def test_entropy_uniform():
     data = pd.Series([1, 2, 3, 4])
     ent = _entropy(data)
     assert pytest.approx(ent) == stats.entropy(data.value_counts(normalize=True))
-
