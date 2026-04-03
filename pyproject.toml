@@ -8,7 +8,7 @@ sources = ["src"]
 
 [project]
 name = "xseciot"
-version = "1.0.0"
+version = "1.0.1"
 description = "Machine learning-based IoT intrusion detection with explainable AI and conformal evaluation."
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
