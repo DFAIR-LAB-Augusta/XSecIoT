@@ -11,6 +11,7 @@ LOG_DIR      ?=
 
 TREE_IGNORE := .venv|binary_models|logging|*pyc|tests|datasets|.pytest_cache|.ruff_cache|.git|assets|feature_engineering|.vscode
 
+TARGET_IP ?= 192.168.1.0/24
 
 .PHONY: help sync test clean \
         sim-bin sim-mc xseciot \
@@ -107,7 +108,17 @@ clean: ## Remove build & test artifacts
 	
 preflight: ## Build + run twine metadata checks
 	$(UV) build
-	uv tool run twine check dist/*
+	$(UV) tool run twine check dist/*
 
 deps.check: ## Check for dependency issues
-	uv run deptry .
+	$(UV) run deptry .
+
+scan: ## Basic Nmap scans of devices
+	$(UV) run scripts/scanner.py \
+		--targets "$(TARGET_IP)" \
+		--exclude 192.168.1.1 \
+		--output-dir ./logging/scans \
+		--include-closed \
+		--stages 1 2 3 \
+		--aggressive \
+		--sudo

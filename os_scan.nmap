@@ -1,0 +1,153 @@
+# Nmap 7.95 scan initiated Tue Apr  7 10:24:28 2026 as: nmap -n -O --osscan-guess -T3 -oA os_scan 192.168.1.0/24
+Nmap scan report for 192.168.1.1
+Host is up (0.0034s latency).
+Not shown: 997 closed tcp ports (reset)
+PORT   STATE SERVICE
+22/tcp open  ssh
+53/tcp open  domain
+80/tcp open  http
+MAC Address: 14:CC:20:B3:EA:FA (TP-Link Technologies)
+Device type: WAP
+Running: Linux 3.X|4.X
+OS CPE: cpe:/o:linux:linux_kernel:3.18 cpe:/o:linux:linux_kernel:4.1
+OS details: OpenWrt Chaos Calmer 15.05 (Linux 3.18) or Designated Driver (Linux 4.1 or 4.4)
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.103
+Host is up (0.0097s latency).
+Not shown: 956 filtered tcp ports (no-response), 42 closed tcp ports (reset)
+PORT     STATE SERVICE
+1080/tcp open  socks
+8888/tcp open  sun-answerbook
+MAC Address: A8:E6:21:3E:26:01 (Amazon Technologies)
+Aggressive OS guesses: Linux 3.2 - 4.14 (98%), Linux 3.10 - 4.11 (95%), Linux 3.18 (95%), OpenWrt Chaos Calmer 15.05 (Linux 3.18) or Designated Driver (Linux 4.1 or 4.4) (95%), Android 5.1 (95%), Linux 3.2 - 3.16 (95%), Linux 4.4 (95%), Linux 3.8 - 3.16 (94%), Sony Android TV (Android 5.0) (94%), Android 7.1.2 (Linux 3.4) (94%)
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+TCP/IP fingerprint:
+OS:SCAN(V=7.95%E=4%D=4/7%OT=1080%CT=6543%CU=30487%PV=Y%DS=1%DC=D%G=Y%M=A8E6
+OS:21%TM=69D51424%P=x86_64-pc-linux-gnu)SEQ(SP=103%GCD=1%ISR=107%TI=Z%CI=I%
+OS:TS=8)SEQ(SP=103%GCD=2%ISR=105%TI=Z%CI=I%TS=8)SEQ(SP=106%GCD=1%ISR=10B%TI
+OS:=Z%CI=I%TS=8)SEQ(SP=106%GCD=2%ISR=10C%TI=Z%CI=I%TS=8)OPS(O1=M5B4ST11NW6%
+OS:O2=M5B4ST11NW6%O3=M5B4NNT11NW6%O4=M5B4ST11NW6%O5=M5B4ST11NW6%O6=M5B4ST11
+OS:)WIN(W1=7120%W2=7120%W3=7120%W4=7120%W5=7120%W6=7120)ECN(R=Y%DF=Y%T=40%W
+OS:=7210%O=M5B4NNSNW6%CC=Y%Q=)T1(R=Y%DF=Y%T=40%S=O%A=S+%F=AS%RD=0%Q=)T2(R=N
+OS:)T3(R=N)T4(R=Y%DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T5(R=Y%DF=Y%T=40%W=0
+OS:%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R=Y%DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T7
+OS:(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)U1(R=Y%DF=N%T=40%IPL=164%UN=
+OS:0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)IE(R=N)
+
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.104
+Host is up (0.012s latency).
+Not shown: 999 closed tcp ports (reset)
+PORT     STATE SERVICE
+9999/tcp open  abyss
+MAC Address: 00:5F:67:FB:83:A4 (TP-Link Limited)
+Device type: specialized
+Running: lwIP
+OS CPE: cpe:/a:lwip_project:lwip
+OS details: lwIP 1.4.1 - 2.0.3
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.111
+Host is up (0.013s latency).
+Not shown: 995 closed tcp ports (reset)
+PORT      STATE SERVICE
+8008/tcp  open  http
+8009/tcp  open  ajp13
+8443/tcp  open  https-alt
+9000/tcp  open  cslistener
+10001/tcp open  scp-config
+MAC Address: 00:F6:20:4E:22:FB (Google)
+Device type: media device
+Running: Google embedded
+OS details: Google Home device
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.170
+Host is up (0.0044s latency).
+Not shown: 999 closed tcp ports (reset)
+PORT   STATE    SERVICE
+22/tcp filtered ssh
+MAC Address: B0:4A:39:55:B1:76 (Beijing Roborock Technology)
+Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
+Device type: general purpose|media device|specialized
+Running: Microsoft Windows 10|11|2016, Microsoft Xbox 360, NTI embedded
+OS CPE: cpe:/o:microsoft:windows_10 cpe:/o:microsoft:windows_11 cpe:/o:microsoft:windows_server_2016 cpe:/h:microsoft:xbox_360_kernel
+OS details: Microsoft Windows 10 - 11, Microsoft Windows Server 2016, Microsoft Xbox 360 Dashboard, NTI E-MICRO-TRHP temperature sensor
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.172
+Host is up (0.0065s latency).
+Not shown: 997 closed tcp ports (reset)
+PORT     STATE SERVICE
+80/tcp   open  http
+443/tcp  open  https
+8080/tcp open  http-proxy
+MAC Address: EC:B5:FA:A2:E4:5A (Philips Lighting BV)
+Device type: specialized
+Running: Philips embedded, Linux
+OS CPE: cpe:/o:linux:linux_kernel
+OS details: Philips Hue Bridge 2.0 (Linux)
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.175
+Host is up (0.011s latency).
+All 1000 scanned ports on 192.168.1.175 are in ignored states.
+Not shown: 1000 closed tcp ports (reset)
+MAC Address: 30:4A:26:2B:BA:87 (Shenzhen Trolink Technology)
+Too many fingerprints match this host to give specific OS details
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.192
+Host is up (0.018s latency).
+All 1000 scanned ports on 192.168.1.192 are in ignored states.
+Not shown: 1000 closed tcp ports (reset)
+MAC Address: 64:80:99:E3:E5:54 (Intel Corporate)
+Too many fingerprints match this host to give specific OS details
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.196
+Host is up (0.036s latency).
+All 1000 scanned ports on 192.168.1.196 are in ignored states.
+Not shown: 1000 closed tcp ports (reset)
+MAC Address: 20:1F:3B:21:93:74 (Google)
+Too many fingerprints match this host to give specific OS details
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.221
+Host is up (0.72s latency).
+All 1000 scanned ports on 192.168.1.221 are in ignored states.
+Not shown: 1000 closed tcp ports (reset)
+MAC Address: 90:48:6C:04:72:B1 (Ring)
+Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
+Device type: specialized
+Running: Meross embedded
+OS details: Meross smart light bulb, Meross smart plug
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.231
+Host is up (0.018s latency).
+All 1000 scanned ports on 192.168.1.231 are in ignored states.
+Not shown: 1000 closed tcp ports (reset)
+MAC Address: 6E:E5:C0:43:F4:31 (Unknown)
+Too many fingerprints match this host to give specific OS details
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.243
+Host is up (0.088s latency).
+All 1000 scanned ports on 192.168.1.243 are in ignored states.
+Not shown: 1000 closed tcp ports (reset)
+MAC Address: BA:AD:F9:BE:0C:BB (Unknown)
+Too many fingerprints match this host to give specific OS details
+Network Distance: 1 hop
+
+Nmap scan report for 192.168.1.208
+Host is up (0.000040s latency).
+All 1000 scanned ports on 192.168.1.208 are in ignored states.
+Not shown: 1000 closed tcp ports (reset)
+Too many fingerprints match this host to give specific OS details
+Network Distance: 0 hops
+
+OS detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Tue Apr  7 10:26:46 2026 -- 256 IP addresses (13 hosts up) scanned in 137.91 seconds
