@@ -3,6 +3,7 @@ import logging
 import re
 import sys
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
@@ -10,15 +11,29 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def _is_valid_ip(ip: str) -> bool:
+@dataclass(frozen=True)
+class LabelConfig:
+    dataset_path: Path
+    src_ip: str
+    dest_ip: str
+
+
+def _parse_arguments() -> LabelConfig:
     """
-    Validate if the given string is a valid IPv4 address.
+    Parse and return command-line arguments.
     """
-    pattern = re.compile(
-        r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
-        r'(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$'
+    parser = argparse.ArgumentParser(
+        description='Label a dataset with Bin_Label column based on matching source and destination IPs.'
     )
-    return pattern.match(ip) is not None
+    parser.add_argument('dataset_path', type=str, help='Path to the CSV dataset.')
+    parser.add_argument('src_ip', type=str, help='Source IP address.')
+    parser.add_argument('dest_ip', type=str, help='Destination IP address.')
+    args = parser.parse_args()
+    return LabelConfig(
+        dataset_path=args.dataset_path,
+        src_ip=args.src_ip,
+        dest_ip=args.dest_ip,
+    )
 
 
 def _validate_inputs(dataset_path: Path, src_ip: str, dest_ip: str) -> None:
@@ -36,6 +51,17 @@ def _validate_inputs(dataset_path: Path, src_ip: str, dest_ip: str) -> None:
         raise ValueError(f'Invalid source IP address: {src_ip}')
     if not _is_valid_ip(dest_ip):
         raise ValueError(f'Invalid destination IP address: {dest_ip}')
+
+
+def _is_valid_ip(ip: str) -> bool:
+    """
+    Validate if the given string is a valid IPv4 address.
+    """
+    pattern = re.compile(
+        r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
+        r'(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$'
+    )
+    return pattern.match(ip) is not None
 
 
 def _add_binary_labels(dataset_path: Path, src_ip: str, dest_ip: str) -> Path:
@@ -57,19 +83,6 @@ def _add_binary_labels(dataset_path: Path, src_ip: str, dest_ip: str) -> Path:
     df.to_csv(output_path, index=False)
 
     return output_path
-
-
-def _parse_arguments() -> argparse.Namespace:
-    """
-    Parse and return command-line arguments.
-    """
-    parser = argparse.ArgumentParser(
-        description='Label a dataset with Bin_Label column based on matching source and destination IPs.'
-    )
-    parser.add_argument('dataset_path', type=str, help='Path to the CSV dataset.')
-    parser.add_argument('src_ip', type=str, help='Source IP address.')
-    parser.add_argument('dest_ip', type=str, help='Destination IP address.')
-    return parser.parse_args()
 
 
 def main() -> None:
