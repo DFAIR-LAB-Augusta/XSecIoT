@@ -28,8 +28,8 @@ import logging
 import re
 
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -92,11 +92,31 @@ METRICS = [
 ]
 
 
-def _parse_float_list(s: str) -> List[float]:
+@dataclass(frozen=True)
+class OverallStatsConfig:
+    log_dir: Path
+    out_dir: Path
+    verbose: bool
+
+
+def _parse_args() -> OverallStatsConfig:
+    ap = argparse.ArgumentParser(description='Classifier CE+Classifier dashboards (5x4 grid per classifier).')
+    ap.add_argument('--log-dir', type=Path, default=DEFAULT_LOG_DIR, help='Directory to scan for logs.')
+    ap.add_argument('--out-dir', type=Path, default=DEFAULT_OUT_DIR, help='Directory to write images/CSVs.')
+    ap.add_argument('--verbose', action='store_true', help='Enable debug logging.')
+    args = ap.parse_args()
+    return OverallStatsConfig(
+        log_dir=args.log_dir,
+        out_dir=args.out_dir,
+        verbose=args.verbose,
+    )
+
+
+def _parse_float_list(s: str) -> list[float]:
     s = (s or '').strip()
     if not s:
         return []
-    out: List[float] = []
+    out: list[float] = []
     for tok in s.split(','):
         t = tok.strip().rstrip('%')
         if not t or t.lower() == 'nan':
@@ -108,18 +128,18 @@ def _parse_float_list(s: str) -> List[float]:
     return out
 
 
-def _parse_modelstats_block(inner: str) -> Dict[str, List[float]]:
+def _parse_modelstats_block(inner: str) -> dict[str, list[float]]:
     """
     Parse one ModelStats(...) inner string into metric lists.
     """
-    out: Dict[str, List[float]] = {}
+    out: dict[str, list[float]] = {}
     for k, pat in LIST_PATTERNS.items():
         mm = pat.search(inner)
         out[k] = _parse_float_list(mm.group(1)) if mm else []
     return out
 
 
-def _parse_both_series(line: str) -> Optional[Dict[str, Dict[str, List[float]]]]:
+def _parse_both_series(line: str) -> dict[str, dict[str, list[float]]] | None:
     """
     Parse both CE and Classifier series from the PerformanceStats(...) line.
     Returns:
@@ -128,8 +148,8 @@ def _parse_both_series(line: str) -> Optional[Dict[str, Dict[str, List[float]]]]
     if not PERF_MARKER.search(line):
         return None
 
-    ce_series: Dict[str, List[float]] = {}
-    clf_series: Dict[str, List[float]] = {}
+    ce_series: dict[str, list[float]] = {}
+    clf_series: dict[str, list[float]] = {}
 
     m_ce = CE_BLOCK.search(line)
     if m_ce:
@@ -148,7 +168,7 @@ def _parse_both_series(line: str) -> Optional[Dict[str, Dict[str, List[float]]]]
     return {'ce': ce_series, 'classifier': clf_series}
 
 
-def _canonicalize(token: str, mapping: Dict[str, List[str]]) -> Optional[str]:
+def _canonicalize(token: str, mapping: dict[str, list[str]]) -> str | None:
     t = token.lower()
     for canon, synonyms in mapping.items():
         for s in synonyms:
@@ -159,7 +179,7 @@ def _canonicalize(token: str, mapping: Dict[str, List[str]]) -> Optional[str]:
     return None
 
 
-def _infer_classifier_ce_from_content_or_path(fpath: Path) -> Tuple[str, str]:
+def _infer_classifier_ce_from_content_or_path(fpath: Path) -> tuple[str, str]:
     classifier, ce_type = None, None
 
     try:
@@ -194,7 +214,7 @@ def _infer_classifier_ce_from_content_or_path(fpath: Path) -> Tuple[str, str]:
 
 def _scan_logs_group_by_classifier(
     log_dir: Path,
-) -> Dict[str, Dict[str, Dict[str, Dict[str, Dict[str, List[float]]]]]]:
+) -> dict[str, dict[str, dict[str, dict[str, dict[str, list[float]]]]]]:
     """
     Build:
         grouped[classifier][ce_type][run_label] = {
@@ -202,7 +222,7 @@ def _scan_logs_group_by_classifier(
             'classifier': {...}
         }
     """
-    grouped: Dict[str, Dict[str, Dict[str, Dict[str, Dict[str, List[float]]]]]] = defaultdict(lambda: defaultdict(dict))
+    grouped: dict[str, dict[str, dict[str, dict[str, dict[str, list[float]]]]]] = defaultdict(lambda: defaultdict(dict))
     files = list(log_dir.rglob('*.log'))
     if not files:
         logging.error('No .log files found under %s', log_dir)
@@ -210,7 +230,7 @@ def _scan_logs_group_by_classifier(
 
     for fpath in files:
         run_rel = fpath.relative_to(log_dir).as_posix()
-        last_both: Optional[Dict[str, Dict[str, List[float]]]] = None
+        last_both: dict[str, dict[str, list[float]]] | None = None
         try:
             with fpath.open('r', encoding='utf-8', errors='replace') as fh:
                 for raw in fh:
@@ -241,8 +261,8 @@ def _scan_logs_group_by_classifier(
 
 
 def _plot_classifier_grid(
-    classifier: str,
-    runs_by_ce: Dict[str, Dict[str, Dict[str, List[float]]]],
+    _classifier: str,
+    runs_by_ce: dict[str, dict[str, dict[str, dict[str, list[float]]]]],
     out_png: Path,
 ) -> None:
     n_rows = len(METRICS)
@@ -323,7 +343,7 @@ def _plot_classifier_grid(
 def _write_classifier_csv(
     classifier: str,
     # ce_type -> run_label -> {'ce':..., 'classifier':...}
-    runs_by_ce: Dict[str, Dict[str, Dict[str, List[float]]]],
+    runs_by_ce: dict[str, dict[str, dict[str, dict[str, list[float]]]]],
     out_csv: Path,
 ) -> None:
     """
@@ -349,21 +369,14 @@ def _write_classifier_csv(
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description='Classifier CE+Classifier dashboards (5x4 grid per classifier).')
-    ap.add_argument('--log-dir', type=Path, default=DEFAULT_LOG_DIR, help='Directory to scan for logs.')
-    ap.add_argument('--out-dir', type=Path, default=DEFAULT_OUT_DIR, help='Directory to write images/CSVs.')
-    ap.add_argument('--verbose', action='store_true', help='Enable debug logging.')
-    args = ap.parse_args()
+    config = _parse_args()
 
     logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.INFO,
+        level=logging.DEBUG if config.verbose else logging.INFO,
         format='%(asctime)s %(levelname)s %(name)s: %(message)s',
     )
 
-    log_dir = args.log_dir
-    out_dir = args.out_dir
-
-    grouped = _scan_logs_group_by_classifier(log_dir)
+    grouped = _scan_logs_group_by_classifier(config.log_dir)
     if not grouped:
         logging.error('No series found; exiting.')
         return
@@ -373,11 +386,11 @@ def main() -> None:
         if extras:
             logging.warning("Classifier '%s' has CE types not in CE_ORDER and will be omitted: %s", classifier, extras)
 
-        png_path = out_dir / f'{classifier}_ce_grid.png'
-        csv_path = out_dir / f'{classifier}_ce_metrics.csv'
+        png_path = config.out_dir / f'{classifier}_ce_grid.png'
+        csv_path = config.out_dir / f'{classifier}_ce_metrics.csv'
 
-        _plot_classifier_grid(classifier, ce_to_runs, png_path)  # type: ignore
-        _write_classifier_csv(classifier, ce_to_runs, csv_path)  # type: ignore
+        _plot_classifier_grid(classifier, ce_to_runs, png_path)
+        _write_classifier_csv(classifier, ce_to_runs, csv_path)
 
     logging.info('Done.')
 

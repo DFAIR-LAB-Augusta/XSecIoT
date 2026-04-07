@@ -95,7 +95,7 @@ We follow the paper’s notation: dataset size (n), proper-training fraction (p)
 ##  Usage
 
 ```python
-from core.conformalEval.conformal_evaluators import ConformalEvaluator
+from firce.conformalEval.conformal_evaluators import ConformalEvaluator
 
 # Instantiate (5% significance)
 ce = ConformalEvaluator(
