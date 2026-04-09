@@ -64,7 +64,7 @@ dependencies = [
     "shap==0.47.2",
     "shortuuid==1.0.13",
     "toml==0.10.2",
-    "tqdm==4.67.1",
+    "tqdm==4.67.3",
     "xgboost==3.2.0",
     "pydantic==2.11.9",
     "pyarrow==23.0.1",
