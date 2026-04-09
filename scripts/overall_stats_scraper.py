@@ -19,42 +19,40 @@ logger = logging.getLogger(__name__)
 EXPECTED_SEEDS: tuple[int, ...] = (17, 42, 67, 92, 117)
 EXPECTED_RUNS: tuple[int, ...] = (0, 1, 2, 3, 4)
 EXPECTED_CE_TYPES: tuple[str, ...] = (
-    "ice",
-    "approx_cce",
-    "cce",
-    "approx_tce",
-    "none",
+    'ice',
+    'approx_cce',
+    'cce',
+    'approx_tce',
+    'none',
 )
 
 
 class ScraperConfig(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    log_dir: Path = Field(default=Path("./logging/ac"))
+    log_dir: Path = Field(default=Path('./logging/ac'))
     output_file: Path | None = None
     json_output_file: Path | None = None
-    stat_marker: str = "[==OVERALL SIM STATS==]"
-    exclude_dir_prefix: str = "old"
-    log_suffix: str = ".log"
+    stat_marker: str = '[==OVERALL SIM STATS==]'
+    exclude_dir_prefix: str = 'old'
+    log_suffix: str = '.log'
 
-    chunk_stats: frozenset[str] = frozenset(
-        {
-            "Average Chunk Size",
-            "Median Chunk Size",
-            "Standard Deviation of Chunk Sizes",
-        }
-    )
+    chunk_stats: frozenset[str] = frozenset({
+        'Average Chunk Size',
+        'Median Chunk Size',
+        'Standard Deviation of Chunk Sizes',
+    })
 
     expected_seeds: tuple[int, ...] = EXPECTED_SEEDS
     expected_runs: tuple[int, ...] = EXPECTED_RUNS
     expected_ce_types: tuple[str, ...] = EXPECTED_CE_TYPES
 
-    @field_validator("log_dir", mode="before")
+    @field_validator('log_dir', mode='before')
     @classmethod
     def _coerce_log_dir(cls, value: str | Path) -> Path:
         return Path(value)
 
-    @field_validator("output_file", "json_output_file", mode="before")
+    @field_validator('output_file', 'json_output_file', mode='before')
     @classmethod
     def _coerce_optional_path(cls, value: str | Path | None) -> Path | None:
         if value is None:
@@ -64,12 +62,12 @@ class ScraperConfig(BaseModel):
     def resolved_output_file(self) -> Path:
         if self.output_file is not None:
             return self.output_file
-        return self.log_dir / "overall_stats.log"
+        return self.log_dir / 'overall_stats.log'
 
     def resolved_json_output_file(self) -> Path:
         if self.json_output_file is not None:
             return self.json_output_file
-        return self.log_dir / "overall_stats.json"
+        return self.log_dir / 'overall_stats.json'
 
 
 @dataclass(slots=True, frozen=True)
@@ -101,7 +99,7 @@ class FileStats:
 
     def add_entry(self, entry: StatEntry) -> None:
         self.entries.append(entry)
-        self.stat_lines.append(f"{entry.stat_key}: {entry.raw_value}")
+        self.stat_lines.append(f'{entry.stat_key}: {entry.raw_value}')
 
 
 @dataclass(slots=True, frozen=True)
@@ -143,12 +141,8 @@ class CoverageSummary:
 
 @dataclass(slots=True)
 class ParseResult:
-    by_subfolder: DefaultDict[str, dict[str, FileStats]] = field(
-        default_factory=lambda: defaultdict(dict)
-    )
-    by_stat: DefaultDict[str, list[StatEntry]] = field(
-        default_factory=lambda: defaultdict(list)
-    )
+    by_subfolder: DefaultDict[str, dict[str, FileStats]] = field(default_factory=lambda: defaultdict(dict))
+    by_stat: DefaultDict[str, list[StatEntry]] = field(default_factory=lambda: defaultdict(list))
     all_files: list[FileStats] = field(default_factory=list)
 
     def add_file_stats(self, file_stats: FileStats) -> None:
@@ -161,8 +155,8 @@ class ParseResult:
 
 
 class OverallStatsScraper:
-    CE_SUMMARY_MARKER = "=== CE Model Calibration Summary ==="
-    CLASSIFIER_SUMMARY_MARKER = "=== Classifier Model Performance Summary ==="
+    CE_SUMMARY_MARKER = '=== CE Model Calibration Summary ==='
+    CLASSIFIER_SUMMARY_MARKER = '=== Classifier Model Performance Summary ==='
 
     FILENAME_RE = re.compile(
         r"""
@@ -179,12 +173,10 @@ class OverallStatsScraper:
 
     def __init__(self, config: ScraperConfig) -> None:
         self.config = config
-        self.key_value_pattern = re.compile(
-            rf"{re.escape(config.stat_marker)}\s+(.*?):\s+(.*)"
-        )
+        self.key_value_pattern = re.compile(rf'{re.escape(config.stat_marker)}\s+(.*?):\s+(.*)')
 
     def run(self) -> tuple[Path, Path]:
-        logger.info("Starting scrape from %s", self.config.log_dir)
+        logger.info('Starting scrape from %s', self.config.log_dir)
         result = self.parse_logs()
         grouped = self.build_group_summaries(result)
         coverage = self.build_coverage_summaries(result)
@@ -192,8 +184,8 @@ class OverallStatsScraper:
         log_output_path = self.write_text_output(result, grouped, coverage)
         json_output_path = self.write_json_output(result, grouped, coverage)
 
-        logger.info("Wrote text summary to %s", log_output_path)
-        logger.info("Wrote JSON summary to %s", json_output_path)
+        logger.info('Wrote text summary to %s', log_output_path)
+        logger.info('Wrote JSON summary to %s', json_output_path)
         return log_output_path, json_output_path
 
     def parse_logs(self) -> ParseResult:
@@ -203,7 +195,7 @@ class OverallStatsScraper:
             try:
                 file_stats = self.parse_log_file(file_path)
             except Exception:
-                logger.exception("Failed to parse log file: %s", file_path)
+                logger.exception('Failed to parse log file: %s', file_path)
                 continue
 
             if file_stats.entries:
@@ -213,16 +205,13 @@ class OverallStatsScraper:
 
     def iter_log_files(self) -> Iterable[Path]:
         if not self.config.log_dir.exists():
-            logger.warning("Log directory does not exist: %s", self.config.log_dir)
+            logger.warning('Log directory does not exist: %s', self.config.log_dir)
             return []
 
-        for file_path in self.config.log_dir.rglob(f"*{self.config.log_suffix}"):
+        for file_path in self.config.log_dir.rglob(f'*{self.config.log_suffix}'):
             relative_parts = file_path.relative_to(self.config.log_dir).parts
-            if any(
-                part.startswith(self.config.exclude_dir_prefix)
-                for part in relative_parts[:-1]
-            ):
-                logger.debug("Skipping excluded file: %s", file_path)
+            if any(part.startswith(self.config.exclude_dir_prefix) for part in relative_parts[:-1]):
+                logger.debug('Skipping excluded file: %s', file_path)
                 continue
             yield file_path
 
@@ -233,16 +222,16 @@ class OverallStatsScraper:
 
         model_section: str | None = None
 
-        with file_path.open("r", encoding="utf-8") as handle:
+        with file_path.open('r', encoding='utf-8') as handle:
             for raw_line in handle:
                 line = raw_line.strip()
 
                 if self.CE_SUMMARY_MARKER in line:
-                    model_section = "CE Model"
+                    model_section = 'CE Model'
                     continue
 
                 if self.CLASSIFIER_SUMMARY_MARKER in line:
-                    model_section = "Classifier Model"
+                    model_section = 'Classifier Model'
                     continue
 
                 if self.config.stat_marker not in line:
@@ -264,15 +253,15 @@ class OverallStatsScraper:
         match = self.FILENAME_RE.match(file_path.name)
 
         if match is None:
-            raise ValueError(f"Unrecognized log filename format: {file_path.name}")
+            raise ValueError(f'Unrecognized log filename format: {file_path.name}')
 
         return RunIdentity(
             dataset=dataset,
-            classifier=match.group("classifier"),
-            ce_type=match.group("ce_type"),
-            model_type=match.group("model_type"),
-            seed=int(match.group("seed")),
-            run=int(match.group("run")),
+            classifier=match.group('classifier'),
+            ce_type=match.group('ce_type'),
+            model_type=match.group('model_type'),
+            seed=int(match.group('seed')),
+            run=int(match.group('run')),
             filename=file_path.name,
         )
 
@@ -286,7 +275,7 @@ class OverallStatsScraper:
     ) -> StatEntry | None:
         match = self.key_value_pattern.search(line)
         if not match:
-            logger.debug("Could not parse stat line: %s", line)
+            logger.debug('Could not parse stat line: %s', line)
             return None
 
         stat_key = match.group(1).strip()
@@ -306,13 +295,13 @@ class OverallStatsScraper:
         if stat_key in self.config.chunk_stats:
             return stat_key
 
-        prefix = f"[{model_section}]" if model_section else ""
-        return f"{prefix} {stat_key}".strip()
+        prefix = f'[{model_section}]' if model_section else ''
+        return f'{prefix} {stat_key}'.strip()
 
     @staticmethod
     def parse_numeric_value(raw_value: str) -> float | None:
-        cleaned = raw_value.strip().replace(",", "")
-        cleaned = cleaned.rstrip("%s")
+        cleaned = raw_value.strip().replace(',', '')
+        cleaned = cleaned.rstrip('%s')
 
         try:
             return float(cleaned)
@@ -391,11 +380,7 @@ class OverallStatsScraper:
             seen[key].add((identity.seed, identity.run))
 
         coverage: list[CoverageSummary] = []
-        expected_pairs = {
-            (seed, run)
-            for seed in self.config.expected_seeds
-            for run in self.config.expected_runs
-        }
+        expected_pairs = {(seed, run) for seed in self.config.expected_seeds for run in self.config.expected_runs}
         expected_total = len(expected_pairs)
 
         for key in sorted(seen):
@@ -409,7 +394,7 @@ class OverallStatsScraper:
                     model_type=key[3],
                     expected_total=expected_total,
                     found_total=len(found_pairs),
-                    missing_pairs=[f"seed={seed}, run={run}" for seed, run in missing_pairs],
+                    missing_pairs=[f'seed={seed}, run={run}' for seed, run in missing_pairs],
                 )
             )
 
@@ -424,7 +409,7 @@ class OverallStatsScraper:
         output_file = self.config.resolved_output_file()
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        with output_file.open("w", encoding="utf-8") as out:
+        with output_file.open('w', encoding='utf-8') as out:
             self.write_parsed_stats(out, result)
             self.write_grouped_summary(out, grouped)
             self.write_coverage_summary(out, coverage)
@@ -432,33 +417,33 @@ class OverallStatsScraper:
         return output_file
 
     def write_parsed_stats(self, handle: TextIO, result: ParseResult) -> None:
-        handle.write("=== Parsed [==OVERALL SIM STATS==] by Subfolder and File ===\n\n")
+        handle.write('=== Parsed [==OVERALL SIM STATS==] by Subfolder and File ===\n\n')
 
         for subfolder in sorted(result.by_subfolder):
-            handle.write(f"Subfolder: {subfolder}\n")
+            handle.write(f'Subfolder: {subfolder}\n')
 
             for filename in sorted(result.by_subfolder[subfolder]):
                 file_stats = result.by_subfolder[subfolder][filename]
                 meta = file_stats.identity
-                handle.write(f"  File: {filename}\n")
+                handle.write(f'  File: {filename}\n')
                 handle.write(
-                    "    Meta: "
-                    f"dataset={meta.dataset}, classifier={meta.classifier}, "
-                    f"ce_type={meta.ce_type}, model_type={meta.model_type}, "
-                    f"seed={meta.seed}, run={meta.run}\n"
+                    '    Meta: '
+                    f'dataset={meta.dataset}, classifier={meta.classifier}, '
+                    f'ce_type={meta.ce_type}, model_type={meta.model_type}, '
+                    f'seed={meta.seed}, run={meta.run}\n'
                 )
 
                 for stat_line in file_stats.stat_lines:
-                    handle.write(f"    {stat_line}\n")
+                    handle.write(f'    {stat_line}\n')
 
-            handle.write("\n")
+            handle.write('\n')
 
     def write_grouped_summary(
         self,
         handle: TextIO,
         grouped: list[GroupSummary],
     ) -> None:
-        handle.write("=== Grouped Mean ± Std by Experiment Configuration ===\n\n")
+        handle.write('=== Grouped Mean ± Std by Experiment Configuration ===\n\n')
 
         current_group: tuple[str, str, str, str] | None = None
 
@@ -473,48 +458,43 @@ class OverallStatsScraper:
             if current_group != group_key:
                 current_group = group_key
                 handle.write(
-                    f"Dataset={summary.dataset} | "
-                    f"Classifier={summary.classifier} | "
-                    f"CE={summary.ce_type} | "
-                    f"Mode={summary.model_type}\n"
+                    f'Dataset={summary.dataset} | '
+                    f'Classifier={summary.classifier} | '
+                    f'CE={summary.ce_type} | '
+                    f'Mode={summary.model_type}\n'
                 )
 
-            handle.write(f"  Stat: {summary.stat_key}\n")
-            handle.write(f"    n = {summary.n}\n")
-            handle.write(
-                f"    mean ± std = {summary.mean_value:.6f} ± {summary.std_value:.6f}\n"
-            )
-            handle.write(f"    min = {summary.min_value:.6f}\n")
-            handle.write(f"    max = {summary.max_value:.6f}\n")
-            handle.write(f"    seeds present = {summary.seeds_present}\n")
-            handle.write(f"    runs present = {summary.runs_present}\n")
+            handle.write(f'  Stat: {summary.stat_key}\n')
+            handle.write(f'    n = {summary.n}\n')
+            handle.write(f'    mean ± std = {summary.mean_value:.6f} ± {summary.std_value:.6f}\n')
+            handle.write(f'    min = {summary.min_value:.6f}\n')
+            handle.write(f'    max = {summary.max_value:.6f}\n')
+            handle.write(f'    seeds present = {summary.seeds_present}\n')
+            handle.write(f'    runs present = {summary.runs_present}\n')
 
-        handle.write("\n")
+        handle.write('\n')
 
     def write_coverage_summary(
         self,
         handle: TextIO,
         coverage: list[CoverageSummary],
     ) -> None:
-        handle.write("=== Coverage Summary ===\n\n")
+        handle.write('=== Coverage Summary ===\n\n')
 
         for item in coverage:
             handle.write(
-                f"Dataset={item.dataset} | "
-                f"Classifier={item.classifier} | "
-                f"CE={item.ce_type} | "
-                f"Mode={item.model_type}\n"
+                f'Dataset={item.dataset} | Classifier={item.classifier} | CE={item.ce_type} | Mode={item.model_type}\n'
             )
-            handle.write(f"  found = {item.found_total}/{item.expected_total}\n")
+            handle.write(f'  found = {item.found_total}/{item.expected_total}\n')
 
             if item.missing_pairs:
-                handle.write("  missing:\n")
+                handle.write('  missing:\n')
                 for pair in item.missing_pairs:
-                    handle.write(f"    {pair}\n")
+                    handle.write(f'    {pair}\n')
             else:
-                handle.write("  missing: none\n")
+                handle.write('  missing: none\n')
 
-        handle.write("\n")
+        handle.write('\n')
 
     def write_json_output(
         self,
@@ -527,7 +507,7 @@ class OverallStatsScraper:
 
         payload = self.build_json_payload(result, grouped, coverage)
 
-        with output_file.open("w", encoding="utf-8") as out:
+        with output_file.open('w', encoding='utf-8') as out:
             json.dump(payload, out, indent=2, sort_keys=True)
 
         return output_file
@@ -539,20 +519,20 @@ class OverallStatsScraper:
         coverage: list[CoverageSummary],
     ) -> dict[str, Any]:
         return {
-            "config": {
-                "log_dir": str(self.config.log_dir),
-                "output_file": str(self.config.resolved_output_file()),
-                "json_output_file": str(self.config.resolved_json_output_file()),
-                "stat_marker": self.config.stat_marker,
-                "exclude_dir_prefix": self.config.exclude_dir_prefix,
-                "log_suffix": self.config.log_suffix,
-                "expected_seeds": list(self.config.expected_seeds),
-                "expected_runs": list(self.config.expected_runs),
-                "expected_ce_types": list(self.config.expected_ce_types),
+            'config': {
+                'log_dir': str(self.config.log_dir),
+                'output_file': str(self.config.resolved_output_file()),
+                'json_output_file': str(self.config.resolved_json_output_file()),
+                'stat_marker': self.config.stat_marker,
+                'exclude_dir_prefix': self.config.exclude_dir_prefix,
+                'log_suffix': self.config.log_suffix,
+                'expected_seeds': list(self.config.expected_seeds),
+                'expected_runs': list(self.config.expected_runs),
+                'expected_ce_types': list(self.config.expected_ce_types),
             },
-            "parsed": self._build_parsed_json(result),
-            "grouped_summary": [asdict(item) for item in grouped],
-            "coverage_summary": [asdict(item) for item in coverage],
+            'parsed': self._build_parsed_json(result),
+            'grouped_summary': [asdict(item) for item in grouped],
+            'coverage_summary': [asdict(item) for item in coverage],
         }
 
     def _build_parsed_json(self, result: ParseResult) -> dict[str, dict[str, Any]]:
@@ -563,50 +543,48 @@ class OverallStatsScraper:
             for filename in sorted(result.by_subfolder[subfolder]):
                 file_stats = result.by_subfolder[subfolder][filename]
                 parsed[subfolder][filename] = {
-                    "identity": asdict(file_stats.identity),
-                    "stat_lines": file_stats.stat_lines,
-                    "entries": [asdict(entry) for entry in file_stats.entries],
+                    'identity': asdict(file_stats.identity),
+                    'stat_lines': file_stats.stat_lines,
+                    'entries': [asdict(entry) for entry in file_stats.entries],
                 }
 
         return parsed
 
     def _relative_subfolder(self, directory: Path) -> str:
         relative = directory.relative_to(self.config.log_dir)
-        return relative.as_posix() if relative.parts else "."
+        return relative.as_posix() if relative.parts else '.'
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Scrape FIRCE overall stats from log files."
-    )
+    parser = argparse.ArgumentParser(description='Scrape FIRCE overall stats from log files.')
     parser.add_argument(
-        "--log-dir",
+        '--log-dir',
         type=Path,
-        default=Path("./logging/ac"),
-        help="Directory containing FIRCE log files.",
+        default=Path('./logging/ac'),
+        help='Directory containing FIRCE log files.',
     )
     parser.add_argument(
-        "--output-file",
+        '--output-file',
         type=Path,
         default=None,
-        help="Text output file path. Defaults to <log-dir>/overall_stats.log",
+        help='Text output file path. Defaults to <log-dir>/overall_stats.log',
     )
     parser.add_argument(
-        "--json-output-file",
+        '--json-output-file',
         type=Path,
         default=None,
-        help="JSON output file path. Defaults to <log-dir>/overall_stats.json",
+        help='JSON output file path. Defaults to <log-dir>/overall_stats.json',
     )
     parser.add_argument(
-        "--exclude-dir-prefix",
+        '--exclude-dir-prefix',
         type=str,
-        default="old",
-        help="Skip directories whose names start with this prefix.",
+        default='old',
+        help='Skip directories whose names start with this prefix.',
     )
     parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug logging.",
+        '--debug',
+        action='store_true',
+        help='Enable debug logging.',
     )
     return parser
 
@@ -615,7 +593,7 @@ def configure_logging(debug: bool) -> None:
     level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(
         level=level,
-        format="%(levelname)s: %(message)s",
+        format='%(levelname)s: %(message)s',
     )
 
 
@@ -637,5 +615,5 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())
