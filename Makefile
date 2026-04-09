@@ -83,7 +83,7 @@ overall.scrape:
 	@if [ -n "$(LOG_DIR)" ]; then \
 		$(UV) run scripts/overall_stats_scraper.py --log-dir "$(LOG_DIR)"; \
 	else \
-		$(UV) run scripts/overall_stats_scraper.py; \
+		$(UV) run scripts/overall_stats_scraper.py --log-dir ./logging/ac; \
 	fi
 
 lint: 
