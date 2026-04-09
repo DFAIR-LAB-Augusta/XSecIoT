@@ -596,11 +596,11 @@ wheels = [
 
 [[package]]
 name = "joblib"
-version = "1.5.1"
+version = "1.5.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/dc/fe/0f5a938c54105553436dbff7a61dc4fed4b1b2c98852f8833beaf4d5968f/joblib-1.5.1.tar.gz", hash = "sha256:f4f86e351f39fe3d0d32a9f2c3d8af1ee4cec285aafcb27003dda5205576b444", size = 330475, upload-time = "2025-05-23T12:04:37.097Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/41/f2/d34e8b3a08a9cc79a50b2208a93dce981fe615b64d5a4d4abee421d898df/joblib-1.5.3.tar.gz", hash = "sha256:8561a3269e6801106863fd0d6d84bb737be9e7631e33aaed3fb9ce5953688da3", size = 331603, upload-time = "2025-12-15T08:41:46.427Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7d/4f/1195bbac8e0c2acc5f740661631d8d750dc38d4a32b23ee5df3cde6f4e0d/joblib-1.5.1-py3-none-any.whl", hash = "sha256:4719a31f054c7d766948dcd83e9613686b27114f190f717cec7eaa2084f8a74a", size = 307746, upload-time = "2025-05-23T12:04:35.124Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/91/984aca2ec129e2757d1e4e3c81c3fcda9d0f85b74670a094cc443d9ee949/joblib-1.5.3-py3-none-any.whl", hash = "sha256:5fc3c5039fc5ca8c0276333a188bbd59d6b7ab37fe6632daa76bc7f9ec18e713", size = 309071, upload-time = "2025-12-15T08:41:44.973Z" },
 ]
 
 [[package]]
@@ -2173,7 +2173,7 @@ wheels = [
 
 [[package]]
 name = "xseciot"
-version = "1.0.1"
+version = "1.0.2"
 source = { editable = "." }
 dependencies = [
     { name = "dask" },
@@ -2224,7 +2224,7 @@ torch = [
 [package.metadata]
 requires-dist = [
     { name = "dask", specifier = "==2025.5.1" },
-    { name = "joblib", specifier = "==1.5.1" },
+    { name = "joblib", specifier = "==1.5.3" },
     { name = "lime", specifier = "==0.2.0.1" },
     { name = "matplotlib", specifier = "==3.10.8" },
     { name = "numpy", specifier = "==2.1.3" },
