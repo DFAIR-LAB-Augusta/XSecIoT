@@ -53,7 +53,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "dask==2025.5.1",
+    "dask==2026.3.0",
     "joblib==1.5.1",
     "lime==0.2.0.1",
     "matplotlib==3.10.8",
