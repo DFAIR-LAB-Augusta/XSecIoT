@@ -7,8 +7,8 @@ import re
 
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
-from enum import Enum
 from pathlib import Path
+from statistics import mean, stdev
 from typing import Any, DefaultDict, Iterable, TextIO
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -16,17 +16,21 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 logger = logging.getLogger(__name__)
 
 
-class StatMode(str, Enum):
-    MAX = 'max'
-    MIN = 'min'
-    BOTH = 'both'
-    ALL = 'all'
+EXPECTED_SEEDS: tuple[int, ...] = (17, 42, 67, 92, 117)
+EXPECTED_RUNS: tuple[int, ...] = (0, 1, 2, 3, 4)
+EXPECTED_CE_TYPES: tuple[str, ...] = (
+    'ice',
+    'approx_cce',
+    'cce',
+    'approx_tce',
+    'none',
+)
 
 
 class ScraperConfig(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    log_dir: Path = Field(default=Path('./logging'))
+    log_dir: Path = Field(default=Path('./logging/ac'))
     output_file: Path | None = None
     json_output_file: Path | None = None
     stat_marker: str = '[==OVERALL SIM STATS==]'
@@ -39,27 +43,9 @@ class ScraperConfig(BaseModel):
         'Standard Deviation of Chunk Sizes',
     })
 
-    stat_modes: dict[str, StatMode] = {
-        'Total simulate time': StatMode.MIN,
-        'Total Drift Detections': StatMode.BOTH,
-        'Drift Detection Rate': StatMode.BOTH,
-        'Average Chunks Between Drift Detections': StatMode.BOTH,
-        '[CE Model] Calibrations': StatMode.BOTH,
-        '[CE Model] Avg Accuracy': StatMode.MAX,
-        '[CE Model] Avg Precision': StatMode.MAX,
-        '[CE Model] Avg Recall': StatMode.MAX,
-        '[CE Model] Avg F1 Score': StatMode.MAX,
-        '[CE Model] Std Accuracy': StatMode.MIN,
-        '[Classifier Model] Calibrations': StatMode.BOTH,
-        '[Classifier Model] Avg Accuracy': StatMode.MAX,
-        '[Classifier Model] Avg Precision': StatMode.MAX,
-        '[Classifier Model] Avg Recall': StatMode.MAX,
-        '[Classifier Model] Avg F1 Score': StatMode.MAX,
-        '[Classifier Model] Std Accuracy': StatMode.MIN,
-        'Average Chunk Size': StatMode.ALL,
-        'Median Chunk Size': StatMode.ALL,
-        'Standard Deviation of Chunk Sizes': StatMode.ALL,
-    }
+    expected_seeds: tuple[int, ...] = EXPECTED_SEEDS
+    expected_runs: tuple[int, ...] = EXPECTED_RUNS
+    expected_ce_types: tuple[str, ...] = EXPECTED_CE_TYPES
 
     @field_validator('log_dir', mode='before')
     @classmethod
@@ -85,9 +71,20 @@ class ScraperConfig(BaseModel):
 
 
 @dataclass(slots=True, frozen=True)
-class StatEntry:
-    subfolder: str
+class RunIdentity:
+    dataset: str
+    classifier: str
+    ce_type: str
+    model_type: str
+    seed: int
+    run: int
     filename: str
+
+
+@dataclass(slots=True, frozen=True)
+class StatEntry:
+    identity: RunIdentity
+    subfolder: str
     stat_key: str
     raw_value: str
     numeric_value: float | None
@@ -95,8 +92,8 @@ class StatEntry:
 
 @dataclass(slots=True)
 class FileStats:
+    identity: RunIdentity
     subfolder: str
-    filename: str
     stat_lines: list[str] = field(default_factory=list)
     entries: list[StatEntry] = field(default_factory=list)
 
@@ -105,13 +102,53 @@ class FileStats:
         self.stat_lines.append(f'{entry.stat_key}: {entry.raw_value}')
 
 
+@dataclass(slots=True, frozen=True)
+class GroupKey:
+    dataset: str
+    classifier: str
+    ce_type: str
+    model_type: str
+    stat_key: str
+
+
+@dataclass(slots=True)
+class GroupSummary:
+    dataset: str
+    classifier: str
+    ce_type: str
+    model_type: str
+    stat_key: str
+    n: int
+    mean_value: float
+    std_value: float
+    min_value: float
+    max_value: float
+    seeds_present: list[int]
+    runs_present: list[int]
+    files: list[str]
+
+
+@dataclass(slots=True)
+class CoverageSummary:
+    dataset: str
+    classifier: str
+    ce_type: str
+    model_type: str
+    expected_total: int
+    found_total: int
+    missing_pairs: list[str]
+
+
 @dataclass(slots=True)
 class ParseResult:
     by_subfolder: DefaultDict[str, dict[str, FileStats]] = field(default_factory=lambda: defaultdict(dict))
     by_stat: DefaultDict[str, list[StatEntry]] = field(default_factory=lambda: defaultdict(list))
+    all_files: list[FileStats] = field(default_factory=list)
 
     def add_file_stats(self, file_stats: FileStats) -> None:
-        self.by_subfolder[file_stats.subfolder][file_stats.filename] = file_stats
+        self.by_subfolder[file_stats.subfolder][file_stats.identity.filename] = file_stats
+        self.all_files.append(file_stats)
+
         for entry in file_stats.entries:
             if entry.numeric_value is not None:
                 self.by_stat[entry.stat_key].append(entry)
@@ -121,6 +158,19 @@ class OverallStatsScraper:
     CE_SUMMARY_MARKER = '=== CE Model Calibration Summary ==='
     CLASSIFIER_SUMMARY_MARKER = '=== Classifier Model Performance Summary ==='
 
+    FILENAME_RE = re.compile(
+        r"""
+        ^
+        (?P<classifier>.+?)_
+        (?P<ce_type>ice|approx_cce|cce|approx_tce|none)_
+        (?P<model_type>mc|binary)_
+        (?P<seed>\d+)_
+        (?P<run>\d+)_run
+        \.log$
+        """,
+        re.VERBOSE,
+    )
+
     def __init__(self, config: ScraperConfig) -> None:
         self.config = config
         self.key_value_pattern = re.compile(rf'{re.escape(config.stat_marker)}\s+(.*?):\s+(.*)')
@@ -128,8 +178,12 @@ class OverallStatsScraper:
     def run(self) -> tuple[Path, Path]:
         logger.info('Starting scrape from %s', self.config.log_dir)
         result = self.parse_logs()
-        log_output_path = self.write_text_output(result)
-        json_output_path = self.write_json_output(result)
+        grouped = self.build_group_summaries(result)
+        coverage = self.build_coverage_summaries(result)
+
+        log_output_path = self.write_text_output(result, grouped, coverage)
+        json_output_path = self.write_json_output(result, grouped, coverage)
+
         logger.info('Wrote text summary to %s', log_output_path)
         logger.info('Wrote JSON summary to %s', json_output_path)
         return log_output_path, json_output_path
@@ -162,8 +216,9 @@ class OverallStatsScraper:
             yield file_path
 
     def parse_log_file(self, file_path: Path) -> FileStats:
+        identity = self.parse_identity(file_path)
         subfolder = self._relative_subfolder(file_path.parent)
-        file_stats = FileStats(subfolder=subfolder, filename=file_path.name)
+        file_stats = FileStats(identity=identity, subfolder=subfolder)
 
         model_section: str | None = None
 
@@ -184,8 +239,8 @@ class OverallStatsScraper:
 
                 entry = self.parse_stat_line(
                     line=line,
+                    identity=identity,
                     subfolder=subfolder,
-                    filename=file_path.name,
                     model_section=model_section,
                 )
                 if entry is not None:
@@ -193,12 +248,29 @@ class OverallStatsScraper:
 
         return file_stats
 
+    def parse_identity(self, file_path: Path) -> RunIdentity:
+        dataset = file_path.parent.name
+        match = self.FILENAME_RE.match(file_path.name)
+
+        if match is None:
+            raise ValueError(f'Unrecognized log filename format: {file_path.name}')
+
+        return RunIdentity(
+            dataset=dataset,
+            classifier=match.group('classifier'),
+            ce_type=match.group('ce_type'),
+            model_type=match.group('model_type'),
+            seed=int(match.group('seed')),
+            run=int(match.group('run')),
+            filename=file_path.name,
+        )
+
     def parse_stat_line(
         self,
         *,
         line: str,
+        identity: RunIdentity,
         subfolder: str,
-        filename: str,
         model_section: str | None,
     ) -> StatEntry | None:
         match = self.key_value_pattern.search(line)
@@ -212,8 +284,8 @@ class OverallStatsScraper:
         numeric_value = self.parse_numeric_value(stat_value)
 
         return StatEntry(
+            identity=identity,
             subfolder=subfolder,
-            filename=filename,
             stat_key=full_key,
             raw_value=stat_value,
             numeric_value=numeric_value,
@@ -236,13 +308,111 @@ class OverallStatsScraper:
         except ValueError:
             return None
 
-    def write_text_output(self, result: ParseResult) -> Path:
+    def build_group_summaries(self, result: ParseResult) -> list[GroupSummary]:
+        grouped: DefaultDict[GroupKey, list[StatEntry]] = defaultdict(list)
+
+        for file_stats in result.all_files:
+            for entry in file_stats.entries:
+                if entry.numeric_value is None:
+                    continue
+
+                key = GroupKey(
+                    dataset=entry.identity.dataset,
+                    classifier=entry.identity.classifier,
+                    ce_type=entry.identity.ce_type,
+                    model_type=entry.identity.model_type,
+                    stat_key=entry.stat_key,
+                )
+                grouped[key].append(entry)
+
+        summaries: list[GroupSummary] = []
+
+        for key in sorted(
+            grouped,
+            key=lambda item: (
+                item.dataset,
+                item.classifier,
+                item.model_type,
+                item.ce_type,
+                item.stat_key,
+            ),
+        ):
+            entries = grouped[key]
+            values = [entry.numeric_value for entry in entries if entry.numeric_value is not None]
+            if not values:
+                continue
+
+            seeds_present = sorted({entry.identity.seed for entry in entries})
+            runs_present = sorted({entry.identity.run for entry in entries})
+            files = sorted({entry.identity.filename for entry in entries})
+
+            summaries.append(
+                GroupSummary(
+                    dataset=key.dataset,
+                    classifier=key.classifier,
+                    ce_type=key.ce_type,
+                    model_type=key.model_type,
+                    stat_key=key.stat_key,
+                    n=len(values),
+                    mean_value=mean(values),
+                    std_value=stdev(values) if len(values) > 1 else 0.0,
+                    min_value=min(values),
+                    max_value=max(values),
+                    seeds_present=seeds_present,
+                    runs_present=runs_present,
+                    files=files,
+                )
+            )
+
+        return summaries
+
+    def build_coverage_summaries(self, result: ParseResult) -> list[CoverageSummary]:
+        seen: DefaultDict[tuple[str, str, str, str], set[tuple[int, int]]] = defaultdict(set)
+
+        for file_stats in result.all_files:
+            identity = file_stats.identity
+            key = (
+                identity.dataset,
+                identity.classifier,
+                identity.ce_type,
+                identity.model_type,
+            )
+            seen[key].add((identity.seed, identity.run))
+
+        coverage: list[CoverageSummary] = []
+        expected_pairs = {(seed, run) for seed in self.config.expected_seeds for run in self.config.expected_runs}
+        expected_total = len(expected_pairs)
+
+        for key in sorted(seen):
+            found_pairs = seen[key]
+            missing_pairs = sorted(expected_pairs - found_pairs)
+            coverage.append(
+                CoverageSummary(
+                    dataset=key[0],
+                    classifier=key[1],
+                    ce_type=key[2],
+                    model_type=key[3],
+                    expected_total=expected_total,
+                    found_total=len(found_pairs),
+                    missing_pairs=[f'seed={seed}, run={run}' for seed, run in missing_pairs],
+                )
+            )
+
+        return coverage
+
+    def write_text_output(
+        self,
+        result: ParseResult,
+        grouped: list[GroupSummary],
+        coverage: list[CoverageSummary],
+    ) -> Path:
         output_file = self.config.resolved_output_file()
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
         with output_file.open('w', encoding='utf-8') as out:
             self.write_parsed_stats(out, result)
-            self.write_best_values(out, result)
+            self.write_grouped_summary(out, grouped)
+            self.write_coverage_summary(out, coverage)
 
         return output_file
 
@@ -254,90 +424,100 @@ class OverallStatsScraper:
 
             for filename in sorted(result.by_subfolder[subfolder]):
                 file_stats = result.by_subfolder[subfolder][filename]
+                meta = file_stats.identity
                 handle.write(f'  File: {filename}\n')
+                handle.write(
+                    '    Meta: '
+                    f'dataset={meta.dataset}, classifier={meta.classifier}, '
+                    f'ce_type={meta.ce_type}, model_type={meta.model_type}, '
+                    f'seed={meta.seed}, run={meta.run}\n'
+                )
 
                 for stat_line in file_stats.stat_lines:
                     handle.write(f'    {stat_line}\n')
 
             handle.write('\n')
 
-    def write_best_values(self, handle: TextIO, result: ParseResult) -> None:
-        handle.write('=== Best Values by Stat ===\n\n')
-
-        for stat_key in sorted(result.by_stat):
-            entries = result.by_stat[stat_key]
-            mode = self.config.stat_modes.get(stat_key, StatMode.MAX)
-            label = self.display_label(stat_key)
-
-            handle.write(f'{label}:\n')
-            self.write_stat_summary(handle, entries, mode)
-            handle.write('\n')
-
-    def write_stat_summary(
+    def write_grouped_summary(
         self,
         handle: TextIO,
-        entries: list[StatEntry],
-        mode: StatMode,
+        grouped: list[GroupSummary],
     ) -> None:
-        if not entries:
-            handle.write('  No numeric entries found.\n')
-            return
+        handle.write('=== Grouped Mean ± Std by Experiment Configuration ===\n\n')
 
-        numeric_entries = [entry for entry in entries if entry.numeric_value is not None]
-        if not numeric_entries:
-            handle.write('  No numeric entries found.\n')
-            return
+        current_group: tuple[str, str, str, str] | None = None
 
-        match mode:
-            case StatMode.MAX:
-                max_val = max(entry.numeric_value for entry in numeric_entries)  # type: ignore
-                for entry in numeric_entries:
-                    if entry.numeric_value == max_val:
-                        handle.write(f'  Highest = {entry.raw_value} in {entry.subfolder}/{entry.filename}\n')
+        for summary in grouped:
+            group_key = (
+                summary.dataset,
+                summary.classifier,
+                summary.ce_type,
+                summary.model_type,
+            )
 
-            case StatMode.MIN:
-                min_val = min(entry.numeric_value for entry in numeric_entries)  # type: ignore
-                for entry in numeric_entries:
-                    if entry.numeric_value == min_val:
-                        handle.write(f'  Lowest = {entry.raw_value} in {entry.subfolder}/{entry.filename}\n')
-
-            case StatMode.BOTH:
-                min_val = min(entry.numeric_value for entry in numeric_entries)  # type: ignore
-                max_val = max(entry.numeric_value for entry in numeric_entries)  # type: ignore
-
-                handle.write('  Highest:\n')
-                for entry in numeric_entries:
-                    if entry.numeric_value == max_val:
-                        handle.write(f'    {entry.raw_value} in {entry.subfolder}/{entry.filename}\n')
-
-                handle.write('  Lowest:\n')
-                for entry in numeric_entries:
-                    if entry.numeric_value == min_val:
-                        handle.write(f'    {entry.raw_value} in {entry.subfolder}/{entry.filename}\n')
-
-            case StatMode.ALL:
-                sorted_entries = sorted(
-                    numeric_entries,
-                    key=lambda entry: entry.numeric_value if entry.numeric_value is not None else float('inf'),
+            if current_group != group_key:
+                current_group = group_key
+                handle.write(
+                    f'Dataset={summary.dataset} | '
+                    f'Classifier={summary.classifier} | '
+                    f'CE={summary.ce_type} | '
+                    f'Mode={summary.model_type}\n'
                 )
-                for entry in sorted_entries:
-                    handle.write(f'  {entry.raw_value} in {entry.subfolder}/{entry.filename}\n')
 
-            case _:
-                raise ValueError(f'Unknown stat mode: {mode}')
+            handle.write(f'  Stat: {summary.stat_key}\n')
+            handle.write(f'    n = {summary.n}\n')
+            handle.write(f'    mean ± std = {summary.mean_value:.6f} ± {summary.std_value:.6f}\n')
+            handle.write(f'    min = {summary.min_value:.6f}\n')
+            handle.write(f'    max = {summary.max_value:.6f}\n')
+            handle.write(f'    seeds present = {summary.seeds_present}\n')
+            handle.write(f'    runs present = {summary.runs_present}\n')
 
-    def write_json_output(self, result: ParseResult) -> Path:
+        handle.write('\n')
+
+    def write_coverage_summary(
+        self,
+        handle: TextIO,
+        coverage: list[CoverageSummary],
+    ) -> None:
+        handle.write('=== Coverage Summary ===\n\n')
+
+        for item in coverage:
+            handle.write(
+                f'Dataset={item.dataset} | Classifier={item.classifier} | CE={item.ce_type} | Mode={item.model_type}\n'
+            )
+            handle.write(f'  found = {item.found_total}/{item.expected_total}\n')
+
+            if item.missing_pairs:
+                handle.write('  missing:\n')
+                for pair in item.missing_pairs:
+                    handle.write(f'    {pair}\n')
+            else:
+                handle.write('  missing: none\n')
+
+        handle.write('\n')
+
+    def write_json_output(
+        self,
+        result: ParseResult,
+        grouped: list[GroupSummary],
+        coverage: list[CoverageSummary],
+    ) -> Path:
         output_file = self.config.resolved_json_output_file()
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        payload = self.build_json_payload(result)
+        payload = self.build_json_payload(result, grouped, coverage)
 
         with output_file.open('w', encoding='utf-8') as out:
             json.dump(payload, out, indent=2, sort_keys=True)
 
         return output_file
 
-    def build_json_payload(self, result: ParseResult) -> dict[str, Any]:
+    def build_json_payload(
+        self,
+        result: ParseResult,
+        grouped: list[GroupSummary],
+        coverage: list[CoverageSummary],
+    ) -> dict[str, Any]:
         return {
             'config': {
                 'log_dir': str(self.config.log_dir),
@@ -346,9 +526,13 @@ class OverallStatsScraper:
                 'stat_marker': self.config.stat_marker,
                 'exclude_dir_prefix': self.config.exclude_dir_prefix,
                 'log_suffix': self.config.log_suffix,
+                'expected_seeds': list(self.config.expected_seeds),
+                'expected_runs': list(self.config.expected_runs),
+                'expected_ce_types': list(self.config.expected_ce_types),
             },
             'parsed': self._build_parsed_json(result),
-            'best_values': self._build_best_values_json(result),
+            'grouped_summary': [asdict(item) for item in grouped],
+            'coverage_summary': [asdict(item) for item in coverage],
         }
 
     def _build_parsed_json(self, result: ParseResult) -> dict[str, dict[str, Any]]:
@@ -359,72 +543,12 @@ class OverallStatsScraper:
             for filename in sorted(result.by_subfolder[subfolder]):
                 file_stats = result.by_subfolder[subfolder][filename]
                 parsed[subfolder][filename] = {
+                    'identity': asdict(file_stats.identity),
                     'stat_lines': file_stats.stat_lines,
                     'entries': [asdict(entry) for entry in file_stats.entries],
                 }
 
         return parsed
-
-    def _build_best_values_json(self, result: ParseResult) -> dict[str, Any]:
-        best_values: dict[str, Any] = {}
-
-        for stat_key in sorted(result.by_stat):
-            entries = result.by_stat[stat_key]
-            mode = self.config.stat_modes.get(stat_key, StatMode.MAX)
-            best_values[stat_key] = {
-                'display_label': self.display_label(stat_key),
-                'mode': mode.value,
-                'results': self._summarize_entries(entries, mode),
-            }
-
-        return best_values
-
-    def _summarize_entries(
-        self,
-        entries: list[StatEntry],
-        mode: StatMode,
-    ) -> dict[str, Any]:
-        numeric_entries = [entry for entry in entries if entry.numeric_value is not None]
-        if not numeric_entries:
-            return {'message': 'No numeric entries found.'}
-
-        match mode:
-            case StatMode.MAX:
-                max_val = max(entry.numeric_value for entry in numeric_entries)  # type: ignore
-                matches = [asdict(entry) for entry in numeric_entries if entry.numeric_value == max_val]
-                return {'highest': matches}
-
-            case StatMode.MIN:
-                min_val = min(entry.numeric_value for entry in numeric_entries)  # type: ignore
-                matches = [asdict(entry) for entry in numeric_entries if entry.numeric_value == min_val]
-                return {'lowest': matches}
-
-            case StatMode.BOTH:
-                min_val = min(entry.numeric_value for entry in numeric_entries)  # type: ignore
-                max_val = max(entry.numeric_value for entry in numeric_entries)  # type: ignore
-                highest = [asdict(entry) for entry in numeric_entries if entry.numeric_value == max_val]
-                lowest = [asdict(entry) for entry in numeric_entries if entry.numeric_value == min_val]
-                return {
-                    'highest': highest,
-                    'lowest': lowest,
-                }
-
-            case StatMode.ALL:
-                sorted_entries = sorted(
-                    numeric_entries,
-                    key=lambda entry: entry.numeric_value if entry.numeric_value is not None else float('inf'),
-                )
-                return {
-                    'ordered': [asdict(entry) for entry in sorted_entries],
-                }
-
-            case _:
-                raise ValueError(f'Unknown stat mode: {mode}')
-
-    def display_label(self, stat_key: str) -> str:
-        if stat_key in self.config.chunk_stats:
-            return f'Adaptive Chunker {stat_key}'
-        return stat_key
 
     def _relative_subfolder(self, directory: Path) -> str:
         relative = directory.relative_to(self.config.log_dir)
@@ -436,7 +560,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         '--log-dir',
         type=Path,
-        default=Path('./logging'),
+        default=Path('./logging/ac'),
         help='Directory containing FIRCE log files.',
     )
     parser.add_argument(
