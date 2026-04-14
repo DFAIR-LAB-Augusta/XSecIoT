@@ -14,46 +14,42 @@ logger = logging.getLogger(__name__)
 
 
 DEFAULT_DATASET_LABELS: dict[str, str] = {
-    "DFAIR": "DFAIR $\\rightarrow$ DFAIR Drift",
-    "NB15": "UNSW-NB15 $\\rightarrow$ DFAIR Drift",
-    "CIC_UNSW": "CICIDS2018 $\\rightarrow$ DFAIR Drift",
+    'DFAIR': 'DFAIR $\\rightarrow$ DFAIR Drift',
+    'NB15': 'UNSW-NB15 $\\rightarrow$ DFAIR Drift',
+    'CIC_UNSW': 'CICIDS2018 $\\rightarrow$ DFAIR Drift',
 }
 
 DEFAULT_STAT_KEY_MAP: dict[str, str] = {
-    "accuracy": "[Classifier Model] Avg Accuracy",
-    "precision": "[Classifier Model] Avg Precision",
-    "recall": "[Classifier Model] Avg Recall",
-    "f1": "[Classifier Model] Avg F1 Score",
-    "runtime": "Total simulate time",
-    "retrain_count": "Total Drift Detections",
+    'accuracy': '[Classifier Model] Avg Accuracy',
+    'precision': '[Classifier Model] Avg Precision',
+    'recall': '[Classifier Model] Avg Recall',
+    'f1': '[Classifier Model] Avg F1 Score',
+    'runtime': 'Total simulate time',
+    'retrain_count': 'Total Drift Detections',
 }
 
 
 class TableConfig(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    json_input_file: Path = Field(default=Path("./logging/ac/overall_stats.json"))
+    json_input_file: Path = Field(default=Path('./logging/ac/overall_stats.json'))
     output_file: Path | None = None
-    classifier: str = "feedforward"
-    ce_type: str = "approx_cce"
-    model_type: str = "binary"
+    classifier: str = 'feedforward'
+    ce_type: str = 'approx_cce'
+    model_type: str = 'binary'
     decimals: int = 4
     require_complete_coverage: bool = False
 
     dataset_order: tuple[str, ...] = (
-        "DFAIR",
-        "NB15",
-        "CIC_UNSW",
+        'DFAIR',
+        'NB15',
+        'CIC_UNSW',
     )
 
-    dataset_labels: dict[str, str] = Field(
-        default_factory=lambda: dict(DEFAULT_DATASET_LABELS)
-    )
-    stat_key_map: dict[str, str] = Field(
-        default_factory=lambda: dict(DEFAULT_STAT_KEY_MAP)
-    )
+    dataset_labels: dict[str, str] = Field(default_factory=lambda: dict(DEFAULT_DATASET_LABELS))
+    stat_key_map: dict[str, str] = Field(default_factory=lambda: dict(DEFAULT_STAT_KEY_MAP))
 
-    @field_validator("json_input_file", "output_file", mode="before")
+    @field_validator('json_input_file', 'output_file', mode='before')
     @classmethod
     def _coerce_optional_path(cls, value: str | Path | None) -> Path | None:
         if value is None:
@@ -63,7 +59,7 @@ class TableConfig(BaseModel):
     def resolved_output_file(self) -> Path:
         if self.output_file is not None:
             return self.output_file
-        return self.json_input_file.parent / "multi_seed_table_rows.tex"
+        return self.json_input_file.parent / 'multi_seed_table_rows.tex'
 
 
 @dataclass(slots=True, frozen=True)
@@ -94,46 +90,42 @@ class OverallStatsTableBuilder:
         self.config = config
 
     def run(self) -> Path:
-        logger.info("Reading overall stats JSON from %s", self.config.json_input_file)
+        logger.info('Reading overall stats JSON from %s', self.config.json_input_file)
         payload = self.load_json()
         grouped_stats = self.parse_grouped_stats(payload)
         coverage_stats = self.parse_coverage_stats(payload)
         self.log_available_keys(grouped_stats)
         rows = self.build_rows(grouped_stats, coverage_stats)
         output_path = self.write_output(rows)
-        logger.info("Wrote LaTeX table rows to %s", output_path)
+        logger.info('Wrote LaTeX table rows to %s', output_path)
         return output_path
 
     def load_json(self) -> dict[str, Any]:
         if not self.config.json_input_file.exists():
-            raise FileNotFoundError(
-                f"JSON input file does not exist: {self.config.json_input_file}"
-            )
+            raise FileNotFoundError(f'JSON input file does not exist: {self.config.json_input_file}')
 
-        with self.config.json_input_file.open("r", encoding="utf-8") as handle:
+        with self.config.json_input_file.open('r', encoding='utf-8') as handle:
             payload = json.load(handle)
 
-        if "grouped_summary" not in payload:
-            raise ValueError(
-                f"Missing 'grouped_summary' in {self.config.json_input_file}"
-            )
+        if 'grouped_summary' not in payload:
+            raise ValueError(f"Missing 'grouped_summary' in {self.config.json_input_file}")
 
         return payload
 
     def parse_grouped_stats(self, payload: dict[str, Any]) -> list[GroupedStat]:
         stats: list[GroupedStat] = []
 
-        for item in payload.get("grouped_summary", []):
+        for item in payload.get('grouped_summary', []):
             stats.append(
                 GroupedStat(
-                    dataset=str(item["dataset"]),
-                    classifier=str(item["classifier"]),
-                    ce_type=str(item["ce_type"]),
-                    model_type=str(item["model_type"]),
-                    stat_key=str(item["stat_key"]),
-                    n=int(item["n"]),
-                    mean_value=float(item["mean_value"]),
-                    std_value=float(item["std_value"]),
+                    dataset=str(item['dataset']),
+                    classifier=str(item['classifier']),
+                    ce_type=str(item['ce_type']),
+                    model_type=str(item['model_type']),
+                    stat_key=str(item['stat_key']),
+                    n=int(item['n']),
+                    mean_value=float(item['mean_value']),
+                    std_value=float(item['std_value']),
                 )
             )
 
@@ -142,16 +134,16 @@ class OverallStatsTableBuilder:
     def parse_coverage_stats(self, payload: dict[str, Any]) -> list[CoverageStat]:
         stats: list[CoverageStat] = []
 
-        for item in payload.get("coverage_summary", []):
+        for item in payload.get('coverage_summary', []):
             stats.append(
                 CoverageStat(
-                    dataset=str(item["dataset"]),
-                    classifier=str(item["classifier"]),
-                    ce_type=str(item["ce_type"]),
-                    model_type=str(item["model_type"]),
-                    expected_total=int(item["expected_total"]),
-                    found_total=int(item["found_total"]),
-                    missing_pairs=[str(v) for v in item.get("missing_pairs", [])],
+                    dataset=str(item['dataset']),
+                    classifier=str(item['classifier']),
+                    ce_type=str(item['ce_type']),
+                    model_type=str(item['model_type']),
+                    expected_total=int(item['expected_total']),
+                    found_total=int(item['found_total']),
+                    missing_pairs=[str(v) for v in item.get('missing_pairs', [])],
                 )
             )
 
@@ -166,9 +158,9 @@ class OverallStatsTableBuilder:
             and item.model_type == self.config.model_type
         ]
 
-        logger.debug("Available grouped keys after filtering:")
+        logger.debug('Available grouped keys after filtering:')
         for item in sorted(filtered, key=lambda x: (x.dataset, x.stat_key)):
-            logger.debug("  dataset=%s stat_key=%s", item.dataset, item.stat_key)
+            logger.debug('  dataset=%s stat_key=%s', item.dataset, item.stat_key)
 
     def build_rows(
         self,
@@ -195,27 +187,22 @@ class OverallStatsTableBuilder:
             if self.config.require_complete_coverage and coverage is not None:
                 if coverage.found_total != coverage.expected_total:
                     raise ValueError(
-                        f"Incomplete coverage for {dataset_key}: "
-                        f"{coverage.found_total}/{coverage.expected_total}"
+                        f'Incomplete coverage for {dataset_key}: {coverage.found_total}/{coverage.expected_total}'
                     )
 
             dataset_label = self.config.dataset_labels.get(dataset_key, dataset_key)
-            accuracy = self._format_stat(grouped_lookup, dataset_key, "accuracy")
-            precision = self._format_stat(grouped_lookup, dataset_key, "precision")
-            recall = self._format_stat(grouped_lookup, dataset_key, "recall")
-            f1 = self._format_stat(grouped_lookup, dataset_key, "f1")
-            runtime = self._format_stat(grouped_lookup, dataset_key, "runtime")
+            accuracy = self._format_stat(grouped_lookup, dataset_key, 'accuracy')
+            precision = self._format_stat(grouped_lookup, dataset_key, 'precision')
+            recall = self._format_stat(grouped_lookup, dataset_key, 'recall')
+            f1 = self._format_stat(grouped_lookup, dataset_key, 'f1')
+            runtime = self._format_stat(grouped_lookup, dataset_key, 'runtime')
             retrain_count = self._format_stat(
                 grouped_lookup,
                 dataset_key,
-                "retrain_count",
+                'retrain_count',
             )
 
-            row = (
-                f"{dataset_label} \n"
-                f"& {accuracy} & {precision} & {recall} "
-                f"& {f1} & {runtime} & {retrain_count} \\\\"
-            )
+            row = f'{dataset_label} \n& {accuracy} & {precision} & {recall} & {f1} & {runtime} & {retrain_count} \\\\'
             rows.append(row)
 
         return rows
@@ -238,11 +225,11 @@ class OverallStatsTableBuilder:
 
         if item is None:
             logger.warning(
-                "Missing grouped stat for dataset=%s stat_key=%s",
+                'Missing grouped stat for dataset=%s stat_key=%s',
                 dataset_key,
                 stat_key,
             )
-            return "TODO $\\pm$ TODO"
+            return 'TODO $\\pm$ TODO'
 
         return self._format_mean_std(item.mean_value, item.std_value, logical_name)
 
@@ -252,89 +239,83 @@ class OverallStatsTableBuilder:
         std_value: float,
         logical_name: str,
     ) -> str:
-        if logical_name == "retrain_count":
-            return f"{mean_value:.2f} $\\pm$ {std_value:.2f}"
+        if logical_name == 'retrain_count':
+            return f'{mean_value:.2f} $\\pm$ {std_value:.2f}'
 
-        return (
-            f"{mean_value:.{self.config.decimals}f} "
-            f"$\\pm$ "
-            f"{std_value:.{self.config.decimals}f}"
-        )
+        return f'{mean_value:.{self.config.decimals}f} $\\pm$ {std_value:.{self.config.decimals}f}'
 
     def write_output(self, rows: list[str]) -> Path:
         output_path = self.config.resolved_output_file()
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with output_path.open("w", encoding="utf-8") as handle:
-            handle.write("% Auto-generated by scripts/overall_stats_table_builder.py\n")
+        with output_path.open('w', encoding='utf-8') as handle:
+            handle.write('% Auto-generated by scripts/overall_stats_table_builder.py\n')
             handle.write(
-                f"% classifier={self.config.classifier}, "
-                f"ce_type={self.config.ce_type}, "
-                f"model_type={self.config.model_type}\n\n"
+                f'% classifier={self.config.classifier}, '
+                f'ce_type={self.config.ce_type}, '
+                f'model_type={self.config.model_type}\n\n'
             )
             for row in rows:
                 handle.write(row)
-                handle.write("\n\n")
+                handle.write('\n\n')
 
         return output_path
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Build LaTeX table rows from overall_stats.json."
-    )
+    parser = argparse.ArgumentParser(description='Build LaTeX table rows from overall_stats.json.')
     parser.add_argument(
-        "--json-input-file",
+        '--json-input-file',
         type=Path,
-        default=Path("./logging/ac/overall_stats.json"),
-        help="Path to overall_stats.json.",
+        default=Path('./logging/ac/overall_stats.json'),
+        help='Path to overall_stats.json.',
     )
     parser.add_argument(
-        "--output-file",
+        '--output-file',
         type=Path,
         default=None,
-        help="Output .tex file path.",
+        help='Output .tex file path.',
     )
     parser.add_argument(
-        "--classifier",
+        '--classifier',
         type=str,
-        default="feedforward",
-        help="Classifier name to filter on.",
+        default='feedforward',
+        help='Classifier name to filter on.',
     )
     parser.add_argument(
-        "--ce-type",
+        '--ce-type',
         type=str,
-        default="approx_cce",
-        help="CE type to filter on.",
+        default='approx_cce',
+        help='CE type to filter on.',
     )
     parser.add_argument(
-        "--model-type",
+        '--model-type',
         type=str,
-        default="binary",
-        help="Model type to filter on.",
+        default='binary',
+        help='Model type to filter on.',
     )
     parser.add_argument(
-        "--decimals",
+        '--decimals',
         type=int,
         default=4,
-        help="Decimal places for mean ± std.",
+        help='Decimal places for mean ± std.',
     )
     parser.add_argument(
-        "--require-complete-coverage",
-        action="store_true",
-        help="Fail if any row is missing seed/run coverage.",
+        '--require-complete-coverage',
+        action='store_true',
+        help='Fail if any row is missing seed/run coverage.',
     )
     parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug logging.",
+        '--debug',
+        action='store_true',
+        help='Enable debug logging.',
     )
     return parser
 
 
 def configure_logging(debug: bool) -> None:
     level = logging.DEBUG if debug else logging.INFO
-    logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
+    logging.basicConfig(level=level, format='%(levelname)s: %(message)s')
 
 
 def main() -> int:
@@ -358,5 +339,5 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())
