@@ -274,6 +274,11 @@ class OverallStatsScraper:
         model_section: str | None,
     ) -> StatEntry | None:
         match = self.key_value_pattern.search(line)
+
+        message = line.split(self.config.stat_marker, 1)[1].strip()
+        if ':' not in message:
+            logger.debug('Skipping non-stat status line: %s', line)
+            return None
         if not match:
             logger.debug('Could not parse stat line: %s', line)
             return None
