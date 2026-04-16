@@ -8,7 +8,7 @@ sources = ["src"]
 
 [project]
 name = "xseciot"
-version = "1.0.3"
+version = "1.0.4"
 description = "Machine learning-based IoT intrusion detection with explainable AI and conformal evaluation."
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
@@ -61,7 +61,7 @@ dependencies = [
     "pandas==3.0.1",
     "scikit-learn==1.8.0",
     "scipy==1.15.3",
-    "shap==0.47.2",
+    "shap==0.51.0",
     "shortuuid==1.0.13",
     "toml==0.10.2",
     "tqdm==4.67.3",
@@ -78,15 +78,15 @@ Lab = "https://github.com/DFAIR-LAB-Augusta"
 
 [dependency-groups]
 dev = [
-    "deptry==0.25.1",
-    "pytest==8.3.5",
-    "pytest-cov==6.0.0",
-    "ruff==0.15.7",
-    "twine==6.2.0",
+    "deptry>=0.25.1",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.15.8",
+    "twine>=6.2.0",
 ]
 
 torch = [
-    "torch==2.10.0",
+    "torch==2.11.0",
 ]
 
 tensorflow = [

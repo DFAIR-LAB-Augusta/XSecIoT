@@ -12,7 +12,8 @@
 ## Testing
 - [ ] `make lint`
 - [ ] `make test`
-- [ ] `make build`
+- [ ] `make preflight`
+- [ ] `make deps.check`
 
 ## Notes
 <!-- Anything reviewers should know -->
