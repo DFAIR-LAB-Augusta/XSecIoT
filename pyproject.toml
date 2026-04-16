@@ -80,7 +80,7 @@ Lab = "https://github.com/DFAIR-LAB-Augusta"
 dev = [
     "deptry==0.25.1",
     "pytest==8.3.5",
-    "pytest-cov==6.0.0",
+    "pytest-cov==7.1.0",
     "ruff==0.15.7",
     "twine==6.2.0",
 ]
