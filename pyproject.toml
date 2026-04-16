@@ -61,7 +61,7 @@ dependencies = [
     "pandas==3.0.1",
     "scikit-learn==1.8.0",
     "scipy==1.15.3",
-    "shap==0.47.2",
+    "shap==0.51.0",
     "shortuuid==1.0.13",
     "toml==0.10.2",
     "tqdm==4.67.3",
