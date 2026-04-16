@@ -4,31 +4,38 @@ requires-python = "==3.11.*"
 resolution-markers = [
     "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
     "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
     "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'linux' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
     "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
 ]
 conflicts = [[
     { package = "xseciot", group = "tensorflow" },
@@ -115,7 +122,7 @@ name = "cffi"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pycparser", marker = "(implementation_name != 'PyPy' and sys_platform == 'linux') or (implementation_name != 'PyPy' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (implementation_name != 'PyPy' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (implementation_name == 'PyPy' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "pycparser", marker = "(implementation_name != 'PyPy' and platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-torch') or (implementation_name != 'PyPy' and platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (implementation_name == 'PyPy' and platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (implementation_name != 'PyPy' and sys_platform == 'linux') or (implementation_name != 'PyPy' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (implementation_name != 'PyPy' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (implementation_name == 'PyPy' and sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (platform_machine == 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/eb/56/b1ba7935a17738ae8453301356628e8147c79dbb825bcbc73dc7401f9846/cffi-2.0.0.tar.gz", hash = "sha256:44d1b5909021139fe36001ae048dbdde8214afa20200eda0f64c068cac5d5529", size = 523588, upload-time = "2025-09-08T23:24:04.541Z" }
 wheels = [
@@ -250,7 +257,7 @@ name = "cryptography"
 version = "46.0.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cffi", marker = "(platform_python_implementation != 'PyPy' and sys_platform == 'linux') or (platform_python_implementation != 'PyPy' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (platform_python_implementation != 'PyPy' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (platform_python_implementation == 'PyPy' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "cffi", marker = "(platform_machine != 'x86_64' and platform_python_implementation != 'PyPy' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-torch') or (platform_machine != 'x86_64' and platform_python_implementation != 'PyPy' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (platform_machine != 'x86_64' and platform_python_implementation == 'PyPy' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (platform_machine == 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (platform_python_implementation != 'PyPy' and sys_platform == 'linux') or (platform_python_implementation != 'PyPy' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (platform_python_implementation != 'PyPy' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (platform_python_implementation == 'PyPy' and sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a4/ba/04b1bd4218cbc58dc90ce967106d51582371b898690f3ae0402876cc4f34/cryptography-46.0.6.tar.gz", hash = "sha256:27550628a518c5c6c903d84f637fbecf287f6cb9ced3804838a1295dc1fd0759", size = 750542, upload-time = "2026-03-25T23:34:53.396Z" }
 wheels = [
@@ -292,15 +299,15 @@ wheels = [
 
 [[package]]
 name = "cuda-bindings"
-version = "12.9.4"
+version = "13.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cuda-pathfinder", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "cuda-pathfinder", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a9/2b/ebcbb60aa6dba830474cd360c42e10282f7a343c0a1f58d24fbd3b7c2d77/cuda_bindings-12.9.4-cp311-cp311-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:a6a429dc6c13148ff1e27c44f40a3dd23203823e637b87fd0854205195988306", size = 11840604, upload-time = "2025-10-21T14:51:34.565Z" },
-    { url = "https://files.pythonhosted.org/packages/45/e7/b47792cc2d01c7e1d37c32402182524774dadd2d26339bd224e0e913832e/cuda_bindings-12.9.4-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c912a3d9e6b6651853eed8eed96d6800d69c08e94052c292fec3f282c5a817c9", size = 12210593, upload-time = "2025-10-21T14:51:36.574Z" },
-    { url = "https://files.pythonhosted.org/packages/dd/be/90d32049e06abcfba4b2e7df1dbcb5e16215c8852eef0cd8b25f38a66bd4/cuda_bindings-12.9.4-cp311-cp311-win_amd64.whl", hash = "sha256:443b0875916879c2e4c3722941e25e42d5ab9bcbf34c9e83404fb100fa1f6913", size = 11490933, upload-time = "2025-10-21T14:51:38.792Z" },
+    { url = "https://files.pythonhosted.org/packages/e0/a9/3a8241c6e19483ac1f1dcf5c10238205dcb8a6e9d0d4d4709240dff28ff4/cuda_bindings-13.2.0-cp311-cp311-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:721104c603f059780d287969be3d194a18d0cc3b713ed9049065a1107706759d", size = 5730273, upload-time = "2026-03-11T00:12:37.18Z" },
+    { url = "https://files.pythonhosted.org/packages/e9/94/2748597f47bb1600cd466b20cab4159f1530a3a33fe7f70fee199b3abb9e/cuda_bindings-13.2.0-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:1eba9504ac70667dd48313395fe05157518fd6371b532790e96fbb31bbb5a5e1", size = 6313924, upload-time = "2026-03-11T00:12:39.462Z" },
+    { url = "https://files.pythonhosted.org/packages/29/5a/0ce1731c48bcd9f40996a4ef1abbf634f1a7fe4a15c5050b1e75ce3a7acf/cuda_bindings-13.2.0-cp311-cp311-win_amd64.whl", hash = "sha256:debb51b211d246f8326f6b6e982506a5d0d9906672c91bc478b66addc7ecc60a", size = 5631363, upload-time = "2026-03-11T00:12:41.58Z" },
 ]
 
 [[package]]
@@ -309,6 +316,49 @@ version = "1.5.0"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/93/66/0c02bd330e7d976f83fa68583d6198d76f23581bcbb5c0e98a6148f326e5/cuda_pathfinder-1.5.0-py3-none-any.whl", hash = "sha256:498f90a9e9de36044a7924742aecce11c50c49f735f1bc53e05aa46de9ea4110", size = 49739, upload-time = "2026-03-24T21:14:30.869Z" },
+]
+
+[[package]]
+name = "cuda-toolkit"
+version = "13.0.2"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/57/b2/453099f5f3b698d7d0eab38916aac44c7f76229f451709e2eb9db6615dcd/cuda_toolkit-13.0.2-py2.py3-none-any.whl", hash = "sha256:b198824cf2f54003f50d64ada3a0f184b42ca0846c1c94192fa269ecd97a66eb", size = 2364, upload-time = "2025-12-19T23:24:07.328Z" },
+]
+
+[package.optional-dependencies]
+cublas = [
+    { name = "nvidia-cublas", marker = "sys_platform == 'linux'" },
+]
+cudart = [
+    { name = "nvidia-cuda-runtime", marker = "sys_platform == 'linux'" },
+]
+cufft = [
+    { name = "nvidia-cufft", marker = "sys_platform == 'linux'" },
+]
+cufile = [
+    { name = "nvidia-cufile", marker = "sys_platform == 'linux'" },
+]
+cupti = [
+    { name = "nvidia-cuda-cupti", marker = "sys_platform == 'linux'" },
+]
+curand = [
+    { name = "nvidia-curand", marker = "sys_platform == 'linux'" },
+]
+cusolver = [
+    { name = "nvidia-cusolver", marker = "sys_platform == 'linux'" },
+]
+cusparse = [
+    { name = "nvidia-cusparse", marker = "sys_platform == 'linux'" },
+]
+nvjitlink = [
+    { name = "nvidia-nvjitlink", marker = "sys_platform == 'linux'" },
+]
+nvrtc = [
+    { name = "nvidia-cuda-nvrtc", marker = "sys_platform == 'linux'" },
+]
+nvtx = [
+    { name = "nvidia-nvtx", marker = "sys_platform == 'linux'" },
 ]
 
 [[package]]
@@ -713,8 +763,53 @@ sdist = { url = "https://files.pythonhosted.org/packages/f5/86/91a13127d83d793ec
 
 [[package]]
 name = "llvmlite"
+version = "0.45.1"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "platform_machine == 'x86_64' and sys_platform == 'darwin'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/99/8d/5baf1cef7f9c084fb35a8afbde88074f0d6a727bc63ef764fe0e7543ba40/llvmlite-0.45.1.tar.gz", hash = "sha256:09430bb9d0bb58fc45a45a57c7eae912850bedc095cd0810a57de109c69e1c32", size = 185600, upload-time = "2025-10-01T17:59:52.046Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/04/ad/9bdc87b2eb34642c1cfe6bcb4f5db64c21f91f26b010f263e7467e7536a3/llvmlite-0.45.1-cp311-cp311-macosx_10_15_x86_64.whl", hash = "sha256:60f92868d5d3af30b4239b50e1717cb4e4e54f6ac1c361a27903b318d0f07f42", size = 43043526, upload-time = "2025-10-01T18:03:15.051Z" },
+    { url = "https://files.pythonhosted.org/packages/a5/ea/c25c6382f452a943b4082da5e8c1665ce29a62884e2ec80608533e8e82d5/llvmlite-0.45.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:98baab513e19beb210f1ef39066288784839a44cd504e24fff5d17f1b3cf0860", size = 37253118, upload-time = "2025-10-01T18:04:06.783Z" },
+    { url = "https://files.pythonhosted.org/packages/fe/af/85fc237de98b181dbbe8647324331238d6c52a3554327ccdc83ced28efba/llvmlite-0.45.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:3adc2355694d6a6fbcc024d59bb756677e7de506037c878022d7b877e7613a36", size = 56288209, upload-time = "2025-10-01T18:01:00.168Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/df/3daf95302ff49beff4230065e3178cd40e71294968e8d55baf4a9e560814/llvmlite-0.45.1-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:2f3377a6db40f563058c9515dedcc8a3e562d8693a106a28f2ddccf2c8fcf6ca", size = 55140958, upload-time = "2025-10-01T18:02:11.199Z" },
+    { url = "https://files.pythonhosted.org/packages/a4/56/4c0d503fe03bac820ecdeb14590cf9a248e120f483bcd5c009f2534f23f0/llvmlite-0.45.1-cp311-cp311-win_amd64.whl", hash = "sha256:f9c272682d91e0d57f2a76c6d9ebdfccc603a01828cdbe3d15273bdca0c3363a", size = 38132232, upload-time = "2025-10-01T18:04:52.181Z" },
+]
+
+[[package]]
+name = "llvmlite"
 version = "0.47.0"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
+    "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'linux' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
+    "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
+]
 sdist = { url = "https://files.pythonhosted.org/packages/01/88/a8952b6d5c21e74cbf158515b779666f692846502623e9e3c39d8e8ba25f/llvmlite-0.47.0.tar.gz", hash = "sha256:62031ce968ec74e95092184d4b0e857e444f8fdff0b8f9213707699570c33ccc", size = 193614, upload-time = "2026-03-31T18:29:53.497Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/34/0b/b9d1911cfefa61399821dfb37f486d83e0f42630a8d12f7194270c417002/llvmlite-0.47.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:74090f0dcfd6f24ebbef3f21f11e38111c4d7e6919b54c4416e1e357c3446b07", size = 37232770, upload-time = "2026-03-31T18:28:26.765Z" },
@@ -888,11 +983,60 @@ wheels = [
 
 [[package]]
 name = "numba"
+version = "0.62.1"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "platform_machine == 'x86_64' and sys_platform == 'darwin'",
+]
+dependencies = [
+    { name = "llvmlite", version = "0.45.1", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'darwin') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "numpy", marker = "(platform_machine == 'x86_64' and sys_platform == 'darwin') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a3/20/33dbdbfe60e5fd8e3dbfde299d106279a33d9f8308346022316781368591/numba-0.62.1.tar.gz", hash = "sha256:7b774242aa890e34c21200a1fc62e5b5757d5286267e71103257f4e2af0d5161", size = 2749817, upload-time = "2025-09-29T10:46:31.551Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dd/5f/8b3491dd849474f55e33c16ef55678ace1455c490555337899c35826836c/numba-0.62.1-cp311-cp311-macosx_10_15_x86_64.whl", hash = "sha256:f43e24b057714e480fe44bc6031de499e7cf8150c63eb461192caa6cc8530bc8", size = 2684279, upload-time = "2025-09-29T10:43:37.213Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/18/71969149bfeb65a629e652b752b80167fe8a6a6f6e084f1f2060801f7f31/numba-0.62.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:57cbddc53b9ee02830b828a8428757f5c218831ccc96490a314ef569d8342b7b", size = 2687330, upload-time = "2025-09-29T10:43:59.601Z" },
+    { url = "https://files.pythonhosted.org/packages/0e/7d/403be3fecae33088027bc8a95dc80a2fda1e3beff3e0e5fc4374ada3afbe/numba-0.62.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:604059730c637c7885386521bb1b0ddcbc91fd56131a6dcc54163d6f1804c872", size = 3739727, upload-time = "2025-09-29T10:42:45.922Z" },
+    { url = "https://files.pythonhosted.org/packages/e0/c3/3d910d08b659a6d4c62ab3cd8cd93c4d8b7709f55afa0d79a87413027ff6/numba-0.62.1-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:d6c540880170bee817011757dc9049dba5a29db0c09b4d2349295991fe3ee55f", size = 3445490, upload-time = "2025-09-29T10:43:12.692Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/82/9d425c2f20d9f0a37f7cb955945a553a00fa06a2b025856c3550227c5543/numba-0.62.1-cp311-cp311-win_amd64.whl", hash = "sha256:03de6d691d6b6e2b76660ba0f38f37b81ece8b2cc524a62f2a0cfae2bfb6f9da", size = 2745550, upload-time = "2025-09-29T10:44:20.571Z" },
+]
+
+[[package]]
+name = "numba"
 version = "0.65.0"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
+    "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'linux' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
+    "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
+]
 dependencies = [
-    { name = "llvmlite" },
-    { name = "numpy" },
+    { name = "llvmlite", version = "0.47.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin' or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "numpy", marker = "platform_machine != 'x86_64' or sys_platform != 'darwin' or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/49/61/7299643b9c18d669e04be7c5bcb64d985070d07553274817b45b049e7bfe/numba-0.65.0.tar.gz", hash = "sha256:edad0d9f6682e93624c00125a471ae4df186175d71fd604c983c377cdc03e68b", size = 2764131, upload-time = "2026-04-01T03:52:01.946Z" }
 wheels = [
@@ -921,12 +1065,19 @@ wheels = [
 ]
 
 [[package]]
+name = "nvidia-cublas"
+version = "13.1.0.3"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e1/a5/fce49e2ae977e0ccc084e5adafceb4f0ac0c8333cb6863501618a7277f67/nvidia_cublas-13.1.0.3-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:c86fc7f7ae36d7528288c5d88098edcb7b02c633d262e7ddbb86b0ad91be5df2", size = 542851226, upload-time = "2025-10-09T08:59:04.818Z" },
+    { url = "https://files.pythonhosted.org/packages/e7/44/423ac00af4dd95a5aeb27207e2c0d9b7118702149bf4704c3ddb55bb7429/nvidia_cublas-13.1.0.3-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:ee8722c1f0145ab246bccb9e452153b5e0515fd094c3678df50b2a0888b8b171", size = 423133236, upload-time = "2025-10-09T08:59:32.536Z" },
+    { url = "https://files.pythonhosted.org/packages/10/f5/f50bc3f5c2bb57ab8f5b4d78bc1146b57810d42cb8fcb28cbe2e14050376/nvidia_cublas-13.1.0.3-py3-none-win_amd64.whl", hash = "sha256:2a3b94a37def342471c59fad7856caee4926809a72dd5270155d6a31b5b277be", size = 404355960, upload-time = "2025-10-09T09:07:00.987Z" },
+]
+
+[[package]]
 name = "nvidia-cublas-cu12"
 version = "12.5.3.2"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8b/41/2520894bccd8506e842b61d912cf96d62a904cdb76f27fdaad53cc563959/nvidia_cublas_cu12-12.5.3.2-py3-none-manylinux2014_aarch64.whl", hash = "sha256:7d0191251180de606023d396b94d66f66470a0ae96d1dbb906c7656ea0f71eda", size = 360965110, upload-time = "2024-07-18T19:35:49.171Z" },
     { url = "https://files.pythonhosted.org/packages/f9/43/a5365b345c989d9f7de2f2406e59b4a792ba3541b5d47edda5031b2730a6/nvidia_cublas_cu12-12.5.3.2-py3-none-manylinux2014_x86_64.whl", hash = "sha256:ca070ad70e9fa6654084575d01bd001f30cc4665e33d4bb9fc8e0f321caa034b", size = 363313169, upload-time = "2024-07-01T16:39:22.863Z" },
@@ -934,42 +1085,23 @@ wheels = [
 ]
 
 [[package]]
-name = "nvidia-cublas-cu12"
-version = "12.8.4.1"
+name = "nvidia-cuda-cupti"
+version = "13.0.85"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/29/99/db44d685f0e257ff0e213ade1964fc459b4a690a73293220e98feb3307cf/nvidia_cublas_cu12-12.8.4.1-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:b86f6dd8935884615a0683b663891d43781b819ac4f2ba2b0c9604676af346d0", size = 590537124, upload-time = "2025-03-07T01:43:53.556Z" },
-    { url = "https://files.pythonhosted.org/packages/dc/61/e24b560ab2e2eaeb3c839129175fb330dfcfc29e5203196e5541a4c44682/nvidia_cublas_cu12-12.8.4.1-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:8ac4e771d5a348c551b2a426eda6193c19aa630236b418086020df5ba9667142", size = 594346921, upload-time = "2025-03-07T01:44:31.254Z" },
-    { url = "https://files.pythonhosted.org/packages/70/61/7d7b3c70186fb651d0fbd35b01dbfc8e755f69fd58f817f3d0f642df20c3/nvidia_cublas_cu12-12.8.4.1-py3-none-win_amd64.whl", hash = "sha256:47e9b82132fa8d2b4944e708049229601448aaad7e6f296f630f2d1a32de35af", size = 567544208, upload-time = "2025-03-07T01:53:30.535Z" },
+    { url = "https://files.pythonhosted.org/packages/2a/2a/80353b103fc20ce05ef51e928daed4b6015db4aaa9162ed0997090fe2250/nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_aarch64.whl", hash = "sha256:796bd679890ee55fb14a94629b698b6db54bcfd833d391d5e94017dd9d7d3151", size = 10310827, upload-time = "2025-09-04T08:26:42.012Z" },
+    { url = "https://files.pythonhosted.org/packages/33/6d/737d164b4837a9bbd202f5ae3078975f0525a55730fe871d8ed4e3b952b0/nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl", hash = "sha256:4eb01c08e859bf924d222250d2e8f8b8ff6d3db4721288cf35d14252a4d933c8", size = 10715597, upload-time = "2025-09-04T08:26:51.312Z" },
+    { url = "https://files.pythonhosted.org/packages/ad/df/b74b10025c1205695c5676373f2edd3e87a7202cc62ead0dfbc373b0f6ea/nvidia_cuda_cupti-13.0.85-py3-none-win_amd64.whl", hash = "sha256:683f58d301548deeefcb8f6fac1b8d907691b9d8b18eccab417f51e362102f00", size = 7736776, upload-time = "2025-09-04T08:38:08.38Z" },
 ]
 
 [[package]]
 name = "nvidia-cuda-cupti-cu12"
 version = "12.5.82"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3f/64/574b075df1c542e900820a1690824e017b7a485eaa12d2282442084c851b/nvidia_cuda_cupti_cu12-12.5.82-py3-none-manylinux2014_aarch64.whl", hash = "sha256:d32c06490c6ba35c4323730820c7d0c4c126c04ed58d2f57275adb8d54b138fe", size = 12380761, upload-time = "2024-07-18T19:34:01.829Z" },
     { url = "https://files.pythonhosted.org/packages/3a/64/81515a1b5872dc0fc817deaec2bdba160dc50188e0d53b907d10c6e6d568/nvidia_cuda_cupti_cu12-12.5.82-py3-none-manylinux2014_x86_64.whl", hash = "sha256:bde77a5feb66752ec61db2adfe47f56b941842825b4c7e2068aff27c9d107953", size = 13811507, upload-time = "2024-07-01T16:37:18.972Z" },
     { url = "https://files.pythonhosted.org/packages/7a/11/56bd2b1e7c12f03bf60f6ac37be3a8c8f020803bee46888d768d94ca7c2f/nvidia_cuda_cupti_cu12-12.5.82-py3-none-win_amd64.whl", hash = "sha256:4f835281cf492e2bedd153f5c3de9da8f1d775a419468305e64ce73b3b0c6dc3", size = 9958004, upload-time = "2024-07-01T16:43:07.67Z" },
-]
-
-[[package]]
-name = "nvidia-cuda-cupti-cu12"
-version = "12.8.90"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d5/1f/b3bd73445e5cb342727fd24fe1f7b748f690b460acadc27ea22f904502c8/nvidia_cuda_cupti_cu12-12.8.90-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:4412396548808ddfed3f17a467b104ba7751e6b58678a4b840675c56d21cf7ed", size = 9533318, upload-time = "2025-03-07T01:40:10.421Z" },
-    { url = "https://files.pythonhosted.org/packages/f8/02/2adcaa145158bf1a8295d83591d22e4103dbfd821bcaf6f3f53151ca4ffa/nvidia_cuda_cupti_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:ea0cb07ebda26bb9b29ba82cda34849e73c166c18162d3913575b0c9db9a6182", size = 10248621, upload-time = "2025-03-07T01:40:21.213Z" },
-    { url = "https://files.pythonhosted.org/packages/41/bc/83f5426095d93694ae39fe1311431b5d5a9bb82e48bf0dd8e19be2765942/nvidia_cuda_cupti_cu12-12.8.90-py3-none-win_amd64.whl", hash = "sha256:bb479dcdf7e6d4f8b0b01b115260399bf34154a1a2e9fe11c85c517d87efd98e", size = 7015759, upload-time = "2025-03-07T01:51:11.355Z" },
 ]
 
 [[package]]
@@ -983,12 +1115,19 @@ wheels = [
 ]
 
 [[package]]
+name = "nvidia-cuda-nvrtc"
+version = "13.0.88"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c3/68/483a78f5e8f31b08fb1bb671559968c0ca3a065ac7acabfc7cee55214fd6/nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:ad9b6d2ead2435f11cbb6868809d2adeeee302e9bb94bcf0539c7a40d80e8575", size = 90215200, upload-time = "2025-09-04T08:28:44.204Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/dc/6bb80850e0b7edd6588d560758f17e0550893a1feaf436807d64d2da040f/nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d27f20a0ca67a4bb34268a5e951033496c5b74870b868bacd046b1b8e0c3267b", size = 43015449, upload-time = "2025-09-04T08:28:20.239Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/af/345fedb9f4c76c84ab4fa445b36bd4048a4d9db60e6bc76b4f913ff4b852/nvidia_cuda_nvrtc-13.0.88-py3-none-win_amd64.whl", hash = "sha256:6bcd4e7f8e205cbe644f5a98f2f799bef9556fefc89dd786e79a16312ce49872", size = 76807835, upload-time = "2025-09-04T08:39:15.274Z" },
+]
+
+[[package]]
 name = "nvidia-cuda-nvrtc-cu12"
 version = "12.5.82"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d0/69/d71d9c9a70a595af5cefb2c99b82da7f2ed300fb2253c0f8918d987d8bff/nvidia_cuda_nvrtc_cu12-12.5.82-py3-none-manylinux2014_aarch64.whl", hash = "sha256:5bb6a0eb01d4974bb7ca3d48bd3859472debb3c3057a5e7de2b08fbdf35eed7e", size = 24349525, upload-time = "2024-07-18T19:34:48.394Z" },
     { url = "https://files.pythonhosted.org/packages/19/d1/342c2bcf6172db65fcbd9102f9941876e730d98977e69c00df85940fa8ce/nvidia_cuda_nvrtc_cu12-12.5.82-py3-none-manylinux2014_x86_64.whl", hash = "sha256:3dbd97b0104b4bfbc3c4f8c79cd2496307c89c43c29a9f83125f1d76296ff3fd", size = 24873108, upload-time = "2024-07-01T16:38:10.656Z" },
@@ -996,25 +1135,19 @@ wheels = [
 ]
 
 [[package]]
-name = "nvidia-cuda-nvrtc-cu12"
-version = "12.8.93"
+name = "nvidia-cuda-runtime"
+version = "13.0.96"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/6b/32f747947df2da6994e999492ab306a903659555dddc0fbdeb9d71f75e52/nvidia_cuda_nvrtc_cu12-12.8.93-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:a7756528852ef889772a84c6cd89d41dfa74667e24cca16bb31f8f061e3e9994", size = 88040029, upload-time = "2025-03-07T01:42:13.562Z" },
-    { url = "https://files.pythonhosted.org/packages/eb/d1/e50d0acaab360482034b84b6e27ee83c6738f7d32182b987f9c7a4e32962/nvidia_cuda_nvrtc_cu12-12.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:fc1fec1e1637854b4c0a65fb9a8346b51dd9ee69e61ebaccc82058441f15bce8", size = 43106076, upload-time = "2025-03-07T01:41:59.817Z" },
-    { url = "https://files.pythonhosted.org/packages/45/51/52a3d84baa2136cc8df15500ad731d74d3a1114d4c123e043cb608d4a32b/nvidia_cuda_nvrtc_cu12-12.8.93-py3-none-win_amd64.whl", hash = "sha256:7a4b6b2904850fe78e0bd179c4b655c404d4bb799ef03ddc60804247099ae909", size = 73586838, upload-time = "2025-03-07T01:52:13.483Z" },
+    { url = "https://files.pythonhosted.org/packages/87/4f/17d7b9b8e285199c58ce28e31b5c5bbaa4d8271af06a89b6405258245de2/nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:ef9bcbe90493a2b9d810e43d249adb3d02e98dd30200d86607d8d02687c43f55", size = 2261060, upload-time = "2025-10-09T08:55:15.78Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/24/d1558f3b68b1d26e706813b1d10aa1d785e4698c425af8db8edc3dced472/nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:7f82250d7782aa23b6cfe765ecc7db554bd3c2870c43f3d1821f1d18aebf0548", size = 2243632, upload-time = "2025-10-09T08:55:36.117Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/94/6b867483bec07da24ffa32736c79fabb94ef3a7af4d787a9d4a974868576/nvidia_cuda_runtime-13.0.96-py3-none-win_amd64.whl", hash = "sha256:f79298c8a098cec150a597c8eba58ecdab96e3bdc4b9bc4f9983635031740492", size = 2927037, upload-time = "2025-10-09T09:04:23.782Z" },
 ]
 
 [[package]]
 name = "nvidia-cuda-runtime-cu12"
 version = "12.5.82"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a3/49/f0a708c50f1a2200fa2ebb76cdbde4eb509341fce5305452023702dfe6ea/nvidia_cuda_runtime_cu12-12.5.82-py3-none-manylinux2014_aarch64.whl", hash = "sha256:71f015dbf9df05dd71f7480132c6ebf47a6ceb2ab53d7db8e08e4b30ebb87e14", size = 906205, upload-time = "2024-07-18T19:33:42.141Z" },
     { url = "https://files.pythonhosted.org/packages/71/05/80f3fe49e9905570bc27aea9493baa1891c3780a7fc4e1f872c7902df066/nvidia_cuda_runtime_cu12-12.5.82-py3-none-manylinux2014_x86_64.whl", hash = "sha256:3e79a060e126df40fd3a068f3f787eb000fa51b251ec6cd97d09579632687115", size = 895707, upload-time = "2024-07-01T16:37:08.343Z" },
@@ -1022,27 +1155,11 @@ wheels = [
 ]
 
 [[package]]
-name = "nvidia-cuda-runtime-cu12"
-version = "12.8.90"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7c/75/f865a3b236e4647605ea34cc450900854ba123834a5f1598e160b9530c3a/nvidia_cuda_runtime_cu12-12.8.90-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:52bf7bbee900262ffefe5e9d5a2a69a30d97e2bc5bb6cc866688caa976966e3d", size = 965265, upload-time = "2025-03-07T01:39:43.533Z" },
-    { url = "https://files.pythonhosted.org/packages/0d/9b/a997b638fcd068ad6e4d53b8551a7d30fe8b404d6f1804abf1df69838932/nvidia_cuda_runtime_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:adade8dcbd0edf427b7204d480d6066d33902cab2a4707dcfc48a2d0fd44ab90", size = 954765, upload-time = "2025-03-07T01:40:01.615Z" },
-    { url = "https://files.pythonhosted.org/packages/30/a5/a515b7600ad361ea14bfa13fb4d6687abf500adc270f19e89849c0590492/nvidia_cuda_runtime_cu12-12.8.90-py3-none-win_amd64.whl", hash = "sha256:c0c6027f01505bfed6c3b21ec546f69c687689aad5f1a377554bc6ca4aa993a8", size = 944318, upload-time = "2025-03-07T01:51:01.794Z" },
-]
-
-[[package]]
 name = "nvidia-cudnn-cu12"
 version = "9.3.0.75"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 dependencies = [
-    { name = "nvidia-cublas-cu12", version = "12.5.3.2", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cublas-cu12", marker = "sys_platform == 'linux'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6c/a8/b53c657fdbc9a6a655fc40ba1f15c3c0f593e763657565a7e1a5194c4522/nvidia_cudnn_cu12-9.3.0.75-py3-none-manylinux2014_aarch64.whl", hash = "sha256:c5cf7ff3415e446adf195a5b7dd2ba56cd00c3ee78bfdc566e51698931aa4b7f", size = 576342681, upload-time = "2024-08-05T20:10:31.908Z" },
@@ -1051,30 +1168,37 @@ wheels = [
 ]
 
 [[package]]
-name = "nvidia-cudnn-cu12"
-version = "9.10.2.21"
+name = "nvidia-cudnn-cu13"
+version = "9.19.0.56"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
 dependencies = [
-    { name = "nvidia-cublas-cu12", version = "12.8.4.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "nvidia-cublas", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/41/e79269ce215c857c935fd86bcfe91a451a584dfc27f1e068f568b9ad1ab7/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:c9132cc3f8958447b4910a1720036d9eff5928cc3179b0a51fb6d167c6cc87d8", size = 705026878, upload-time = "2025-06-06T21:52:51.348Z" },
-    { url = "https://files.pythonhosted.org/packages/ba/51/e123d997aa098c61d029f76663dedbfb9bc8dcf8c60cbd6adbe42f76d049/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:949452be657fa16687d0930933f032835951ef0892b37d2d53824d1a84dc97a8", size = 706758467, upload-time = "2025-06-06T21:54:08.597Z" },
-    { url = "https://files.pythonhosted.org/packages/3d/90/0bd6e586701b3a890fd38aa71c387dab4883d619d6e5ad912ccbd05bfd67/nvidia_cudnn_cu12-9.10.2.21-py3-none-win_amd64.whl", hash = "sha256:c6288de7d63e6cf62988f0923f96dc339cea362decb1bf5b3141883392a7d65e", size = 692992268, upload-time = "2025-06-06T21:55:18.114Z" },
+    { url = "https://files.pythonhosted.org/packages/f1/84/26025437c1e6b61a707442184fa0c03d083b661adf3a3eecfd6d21677740/nvidia_cudnn_cu13-9.19.0.56-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:6ed29ffaee1176c612daf442e4dd6cfeb6a0caa43ddcbeb59da94953030b1be4", size = 433781201, upload-time = "2026-02-03T20:40:53.805Z" },
+    { url = "https://files.pythonhosted.org/packages/a3/22/0b4b932655d17a6da1b92fa92ab12844b053bb2ac2475e179ba6f043da1e/nvidia_cudnn_cu13-9.19.0.56-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:d20e1734305e9d68889a96e3f35094d733ff1f83932ebe462753973e53a572bf", size = 366066321, upload-time = "2026-02-03T20:44:52.837Z" },
+    { url = "https://files.pythonhosted.org/packages/91/a2/f020386683ee9ab2c9a9f7f79290d9b0d07f7241de54dc746af2abd188d2/nvidia_cudnn_cu13-9.19.0.56-py3-none-win_amd64.whl", hash = "sha256:40d8c375005bcb01495f8edf375230b203a411a0c05fb6dc92a3781edcb23eac", size = 350547366, upload-time = "2026-02-03T20:50:49.563Z" },
+]
+
+[[package]]
+name = "nvidia-cufft"
+version = "12.0.0.61"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "nvidia-nvjitlink", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8b/ae/f417a75c0259e85c1d2f83ca4e960289a5f814ed0cea74d18c353d3e989d/nvidia_cufft-12.0.0.61-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:2708c852ef8cd89d1d2068bdbece0aa188813a0c934db3779b9b1faa8442e5f5", size = 214053554, upload-time = "2025-09-04T08:31:38.196Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/2f/7b57e29836ea8714f81e9898409196f47d772d5ddedddf1592eadb8ab743/nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:6c44f692dce8fd5ffd3e3df134b6cdb9c2f72d99cf40b62c32dde45eea9ddad3", size = 214085489, upload-time = "2025-09-04T08:31:56.044Z" },
+    { url = "https://files.pythonhosted.org/packages/85/b2/f8af21a2ed1beed337a6a02c5a28aeb85441f4d578ec3d529543c775ea4b/nvidia_cufft-12.0.0.61-py3-none-win_amd64.whl", hash = "sha256:2abce5b39d2f5ae12730fb7e5db6696533e36c26e2d3e8fd1750bdd2853364eb", size = 213342123, upload-time = "2025-09-04T08:40:51.145Z" },
 ]
 
 [[package]]
 name = "nvidia-cufft-cu12"
 version = "11.2.3.61"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", version = "12.5.82", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "nvidia-nvjitlink-cu12", marker = "sys_platform == 'linux'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/15/5a/e4f229b60b47b45c2b420e88dd497ef228b5d853a5b738cfdf5ba78ff0f8/nvidia_cufft_cu12-11.2.3.61-py3-none-manylinux2014_aarch64.whl", hash = "sha256:6d45b48a5ee7599e57131129cda2c58544d9b78b95064d3ec3e5c6b96e2b58cc", size = 192340538, upload-time = "2024-07-18T19:36:11.208Z" },
@@ -1083,37 +1207,28 @@ wheels = [
 ]
 
 [[package]]
-name = "nvidia-cufft-cu12"
-version = "11.3.3.83"
+name = "nvidia-cufile"
+version = "1.15.1.6"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
-dependencies = [
-    { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
-]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/60/bc/7771846d3a0272026c416fbb7e5f4c1f146d6d80704534d0b187dd6f4800/nvidia_cufft_cu12-11.3.3.83-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:848ef7224d6305cdb2a4df928759dca7b1201874787083b6e7550dd6765ce69a", size = 193109211, upload-time = "2025-03-07T01:44:56.873Z" },
-    { url = "https://files.pythonhosted.org/packages/1f/13/ee4e00f30e676b66ae65b4f08cb5bcbb8392c03f54f2d5413ea99a5d1c80/nvidia_cufft_cu12-11.3.3.83-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:4d2dd21ec0b88cf61b62e6b43564355e5222e4a3fb394cac0db101f2dd0d4f74", size = 193118695, upload-time = "2025-03-07T01:45:27.821Z" },
-    { url = "https://files.pythonhosted.org/packages/7d/ec/ce1629f1e478bb5ccd208986b5f9e0316a78538dd6ab1d0484f012f8e2a1/nvidia_cufft_cu12-11.3.3.83-py3-none-win_amd64.whl", hash = "sha256:7a64a98ef2a7c47f905aaf8931b69a3a43f27c55530c698bb2ed7c75c0b42cb7", size = 192216559, upload-time = "2025-03-07T01:53:57.106Z" },
+    { url = "https://files.pythonhosted.org/packages/3f/70/4f193de89a48b71714e74602ee14d04e4019ad36a5a9f20c425776e72cd6/nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:08a3ecefae5a01c7f5117351c64f17c7c62efa5fffdbe24fc7d298da19cd0b44", size = 1223672, upload-time = "2025-09-04T08:32:22.779Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/73/cc4a14c9813a8a0d509417cf5f4bdaba76e924d58beb9864f5a7baceefbf/nvidia_cufile-1.15.1.6-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:bdc0deedc61f548bddf7733bdc216456c2fdb101d020e1ab4b88d232d5e2f6d1", size = 1136992, upload-time = "2025-09-04T08:32:14.119Z" },
 ]
 
 [[package]]
-name = "nvidia-cufile-cu12"
-version = "1.13.1.3"
+name = "nvidia-curand"
+version = "10.4.0.35"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bb/fe/1bcba1dfbfb8d01be8d93f07bfc502c93fa23afa6fd5ab3fc7c1df71038a/nvidia_cufile_cu12-1.13.1.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:1d069003be650e131b21c932ec3d8969c1715379251f8d23a1860554b1cb24fc", size = 1197834, upload-time = "2025-03-07T01:45:50.723Z" },
-    { url = "https://files.pythonhosted.org/packages/1e/f5/5607710447a6fe9fd9b3283956fceeee8a06cda1d2f56ce31371f595db2a/nvidia_cufile_cu12-1.13.1.3-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:4beb6d4cce47c1a0f1013d72e02b0994730359e17801d395bdcbf20cfb3bb00a", size = 1120705, upload-time = "2025-03-07T01:45:41.434Z" },
+    { url = "https://files.pythonhosted.org/packages/1e/72/7c2ae24fb6b63a32e6ae5d241cc65263ea18d08802aaae087d9f013335a2/nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:133df5a7509c3e292aaa2b477afd0194f06ce4ea24d714d616ff36439cee349a", size = 61962106, upload-time = "2025-08-04T10:21:41.128Z" },
+    { url = "https://files.pythonhosted.org/packages/a5/9f/be0a41ca4a4917abf5cb9ae0daff1a6060cc5de950aec0396de9f3b52bc5/nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:1aee33a5da6e1db083fe2b90082def8915f30f3248d5896bcec36a579d941bfc", size = 59544258, upload-time = "2025-08-04T10:22:03.992Z" },
+    { url = "https://files.pythonhosted.org/packages/99/27/72103153b1ffc00e09fdc40ac970235343dcd1ea8bd762e84d2d73219ffa/nvidia_curand-10.4.0.35-py3-none-win_amd64.whl", hash = "sha256:65b1710aa6961d326b411e314b374290904c5ddf41dc3f766ebc3f1d7d4ca69f", size = 55242481, upload-time = "2025-08-04T10:30:41.831Z" },
 ]
 
 [[package]]
 name = "nvidia-curand-cu12"
 version = "10.3.6.82"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/84/ac/2623e574aba769160d1d9c312a16d5fc3e0e4484ad5a9cb21831447afaf4/nvidia_curand_cu12-10.3.6.82-py3-none-manylinux2014_aarch64.whl", hash = "sha256:36aabeb5990297bbce3df324ea7c7c13c3aabb140c86d50ab3b23e4ec61672f1", size = 56319067, upload-time = "2024-07-18T19:36:25.559Z" },
     { url = "https://files.pythonhosted.org/packages/f8/ce/cc6daf7820804ee7f11a0352a1f0fd59cec5f12e904f5bbaee6d928ffdaf/nvidia_curand_cu12-10.3.6.82-py3-none-manylinux2014_x86_64.whl", hash = "sha256:2823fb27de4e44dbb22394a6adf53aa6e1b013aca0f8c22867d1cfae58405536", size = 56309107, upload-time = "2024-07-01T16:40:14.205Z" },
@@ -1121,29 +1236,28 @@ wheels = [
 ]
 
 [[package]]
-name = "nvidia-curand-cu12"
-version = "10.3.9.90"
+name = "nvidia-cusolver"
+version = "12.0.4.66"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+dependencies = [
+    { name = "nvidia-cublas", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
+    { name = "nvidia-cusparse", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
+    { name = "nvidia-nvjitlink", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/45/5e/92aa15eca622a388b80fbf8375d4760738df6285b1e92c43d37390a33a9a/nvidia_curand_cu12-10.3.9.90-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:dfab99248034673b779bc6decafdc3404a8a6f502462201f2f31f11354204acd", size = 63625754, upload-time = "2025-03-07T01:46:10.735Z" },
-    { url = "https://files.pythonhosted.org/packages/fb/aa/6584b56dc84ebe9cf93226a5cde4d99080c8e90ab40f0c27bda7a0f29aa1/nvidia_curand_cu12-10.3.9.90-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:b32331d4f4df5d6eefa0554c565b626c7216f87a06a4f56fab27c3b68a830ec9", size = 63619976, upload-time = "2025-03-07T01:46:23.323Z" },
-    { url = "https://files.pythonhosted.org/packages/b9/75/70c05b2f3ed5be3bb30b7102b6eb78e100da4bbf6944fd6725c012831cab/nvidia_curand_cu12-10.3.9.90-py3-none-win_amd64.whl", hash = "sha256:f149a8ca457277da854f89cf282d6ef43176861926c7ac85b2a0fbd237c587ec", size = 62765309, upload-time = "2025-03-07T01:54:20.478Z" },
+    { url = "https://files.pythonhosted.org/packages/c8/c3/b30c9e935fc01e3da443ec0116ed1b2a009bb867f5324d3f2d7e533e776b/nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:02c2457eaa9e39de20f880f4bd8820e6a1cfb9f9a34f820eb12a155aa5bc92d2", size = 223467760, upload-time = "2025-09-04T08:33:04.222Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/67/cba3777620cdacb99102da4042883709c41c709f4b6323c10781a9c3aa34/nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:0a759da5dea5c0ea10fd307de75cdeb59e7ea4fcb8add0924859b944babf1112", size = 200941980, upload-time = "2025-09-04T08:33:22.767Z" },
+    { url = "https://files.pythonhosted.org/packages/99/ef/332a0101260ca78a1daef046bf0b06199e8ed4dac1d2aa698289c358169c/nvidia_cusolver-12.0.4.66-py3-none-win_amd64.whl", hash = "sha256:16515bd33a8e76bb54d024cfa068fa68d30e80fc34b9e1090813ea9362e0cb65", size = 193551444, upload-time = "2025-09-04T08:41:46.813Z" },
 ]
 
 [[package]]
 name = "nvidia-cusolver-cu12"
 version = "11.6.3.83"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 dependencies = [
-    { name = "nvidia-cublas-cu12", version = "12.5.3.2", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "nvidia-cusparse-cu12", version = "12.5.1.3", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "nvidia-nvjitlink-cu12", version = "12.5.82", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cublas-cu12", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cusparse-cu12", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-nvjitlink-cu12", marker = "sys_platform == 'linux'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/30/54/8241cd29e87b86716fef227bb5e742d1b72b166b52a03a64dad2e650d664/nvidia_cusolver_cu12-11.6.3.83-py3-none-manylinux2014_aarch64.whl", hash = "sha256:1b8b77d2fe8abe72bb722dafb708cceaeb81f1a03999477f20b33b34f46ab885", size = 130017694, upload-time = "2024-07-18T19:36:48.936Z" },
@@ -1152,32 +1266,24 @@ wheels = [
 ]
 
 [[package]]
-name = "nvidia-cusolver-cu12"
-version = "11.7.3.90"
+name = "nvidia-cusparse"
+version = "12.6.3.3"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
 dependencies = [
-    { name = "nvidia-cublas-cu12", version = "12.8.4.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
-    { name = "nvidia-cusparse-cu12", version = "12.5.8.93", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
-    { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "nvidia-nvjitlink", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c8/32/f7cd6ce8a7690544d084ea21c26e910a97e077c9b7f07bf5de623ee19981/nvidia_cusolver_cu12-11.7.3.90-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:db9ed69dbef9715071232caa9b69c52ac7de3a95773c2db65bdba85916e4e5c0", size = 267229841, upload-time = "2025-03-07T01:46:54.356Z" },
-    { url = "https://files.pythonhosted.org/packages/85/48/9a13d2975803e8cf2777d5ed57b87a0b6ca2cc795f9a4f59796a910bfb80/nvidia_cusolver_cu12-11.7.3.90-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:4376c11ad263152bd50ea295c05370360776f8c3427b30991df774f9fb26c450", size = 267506905, upload-time = "2025-03-07T01:47:16.273Z" },
-    { url = "https://files.pythonhosted.org/packages/13/c0/76ca8551b8a84146ffa189fec81c26d04adba4bc0dbe09cd6e6fd9b7de04/nvidia_cusolver_cu12-11.7.3.90-py3-none-win_amd64.whl", hash = "sha256:4a550db115fcabc4d495eb7d39ac8b58d4ab5d8e63274d3754df1c0ad6a22d34", size = 256720438, upload-time = "2025-03-07T01:54:39.898Z" },
+    { url = "https://files.pythonhosted.org/packages/f8/94/5c26f33738ae35276672f12615a64bd008ed5be6d1ebcb23579285d960a9/nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:80bcc4662f23f1054ee334a15c72b8940402975e0eab63178fc7e670aa59472c", size = 162155568, upload-time = "2025-09-04T08:33:42.864Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/18/623c77619c31d62efd55302939756966f3ecc8d724a14dab2b75f1508850/nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:2b3c89c88d01ee0e477cb7f82ef60a11a4bcd57b6b87c33f789350b59759360b", size = 145942937, upload-time = "2025-09-04T08:33:58.029Z" },
+    { url = "https://files.pythonhosted.org/packages/02/b0/b043d6f3480f102f885cf87fc3ffd3edcb5e23b855025a50e2ef4d059185/nvidia_cusparse-12.6.3.3-py3-none-win_amd64.whl", hash = "sha256:cbcf42feb737bd7ec15b4c0a63e62351886bd3f975027b8815d7f720a2b5ea79", size = 143783033, upload-time = "2025-09-04T08:42:12.391Z" },
 ]
 
 [[package]]
 name = "nvidia-cusparse-cu12"
 version = "12.5.1.3"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", version = "12.5.82", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "nvidia-nvjitlink-cu12", marker = "sys_platform == 'linux'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/13/ce/444a13d922a91af1c92acb1f899358e274e39c23a8cabd4821bd90279840/nvidia_cusparse_cu12-12.5.1.3-py3-none-manylinux2014_aarch64.whl", hash = "sha256:7b97fd01f0a61628af99d0efd52132fccc8c18fc5c509f13802dccf0574a19c2", size = 217444935, upload-time = "2024-07-18T19:37:07.937Z" },
@@ -1186,29 +1292,13 @@ wheels = [
 ]
 
 [[package]]
-name = "nvidia-cusparse-cu12"
-version = "12.5.8.93"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
-dependencies = [
-    { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/bc/f7/cd777c4109681367721b00a106f491e0d0d15cfa1fd59672ce580ce42a97/nvidia_cusparse_cu12-12.5.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:9b6c161cb130be1a07a27ea6923df8141f3c295852f4b260c65f18f3e0a091dc", size = 288117129, upload-time = "2025-03-07T01:47:40.407Z" },
-    { url = "https://files.pythonhosted.org/packages/c2/f5/e1854cb2f2bcd4280c44736c93550cc300ff4b8c95ebe370d0aa7d2b473d/nvidia_cusparse_cu12-12.5.8.93-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:1ec05d76bbbd8b61b06a80e1eaf8cf4959c3d4ce8e711b65ebd0443bb0ebb13b", size = 288216466, upload-time = "2025-03-07T01:48:13.779Z" },
-    { url = "https://files.pythonhosted.org/packages/62/07/f3b2ad63f8e3d257a599f422ae34eb565e70c41031aecefa3d18b62cabd1/nvidia_cusparse_cu12-12.5.8.93-py3-none-win_amd64.whl", hash = "sha256:9a33604331cb2cac199f2e7f5104dfbb8a5a898c367a53dfda9ff2acb6b6b4dd", size = 284937404, upload-time = "2025-03-07T01:55:07.742Z" },
-]
-
-[[package]]
-name = "nvidia-cusparselt-cu12"
-version = "0.7.1"
+name = "nvidia-cusparselt-cu13"
+version = "0.8.0"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/73/b9/598f6ff36faaece4b3c50d26f50e38661499ff34346f00e057760b35cc9d/nvidia_cusparselt_cu12-0.7.1-py3-none-manylinux2014_aarch64.whl", hash = "sha256:8878dce784d0fac90131b6817b607e803c36e629ba34dc5b433471382196b6a5", size = 283835557, upload-time = "2025-02-26T00:16:54.265Z" },
-    { url = "https://files.pythonhosted.org/packages/56/79/12978b96bd44274fe38b5dde5cfb660b1d114f70a65ef962bcbbed99b549/nvidia_cusparselt_cu12-0.7.1-py3-none-manylinux2014_x86_64.whl", hash = "sha256:f1bb701d6b930d5a7cea44c19ceb973311500847f81b634d802b7b539dc55623", size = 287193691, upload-time = "2025-02-26T00:15:44.104Z" },
-    { url = "https://files.pythonhosted.org/packages/2f/d8/a6b0d0d0c2435e9310f3e2bb0d9c9dd4c33daef86aa5f30b3681defd37ea/nvidia_cusparselt_cu12-0.7.1-py3-none-win_amd64.whl", hash = "sha256:f67fbb5831940ec829c9117b7f33807db9f9678dc2a617fbe781cac17b4e1075", size = 271020911, upload-time = "2025-02-26T00:14:47.204Z" },
+    { url = "https://files.pythonhosted.org/packages/46/10/8dcd1175260706a2fc92a16a52e306b71d4c1ea0b0cc4a9484183399818a/nvidia_cusparselt_cu13-0.8.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:400c6ed1cf6780fc6efedd64ec9f1345871767e6a1a0a552a1ea0578117ea77c", size = 220791277, upload-time = "2025-08-13T19:22:40.982Z" },
+    { url = "https://files.pythonhosted.org/packages/fd/53/43b0d71f4e702fa9733f8b4571fdca50a8813f1e450b656c239beff12315/nvidia_cusparselt_cu13-0.8.0-py3-none-manylinux2014_x86_64.whl", hash = "sha256:25e30a8a7323935d4ad0340b95a0b69926eee755767e8e0b1cf8dd85b197d3fd", size = 169884119, upload-time = "2025-08-13T19:23:41.967Z" },
+    { url = "https://files.pythonhosted.org/packages/57/de/8f0578928b9b1246d7b1324db0528e6b9f9fb54496a49f40bf71f09f1a27/nvidia_cusparselt_cu13-0.8.0-py3-none-win_amd64.whl", hash = "sha256:e80212ed7b1afc97102fbb2b5c82487aa73f6a0edfa6d26c5a152593e520bb8f", size = 156459710, upload-time = "2025-08-13T19:24:18.043Z" },
 ]
 
 [[package]]
@@ -1228,7 +1318,7 @@ name = "nvidia-nccl-cu12"
 version = "2.27.5"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bb/1c/857979db0ef194ca5e21478a0612bcdbbe59458d7694361882279947b349/nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:31432ad4d1fb1004eb0c56203dc9bc2178a1ba69d1d9e02d64a6938ab5e40e7a", size = 322400625, upload-time = "2025-06-26T04:11:04.496Z" },
@@ -1236,12 +1326,28 @@ wheels = [
 ]
 
 [[package]]
+name = "nvidia-nccl-cu13"
+version = "2.28.9"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/39/55/1920646a2e43ffd4fc958536b276197ed740e9e0c54105b4bb3521591fc7/nvidia_nccl_cu13-2.28.9-py3-none-manylinux_2_18_aarch64.whl", hash = "sha256:01c873ba1626b54caa12272ed228dc5b2781545e0ae8ba3f432a8ef1c6d78643", size = 196561677, upload-time = "2025-11-18T05:49:03.45Z" },
+    { url = "https://files.pythonhosted.org/packages/b0/b4/878fefaad5b2bcc6fcf8d474a25e3e3774bc5133e4b58adff4d0bca238bc/nvidia_nccl_cu13-2.28.9-py3-none-manylinux_2_18_x86_64.whl", hash = "sha256:e4553a30f34195f3fa1da02a6da3d6337d28f2003943aa0a3d247bbc25fefc42", size = 196493177, upload-time = "2025-11-18T05:49:17.677Z" },
+]
+
+[[package]]
+name = "nvidia-nvjitlink"
+version = "13.0.88"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/56/7a/123e033aaff487c77107195fa5a2b8686795ca537935a24efae476c41f05/nvidia_nvjitlink-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:13a74f429e23b921c1109976abefacc69835f2f433ebd323d3946e11d804e47b", size = 40713933, upload-time = "2025-09-04T08:35:43.553Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/2c/93c5250e64df4f894f1cbb397c6fd71f79813f9fd79d7cd61de3f97b3c2d/nvidia_nvjitlink-13.0.88-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:e931536ccc7d467a98ba1d8b89ff7fa7f1fa3b13f2b0069118cd7f47bff07d0c", size = 38768748, upload-time = "2025-09-04T08:35:20.008Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/01/07530b0e37546231052e30234540289c42eaffa486f1a34a87fed340157b/nvidia_nvjitlink-13.0.88-py3-none-win_amd64.whl", hash = "sha256:634e96e3da9ef845ae744097a1f289238ecf946ce0b82e93cdce14b9782e682f", size = 36035115, upload-time = "2025-09-04T08:43:03.001Z" },
+]
+
+[[package]]
 name = "nvidia-nvjitlink-cu12"
 version = "12.5.82"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/65/93/4934518fecebfa5696f179ee984d028a39589515d7994bd7e30da396a89a/nvidia_nvjitlink_cu12-12.5.82-py3-none-manylinux2014_aarch64.whl", hash = "sha256:98103729cc5226e13ca319a10bbf9433bbbd44ef64fe72f45f067cacc14b8d27", size = 20774026, upload-time = "2024-07-18T19:38:04.752Z" },
     { url = "https://files.pythonhosted.org/packages/75/bc/e0d0dbb85246a086ab14839979039647bce501d8c661a159b8b019d987b7/nvidia_nvjitlink_cu12-12.5.82-py3-none-manylinux2014_x86_64.whl", hash = "sha256:f9b37bc5c8cf7509665cb6ada5aaa0ce65618f2332b7d3e78e9790511f111212", size = 21298879, upload-time = "2024-07-01T16:41:53.953Z" },
@@ -1249,35 +1355,22 @@ wheels = [
 ]
 
 [[package]]
-name = "nvidia-nvjitlink-cu12"
-version = "12.8.93"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f6/74/86a07f1d0f42998ca31312f998bd3b9a7eff7f52378f4f270c8679c77fb9/nvidia_nvjitlink_cu12-12.8.93-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:81ff63371a7ebd6e6451970684f916be2eab07321b73c9d244dc2b4da7f73b88", size = 39254836, upload-time = "2025-03-07T01:49:55.661Z" },
-    { url = "https://files.pythonhosted.org/packages/2a/a2/8cee5da30d13430e87bf99bb33455d2724d0a4a9cb5d7926d80ccb96d008/nvidia_nvjitlink_cu12-12.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:adccd7161ace7261e01bb91e44e88da350895c270d23f744f0820c818b7229e7", size = 38386204, upload-time = "2025-03-07T01:49:43.612Z" },
-    { url = "https://files.pythonhosted.org/packages/ed/d7/34f02dad2e30c31b10a51f6b04e025e5dd60e5f936af9045a9b858a05383/nvidia_nvjitlink_cu12-12.8.93-py3-none-win_amd64.whl", hash = "sha256:bd93fbeeee850917903583587f4fc3a4eafa022e34572251368238ab5e6bd67f", size = 268553710, upload-time = "2025-03-07T01:56:24.13Z" },
-]
-
-[[package]]
-name = "nvidia-nvshmem-cu12"
+name = "nvidia-nvshmem-cu13"
 version = "3.4.5"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1d/6a/03aa43cc9bd3ad91553a88b5f6fb25ed6a3752ae86ce2180221962bc2aa5/nvidia_nvshmem_cu12-3.4.5-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:0b48363fc6964dede448029434c6abed6c5e37f823cb43c3bcde7ecfc0457e15", size = 138936938, upload-time = "2025-09-06T00:32:05.589Z" },
-    { url = "https://files.pythonhosted.org/packages/b5/09/6ea3ea725f82e1e76684f0708bbedd871fc96da89945adeba65c3835a64c/nvidia_nvshmem_cu12-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:042f2500f24c021db8a06c5eec2539027d57460e1c1a762055a6554f72c369bd", size = 139103095, upload-time = "2025-09-06T00:32:31.266Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/0f/05cc9c720236dcd2db9c1ab97fff629e96821be2e63103569da0c9b72f19/nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:6dc2a197f38e5d0376ad52cd1a2a3617d3cdc150fd5966f4aee9bcebb1d68fe9", size = 60215947, upload-time = "2025-09-06T00:32:20.022Z" },
+    { url = "https://files.pythonhosted.org/packages/3c/35/a9bf80a609e74e3b000fef598933235c908fcefcef9026042b8e6dfde2a9/nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:290f0a2ee94c9f3687a02502f3b9299a9f9fe826e6d0287ee18482e78d495b80", size = 60412546, upload-time = "2025-09-06T00:32:41.564Z" },
 ]
 
 [[package]]
-name = "nvidia-nvtx-cu12"
-version = "12.8.90"
+name = "nvidia-nvtx"
+version = "13.0.85"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/10/c0/1b303feea90d296f6176f32a2a70b5ef230f9bdeb3a72bddb0dc922dc137/nvidia_nvtx_cu12-12.8.90-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d7ad891da111ebafbf7e015d34879f7112832fc239ff0d7d776b6cb685274615", size = 91161, upload-time = "2025-03-07T01:42:23.922Z" },
-    { url = "https://files.pythonhosted.org/packages/a2/eb/86626c1bbc2edb86323022371c39aa48df6fd8b0a1647bc274577f72e90b/nvidia_nvtx_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:5b17e2001cc0d751a5bc2c6ec6d26ad95913324a4adb86788c944f8ce9ba441f", size = 89954, upload-time = "2025-03-07T01:42:44.131Z" },
-    { url = "https://files.pythonhosted.org/packages/9f/99/4c9c0c329bf9fc125008c3b54c7c94c0023518d06fc025ae36431375e1fe/nvidia_nvtx_cu12-12.8.90-py3-none-win_amd64.whl", hash = "sha256:619c8304aedc69f02ea82dd244541a83c3d9d40993381b3b590f1adaed3db41e", size = 56492, upload-time = "2025-03-07T01:52:24.69Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/f3/d86c845465a2723ad7e1e5c36dcd75ddb82898b3f53be47ebd429fb2fa5d/nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:4936d1d6780fbe68db454f5e72a42ff64d1fd6397df9f363ae786930fd5c1cd4", size = 148047, upload-time = "2025-09-04T08:29:01.761Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/64/3708a90d1ebe202ffdeb7185f878a3c84d15c2b2c31858da2ce0583e2def/nvidia_nvtx-13.0.85-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:cb7780edb6b14107373c835bf8b72e7a178bac7367e23da7acb108f973f157a6", size = 148878, upload-time = "2025-09-04T08:28:53.627Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/50/0e2220f8620a177de994211186ffc5bfa9f2ce1e1282797f8f90096f9f88/nvidia_nvtx-13.0.85-py3-none-win_amd64.whl", hash = "sha256:d66ea44254dd3c6eacc300047af6e1288d2269dd072b417e0adffbf479e18519", size = 137066, upload-time = "2025-09-04T08:39:25.649Z" },
 ]
 
 [[package]]
@@ -1501,30 +1594,32 @@ wheels = [
 
 [[package]]
 name = "pytest"
-version = "8.3.5"
+version = "9.0.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
     { name = "iniconfig" },
     { name = "packaging" },
     { name = "pluggy" },
+    { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ae/3c/c9d525a414d506893f0cd8a8d0de7706446213181570cdbd766691164e40/pytest-8.3.5.tar.gz", hash = "sha256:f4efe70cc14e511565ac476b57c279e12a855b11f48f212af1080ef2263d3845", size = 1450891, upload-time = "2025-03-02T12:54:54.503Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d1/db/7ef3487e0fb0049ddb5ce41d3a49c235bf9ad299b6a25d5780a89f19230f/pytest-9.0.2.tar.gz", hash = "sha256:75186651a92bd89611d1d9fc20f0b4345fd827c41ccd5c299a868a05d70edf11", size = 1568901, upload-time = "2025-12-06T21:30:51.014Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/30/3d/64ad57c803f1fa1e963a7946b6e0fea4a70df53c1a7fed304586539c2bac/pytest-8.3.5-py3-none-any.whl", hash = "sha256:c69214aa47deac29fad6c2a4f590b9c4a9fdb16a403176fe154b79c0b4d4d820", size = 343634, upload-time = "2025-03-02T12:54:52.069Z" },
+    { url = "https://files.pythonhosted.org/packages/3b/ab/b3226f0bd7cdcf710fbede2b3548584366da3b19b5021e74f5bde2a8fa3f/pytest-9.0.2-py3-none-any.whl", hash = "sha256:711ffd45bf766d5264d487b917733b453d917afd2b0ad65223959f59089f875b", size = 374801, upload-time = "2025-12-06T21:30:49.154Z" },
 ]
 
 [[package]]
 name = "pytest-cov"
-version = "6.0.0"
+version = "7.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "coverage", extra = ["toml"] },
+    { name = "pluggy" },
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/be/45/9b538de8cef30e17c7b45ef42f538a94889ed6a16f2387a6c89e73220651/pytest-cov-6.0.0.tar.gz", hash = "sha256:fde0b595ca248bb8e2d76f020b465f3b107c9632e6a1d1705f17834c89dcadc0", size = 66945, upload-time = "2024-10-29T20:13:35.363Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b1/51/a849f96e117386044471c8ec2bd6cfebacda285da9525c9106aeb28da671/pytest_cov-7.1.0.tar.gz", hash = "sha256:30674f2b5f6351aa09702a9c8c364f6a01c27aae0c1366ae8016160d1efc56b2", size = 55592, upload-time = "2026-03-21T20:11:16.284Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/36/3b/48e79f2cd6a61dbbd4807b4ed46cb564b4fd50a76166b1c4ea5c1d9e2371/pytest_cov-6.0.0-py3-none-any.whl", hash = "sha256:eee6f1b9e61008bd34975a4d5bab25801eb31898b032dd55addc93e96fcaaa35", size = 22949, upload-time = "2024-10-29T20:13:33.215Z" },
+    { url = "https://files.pythonhosted.org/packages/9d/7a/d968e294073affff457b041c2be9868a40c1c71f4a35fcc1e45e5493067b/pytest_cov-7.1.0-py3-none-any.whl", hash = "sha256:a0461110b7865f9a271aa1b51e516c9a95de9d696734a2f71e3e78f46e1d4678", size = 22876, upload-time = "2026-03-21T20:11:14.438Z" },
 ]
 
 [[package]]
@@ -1642,27 +1737,27 @@ wheels = [
 
 [[package]]
 name = "ruff"
-version = "0.15.7"
+version = "0.15.10"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a1/22/9e4f66ee588588dc6c9af6a994e12d26e19efbe874d1a909d09a6dac7a59/ruff-0.15.7.tar.gz", hash = "sha256:04f1ae61fc20fe0b148617c324d9d009b5f63412c0b16474f3d5f1a1a665f7ac", size = 4601277, upload-time = "2026-03-19T16:26:22.605Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/d9/aa3f7d59a10ef6b14fe3431706f854dbf03c5976be614a9796d36326810c/ruff-0.15.10.tar.gz", hash = "sha256:d1f86e67ebfdef88e00faefa1552b5e510e1d35f3be7d423dc7e84e63788c94e", size = 4631728, upload-time = "2026-04-09T14:06:09.884Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/41/2f/0b08ced94412af091807b6119ca03755d651d3d93a242682bf020189db94/ruff-0.15.7-py3-none-linux_armv6l.whl", hash = "sha256:a81cc5b6910fb7dfc7c32d20652e50fa05963f6e13ead3c5915c41ac5d16668e", size = 10489037, upload-time = "2026-03-19T16:26:32.47Z" },
-    { url = "https://files.pythonhosted.org/packages/91/4a/82e0fa632e5c8b1eba5ee86ecd929e8ff327bbdbfb3c6ac5d81631bef605/ruff-0.15.7-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:722d165bd52403f3bdabc0ce9e41fc47070ac56d7a91b4e0d097b516a53a3477", size = 10955433, upload-time = "2026-03-19T16:27:00.205Z" },
-    { url = "https://files.pythonhosted.org/packages/ab/10/12586735d0ff42526ad78c049bf51d7428618c8b5c467e72508c694119df/ruff-0.15.7-py3-none-macosx_11_0_arm64.whl", hash = "sha256:7fbc2448094262552146cbe1b9643a92f66559d3761f1ad0656d4991491af49e", size = 10269302, upload-time = "2026-03-19T16:26:26.183Z" },
-    { url = "https://files.pythonhosted.org/packages/eb/5d/32b5c44ccf149a26623671df49cbfbd0a0ae511ff3df9d9d2426966a8d57/ruff-0.15.7-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6b39329b60eba44156d138275323cc726bbfbddcec3063da57caa8a8b1d50adf", size = 10607625, upload-time = "2026-03-19T16:27:03.263Z" },
-    { url = "https://files.pythonhosted.org/packages/5d/f1/f0001cabe86173aaacb6eb9bb734aa0605f9a6aa6fa7d43cb49cbc4af9c9/ruff-0.15.7-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:87768c151808505f2bfc93ae44e5f9e7c8518943e5074f76ac21558ef5627c85", size = 10324743, upload-time = "2026-03-19T16:27:09.791Z" },
-    { url = "https://files.pythonhosted.org/packages/7a/87/b8a8f3d56b8d848008559e7c9d8bf367934d5367f6d932ba779456e2f73b/ruff-0.15.7-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:fb0511670002c6c529ec66c0e30641c976c8963de26a113f3a30456b702468b0", size = 11138536, upload-time = "2026-03-19T16:27:06.101Z" },
-    { url = "https://files.pythonhosted.org/packages/e4/f2/4fd0d05aab0c5934b2e1464784f85ba2eab9d54bffc53fb5430d1ed8b829/ruff-0.15.7-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:e0d19644f801849229db8345180a71bee5407b429dd217f853ec515e968a6912", size = 11994292, upload-time = "2026-03-19T16:26:48.718Z" },
-    { url = "https://files.pythonhosted.org/packages/64/22/fc4483871e767e5e95d1622ad83dad5ebb830f762ed0420fde7dfa9d9b08/ruff-0.15.7-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:4806d8e09ef5e84eb19ba833d0442f7e300b23fe3f0981cae159a248a10f0036", size = 11398981, upload-time = "2026-03-19T16:26:54.513Z" },
-    { url = "https://files.pythonhosted.org/packages/b0/99/66f0343176d5eab02c3f7fcd2de7a8e0dd7a41f0d982bee56cd1c24db62b/ruff-0.15.7-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dce0896488562f09a27b9c91b1f58a097457143931f3c4d519690dea54e624c5", size = 11242422, upload-time = "2026-03-19T16:26:29.277Z" },
-    { url = "https://files.pythonhosted.org/packages/5d/3a/a7060f145bfdcce4c987ea27788b30c60e2c81d6e9a65157ca8afe646328/ruff-0.15.7-py3-none-manylinux_2_31_riscv64.whl", hash = "sha256:1852ce241d2bc89e5dc823e03cff4ce73d816b5c6cdadd27dbfe7b03217d2a12", size = 11232158, upload-time = "2026-03-19T16:26:42.321Z" },
-    { url = "https://files.pythonhosted.org/packages/a7/53/90fbb9e08b29c048c403558d3cdd0adf2668b02ce9d50602452e187cd4af/ruff-0.15.7-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:5f3e4b221fb4bd293f79912fc5e93a9063ebd6d0dcbd528f91b89172a9b8436c", size = 10577861, upload-time = "2026-03-19T16:26:57.459Z" },
-    { url = "https://files.pythonhosted.org/packages/2f/aa/5f486226538fe4d0f0439e2da1716e1acf895e2a232b26f2459c55f8ddad/ruff-0.15.7-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:b15e48602c9c1d9bdc504b472e90b90c97dc7d46c7028011ae67f3861ceba7b4", size = 10327310, upload-time = "2026-03-19T16:26:35.909Z" },
-    { url = "https://files.pythonhosted.org/packages/99/9e/271afdffb81fe7bfc8c43ba079e9d96238f674380099457a74ccb3863857/ruff-0.15.7-py3-none-musllinux_1_2_i686.whl", hash = "sha256:1b4705e0e85cedc74b0a23cf6a179dbb3df184cb227761979cc76c0440b5ab0d", size = 10840752, upload-time = "2026-03-19T16:26:45.723Z" },
-    { url = "https://files.pythonhosted.org/packages/bf/29/a4ae78394f76c7759953c47884eb44de271b03a66634148d9f7d11e721bd/ruff-0.15.7-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:112c1fa316a558bb34319282c1200a8bf0495f1b735aeb78bfcb2991e6087580", size = 11336961, upload-time = "2026-03-19T16:26:39.076Z" },
-    { url = "https://files.pythonhosted.org/packages/26/6b/8786ba5736562220d588a2f6653e6c17e90c59ced34a2d7b512ef8956103/ruff-0.15.7-py3-none-win32.whl", hash = "sha256:6d39e2d3505b082323352f733599f28169d12e891f7dd407f2d4f54b4c2886de", size = 10582538, upload-time = "2026-03-19T16:26:15.992Z" },
-    { url = "https://files.pythonhosted.org/packages/2b/e9/346d4d3fffc6871125e877dae8d9a1966b254fbd92a50f8561078b88b099/ruff-0.15.7-py3-none-win_amd64.whl", hash = "sha256:4d53d712ddebcd7dace1bc395367aec12c057aacfe9adbb6d832302575f4d3a1", size = 11755839, upload-time = "2026-03-19T16:26:19.897Z" },
-    { url = "https://files.pythonhosted.org/packages/8f/e8/726643a3ea68c727da31570bde48c7a10f1aa60eddd628d94078fec586ff/ruff-0.15.7-py3-none-win_arm64.whl", hash = "sha256:18e8d73f1c3fdf27931497972250340f92e8c861722161a9caeb89a58ead6ed2", size = 11023304, upload-time = "2026-03-19T16:26:51.669Z" },
+    { url = "https://files.pythonhosted.org/packages/eb/00/a1c2fdc9939b2c03691edbda290afcd297f1f389196172826b03d6b6a595/ruff-0.15.10-py3-none-linux_armv6l.whl", hash = "sha256:0744e31482f8f7d0d10a11fcbf897af272fefdfcb10f5af907b18c2813ff4d5f", size = 10563362, upload-time = "2026-04-09T14:06:21.189Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/15/006990029aea0bebe9d33c73c3e28c80c391ebdba408d1b08496f00d422d/ruff-0.15.10-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:b1e7c16ea0ff5a53b7c2df52d947e685973049be1cdfe2b59a9c43601897b22e", size = 10951122, upload-time = "2026-04-09T14:06:02.236Z" },
+    { url = "https://files.pythonhosted.org/packages/f2/c0/4ac978fe874d0618c7da647862afe697b281c2806f13ce904ad652fa87e4/ruff-0.15.10-py3-none-macosx_11_0_arm64.whl", hash = "sha256:93cc06a19e5155b4441dd72808fdf84290d84ad8a39ca3b0f994363ade4cebb1", size = 10314005, upload-time = "2026-04-09T14:06:00.026Z" },
+    { url = "https://files.pythonhosted.org/packages/da/73/c209138a5c98c0d321266372fc4e33ad43d506d7e5dd817dd89b60a8548f/ruff-0.15.10-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:83e1dd04312997c99ea6965df66a14fb4f03ba978564574ffc68b0d61fd3989e", size = 10643450, upload-time = "2026-04-09T14:05:42.137Z" },
+    { url = "https://files.pythonhosted.org/packages/ec/76/0deec355d8ec10709653635b1f90856735302cb8e149acfdf6f82a5feb70/ruff-0.15.10-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:8154d43684e4333360fedd11aaa40b1b08a4e37d8ffa9d95fee6fa5b37b6fab1", size = 10379597, upload-time = "2026-04-09T14:05:49.984Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/be/86bba8fc8798c081e28a4b3bb6d143ccad3fd5f6f024f02002b8f08a9fa3/ruff-0.15.10-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8ab88715f3a6deb6bde6c227f3a123410bec7b855c3ae331b4c006189e895cef", size = 11146645, upload-time = "2026-04-09T14:06:12.246Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/89/140025e65911b281c57be1d385ba1d932c2366ca88ae6663685aed8d4881/ruff-0.15.10-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:a768ff5969b4f44c349d48edf4ab4f91eddb27fd9d77799598e130fb628aa158", size = 12030289, upload-time = "2026-04-09T14:06:04.776Z" },
+    { url = "https://files.pythonhosted.org/packages/88/de/ddacca9545a5e01332567db01d44bd8cf725f2db3b3d61a80550b48308ea/ruff-0.15.10-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:0ee3ef42dab7078bda5ff6a1bcba8539e9857deb447132ad5566a038674540d0", size = 11496266, upload-time = "2026-04-09T14:05:55.485Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/bb/7ddb00a83760ff4a83c4e2fc231fd63937cc7317c10c82f583302e0f6586/ruff-0.15.10-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:51cb8cc943e891ba99989dd92d61e29b1d231e14811db9be6440ecf25d5c1609", size = 11256418, upload-time = "2026-04-09T14:05:57.69Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/8d/55de0d35aacf6cd50b6ee91ee0f291672080021896543776f4170fc5c454/ruff-0.15.10-py3-none-manylinux_2_31_riscv64.whl", hash = "sha256:e59c9bdc056a320fb9ea1700a8d591718b8faf78af065484e801258d3a76bc3f", size = 11288416, upload-time = "2026-04-09T14:05:44.695Z" },
+    { url = "https://files.pythonhosted.org/packages/68/cf/9438b1a27426ec46a80e0a718093c7f958ef72f43eb3111862949ead3cc1/ruff-0.15.10-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:136c00ca2f47b0018b073f28cb5c1506642a830ea941a60354b0e8bc8076b151", size = 10621053, upload-time = "2026-04-09T14:05:52.782Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/50/e29be6e2c135e9cd4cb15fbade49d6a2717e009dff3766dd080fcb82e251/ruff-0.15.10-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:8b80a2f3c9c8a950d6237f2ca12b206bccff626139be9fa005f14feb881a1ae8", size = 10378302, upload-time = "2026-04-09T14:06:14.361Z" },
+    { url = "https://files.pythonhosted.org/packages/18/2f/e0b36a6f99c51bb89f3a30239bc7bf97e87a37ae80aa2d6542d6e5150364/ruff-0.15.10-py3-none-musllinux_1_2_i686.whl", hash = "sha256:e3e53c588164dc025b671c9df2462429d60357ea91af7e92e9d56c565a9f1b07", size = 10850074, upload-time = "2026-04-09T14:06:16.581Z" },
+    { url = "https://files.pythonhosted.org/packages/11/08/874da392558ce087a0f9b709dc6ec0d60cbc694c1c772dab8d5f31efe8cb/ruff-0.15.10-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:b0c52744cf9f143a393e284125d2576140b68264a93c6716464e129a3e9adb48", size = 11358051, upload-time = "2026-04-09T14:06:18.948Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/46/602938f030adfa043e67112b73821024dc79f3ab4df5474c25fa4c1d2d14/ruff-0.15.10-py3-none-win32.whl", hash = "sha256:d4272e87e801e9a27a2e8df7b21011c909d9ddd82f4f3281d269b6ba19789ca5", size = 10588964, upload-time = "2026-04-09T14:06:07.14Z" },
+    { url = "https://files.pythonhosted.org/packages/25/b6/261225b875d7a13b33a6d02508c39c28450b2041bb01d0f7f1a83d569512/ruff-0.15.10-py3-none-win_amd64.whl", hash = "sha256:28cb32d53203242d403d819fd6983152489b12e4a3ae44993543d6fe62ab42ed", size = 11745044, upload-time = "2026-04-09T14:05:39.473Z" },
+    { url = "https://files.pythonhosted.org/packages/58/ed/dea90a65b7d9e69888890fb14c90d7f51bf0c1e82ad800aeb0160e4bacfd/ruff-0.15.10-py3-none-win_arm64.whl", hash = "sha256:601d1610a9e1f1c2165a4f561eeaa2e2ea1e97f3287c5aa258d3dab8b57c6188", size = 11035607, upload-time = "2026-04-09T14:05:47.593Z" },
 ]
 
 [[package]]
@@ -1750,8 +1845,8 @@ name = "secretstorage"
 version = "3.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cryptography", marker = "sys_platform == 'linux' or (sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
-    { name = "jeepney", marker = "sys_platform == 'linux' or (sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "cryptography", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-torch') or (platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or sys_platform == 'linux' or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "jeepney", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-torch') or (platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or sys_platform == 'linux' or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/1c/03/e834bcd866f2f8a49a85eaff47340affa3bfa391ee9912a952a1faa68c7b/secretstorage-3.5.0.tar.gz", hash = "sha256:f04b8e4689cbce351744d5537bf6b1329c6fc68f91fa666f60a380edddcd11be", size = 19884, upload-time = "2025-11-23T19:02:53.191Z" }
 wheels = [
@@ -1760,8 +1855,28 @@ wheels = [
 
 [[package]]
 name = "setuptools"
+version = "81.0.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform == 'win32'",
+    "sys_platform == 'emscripten'",
+    "platform_machine == 'x86_64' and sys_platform == 'darwin'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0d/1c/73e719955c59b8e424d015ab450f51c0af856ae46ea2da83eba51cc88de1/setuptools-81.0.0.tar.gz", hash = "sha256:487b53915f52501f0a79ccfd0c02c165ffe06631443a886740b91af4b7a5845a", size = 1198299, upload-time = "2026-02-06T21:10:39.601Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e1/e3/c164c88b2e5ce7b24d667b9bd83589cf4f3520d97cad01534cd3c4f55fdb/setuptools-81.0.0-py3-none-any.whl", hash = "sha256:fdd925d5c5d9f62e4b74b30d6dd7828ce236fd6ed998a08d81de62ce5a6310d6", size = 1062021, upload-time = "2026-02-06T21:10:37.175Z" },
+]
+
+[[package]]
+name = "setuptools"
 version = "82.0.1"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform == 'linux'",
+    "platform_machine == 'x86_64' and sys_platform == 'darwin'",
+    "platform_machine != 'x86_64' and sys_platform == 'darwin'",
+]
 sdist = { url = "https://files.pythonhosted.org/packages/4f/db/cfac1baf10650ab4d1c111714410d2fbb77ac5a616db26775db562c8fab2/setuptools-82.0.1.tar.gz", hash = "sha256:7d872682c5d01cfde07da7bccc7b65469d3dca203318515ada1de5eda35efbf9", size = 1152316, upload-time = "2026-03-09T12:47:17.221Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9d/76/f789f7a86709c6b087c5a2f52f911838cad707cc613162401badc665acfe/setuptools-82.0.1-py3-none-any.whl", hash = "sha256:a59e362652f08dcd477c78bb6e7bd9d80a7995bc73ce773050228a348ce2e5bb", size = 1006223, upload-time = "2026-03-09T12:47:15.026Z" },
@@ -1769,11 +1884,14 @@ wheels = [
 
 [[package]]
 name = "shap"
-version = "0.47.2"
+version = "0.51.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cloudpickle" },
-    { name = "numba" },
+    { name = "llvmlite", version = "0.45.1", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'darwin') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "llvmlite", version = "0.47.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin' or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "numba", version = "0.62.1", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'darwin') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (platform_machine != 'x86_64' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (sys_platform != 'darwin' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "numba", version = "0.65.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin' or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
     { name = "numpy" },
     { name = "packaging" },
     { name = "pandas" },
@@ -1783,14 +1901,15 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7a/65/d3ef8be3dc2ff6ca272d85d956bc4a511643af1b892658e088aefb3ac245/shap-0.47.2.tar.gz", hash = "sha256:8a53901fc44396d92a12b985d83ca4a47a7dcc4a04a7f7e556232a35f17d30c8", size = 2641500, upload-time = "2025-04-17T18:14:58.577Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a4/0a/4a3ee4b1a3654f2a9ae038a64bb3e91a42af3da07577d69b65241f010970/shap-0.51.0.tar.gz", hash = "sha256:cfa17ff213657c9d50285aa923d79b0037a62e2ee1a31bc3eec7e196b00bdb59", size = 4108336, upload-time = "2026-03-04T09:18:19.985Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e3/94/ad3e57ddae693220c77852bb0b427b98dc5ba15c8da5202218adfb64b0ab/shap-0.47.2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:434a7eb17b11f35893538520cf5da39bcfe95d66873bc316ce241dda29350457", size = 553503, upload-time = "2025-04-17T18:14:27.076Z" },
-    { url = "https://files.pythonhosted.org/packages/9b/34/0c964b0c96d7ac77b8fb8e71968a846f1d5dbc9e4973333fde7aef6740fc/shap-0.47.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:4bd297a5caa1314be5600c5006571bd6702b4ab8868ca25bc7cc12d391362ad3", size = 546393, upload-time = "2025-04-17T18:14:28.514Z" },
-    { url = "https://files.pythonhosted.org/packages/4c/e8/87134abbb700004b9044f6c24be833439da0852137033c7899de9bcfa8c6/shap-0.47.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:76a9ac5e312cd5d659a17ea56c03a61d6f55b5fda94e187e3870b07101ca5f9e", size = 1019718, upload-time = "2025-04-17T18:14:30.262Z" },
-    { url = "https://files.pythonhosted.org/packages/c8/ae/4a16ad24420966a6e3b71aa359756ab3314da38a0bc7e5ca83058814c9a9/shap-0.47.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dc6105ed556cea490e6d59d9b20d2fac0131f821c40a4f83a7220356820a946a", size = 1027160, upload-time = "2025-04-17T18:14:32.242Z" },
-    { url = "https://files.pythonhosted.org/packages/82/bc/2812be54d49b93df1f79197a43b29a8243bd1d372dbd7e7bd2b89bf3eb37/shap-0.47.2-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:224f359e55b38fc9cb2528bd0c738a842c8387d144476d24d5c7a7fae9b57894", size = 2045076, upload-time = "2025-04-17T18:14:33.695Z" },
-    { url = "https://files.pythonhosted.org/packages/e5/bb/dc75933de86e6076f58cf68325877be952a97a371c26b252013f1258a5a7/shap-0.47.2-cp311-cp311-win_amd64.whl", hash = "sha256:fdf114b29fb2b7d9e20a6854e79a5f44e1ce95e8eea161d84903e44e7c4b8770", size = 544443, upload-time = "2025-04-17T18:14:35.722Z" },
+    { url = "https://files.pythonhosted.org/packages/1b/4f/513ffc1c27242488be2269d5704c7bd8e82c6b28a04c297533d616003948/shap-0.51.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:4b4b81d7401bc821490148a694a9f149f8ef488fa973b49fdc8a7916a572750f", size = 565103, upload-time = "2026-03-04T09:17:24.11Z" },
+    { url = "https://files.pythonhosted.org/packages/14/bf/bafa92ae6606f1ee38f14e866045fbcae21412a3a5766fb493b951a6e6e1/shap-0.51.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:9b92f7371644c4a19660f734e0b0fe299d0eff273102230c9cf191e310576619", size = 562798, upload-time = "2026-03-04T09:17:25.909Z" },
+    { url = "https://files.pythonhosted.org/packages/fc/09/a952ef8a1fe64b8a7bb909b2d3ab614d33cff7fdf646d62c3bd35d84de02/shap-0.51.0-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:3ddd314c9dc766f72027b3b6d9a8b975c7df67f1a27af7f857267c716b7d3dd8", size = 1052516, upload-time = "2026-03-04T09:17:27.816Z" },
+    { url = "https://files.pythonhosted.org/packages/42/48/541bd5b7f068804f33fac459274c06a46deb8f0e1edf3a9b176c00137629/shap-0.51.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5a909d6e306d4083e4862b6d097d53f3b4aa4d5cdf2ef4dbac5e8245160d9abd", size = 1060070, upload-time = "2026-03-04T09:17:29.751Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/f9/02269c83b3056c5fbaa13911e59b844146ed80c97a6f78aa0d374a9e8368/shap-0.51.0-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:ff5534e92f5876c74975b53cc6b251126bbe092e5032f81e1fe8583c4a74d58c", size = 2023431, upload-time = "2026-03-04T09:17:31.97Z" },
+    { url = "https://files.pythonhosted.org/packages/72/ac/751f3070be48c4b365f565ca5b4ba4c93b0a371d8ee595859c62eab9885b/shap-0.51.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:6f3a83f28d2304f81645392a1d346154d9d992705e762fb949fa5371925399b2", size = 2092764, upload-time = "2026-03-04T09:17:33.991Z" },
+    { url = "https://files.pythonhosted.org/packages/a5/8e/cee1ee136a4e54fe2fbb63a60d72d7c25e21a4ffe6aa05779cab7669cb31/shap-0.51.0-cp311-cp311-win_amd64.whl", hash = "sha256:ca2a9171e6c5b9a700d585982d7fd8336856ad818e24264420c56f9d8f02a961", size = 554870, upload-time = "2026-03-04T09:17:35.856Z" },
 ]
 
 [[package]]
@@ -1843,7 +1962,7 @@ dependencies = [
     { name = "numpy", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
     { name = "packaging", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
     { name = "protobuf", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
-    { name = "setuptools", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
+    { name = "setuptools", version = "82.0.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
     { name = "six", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
     { name = "tensorboard-data-server", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
     { name = "werkzeug", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
@@ -1882,7 +2001,7 @@ dependencies = [
     { name = "packaging", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
     { name = "protobuf", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
     { name = "requests", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
-    { name = "setuptools", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
+    { name = "setuptools", version = "82.0.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
     { name = "six", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
     { name = "tensorboard", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
     { name = "tensorflow-io-gcs-filesystem", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
@@ -1899,18 +2018,18 @@ wheels = [
 
 [package.optional-dependencies]
 and-cuda = [
-    { name = "nvidia-cublas-cu12", version = "12.5.3.2", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "nvidia-cuda-cupti-cu12", version = "12.5.82", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cublas-cu12", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cuda-cupti-cu12", marker = "sys_platform == 'linux'" },
     { name = "nvidia-cuda-nvcc-cu12", marker = "sys_platform == 'linux'" },
-    { name = "nvidia-cuda-nvrtc-cu12", version = "12.5.82", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "nvidia-cuda-runtime-cu12", version = "12.5.82", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "nvidia-cudnn-cu12", version = "9.3.0.75", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "nvidia-cufft-cu12", version = "11.2.3.61", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "nvidia-curand-cu12", version = "10.3.6.82", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "nvidia-cusolver-cu12", version = "11.6.3.83", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "nvidia-cusparse-cu12", version = "12.5.1.3", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cuda-nvrtc-cu12", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cuda-runtime-cu12", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cudnn-cu12", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cufft-cu12", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-curand-cu12", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cusolver-cu12", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cusparse-cu12", marker = "sys_platform == 'linux'" },
     { name = "nvidia-nccl-cu12", version = "2.23.4", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "nvidia-nvjitlink-cu12", version = "12.5.82", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "nvidia-nvjitlink-cu12", marker = "sys_platform == 'linux'" },
 ]
 
 [[package]]
@@ -1992,40 +2111,29 @@ wheels = [
 
 [[package]]
 name = "torch"
-version = "2.10.0"
+version = "2.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cuda-bindings", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "cuda-bindings", marker = "sys_platform == 'linux'" },
+    { name = "cuda-toolkit", extra = ["cublas", "cudart", "cufft", "cufile", "cupti", "curand", "cusolver", "cusparse", "nvjitlink", "nvrtc", "nvtx"], marker = "(sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform == 'linux' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
     { name = "filelock" },
     { name = "fsspec" },
     { name = "jinja2" },
     { name = "networkx" },
-    { name = "nvidia-cublas-cu12", version = "12.8.4.1", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-cuda-cupti-cu12", version = "12.8.90", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-cuda-nvrtc-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-cuda-runtime-cu12", version = "12.8.90", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-cudnn-cu12", version = "9.10.2.21", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-cufft-cu12", version = "11.3.3.83", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-cufile-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-curand-cu12", version = "10.3.9.90", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-cusolver-cu12", version = "11.7.3.90", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-cusparse-cu12", version = "12.5.8.93", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-cusparselt-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-nccl-cu12", version = "2.27.5", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-nvshmem-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "nvidia-nvtx-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-cudnn-cu13", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cusparselt-cu13", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-nccl-cu13", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-nvshmem-cu13", marker = "sys_platform == 'linux'" },
+    { name = "setuptools", version = "81.0.0", source = { registry = "https://pypi.org/simple" } },
     { name = "sympy" },
-    { name = "triton", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "triton", marker = "sys_platform == 'linux'" },
     { name = "typing-extensions" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0f/8b/4b61d6e13f7108f36910df9ab4b58fd389cc2520d54d81b88660804aad99/torch-2.10.0-2-cp311-none-macosx_11_0_arm64.whl", hash = "sha256:418997cb02d0a0f1497cf6a09f63166f9f5df9f3e16c8a716ab76a72127c714f", size = 79423467, upload-time = "2026-02-10T21:44:48.711Z" },
-    { url = "https://files.pythonhosted.org/packages/36/ab/7b562f1808d3f65414cd80a4f7d4bb00979d9355616c034c171249e1a303/torch-2.10.0-3-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:ac5bdcbb074384c66fa160c15b1ead77839e3fe7ed117d667249afce0acabfac", size = 915518691, upload-time = "2026-03-11T14:15:43.147Z" },
-    { url = "https://files.pythonhosted.org/packages/78/89/f5554b13ebd71e05c0b002f95148033e730d3f7067f67423026cc9c69410/torch-2.10.0-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:3282d9febd1e4e476630a099692b44fdc214ee9bf8ee5377732d9d9dfe5712e4", size = 145992610, upload-time = "2026-01-21T16:25:26.327Z" },
-    { url = "https://files.pythonhosted.org/packages/ae/30/a3a2120621bf9c17779b169fc17e3dc29b230c29d0f8222f499f5e159aa8/torch-2.10.0-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:a2f9edd8dbc99f62bc4dfb78af7bf89499bca3d753423ac1b4e06592e467b763", size = 915607863, upload-time = "2026-01-21T16:25:06.696Z" },
-    { url = "https://files.pythonhosted.org/packages/6f/3d/c87b33c5f260a2a8ad68da7147e105f05868c281c63d65ed85aa4da98c66/torch-2.10.0-cp311-cp311-win_amd64.whl", hash = "sha256:29b7009dba4b7a1c960260fc8ac85022c784250af43af9fb0ebafc9883782ebd", size = 113723116, upload-time = "2026-01-21T16:25:21.916Z" },
-    { url = "https://files.pythonhosted.org/packages/61/d8/15b9d9d3a6b0c01b883787bd056acbe5cc321090d4b216d3ea89a8fcfdf3/torch-2.10.0-cp311-none-macosx_11_0_arm64.whl", hash = "sha256:b7bd80f3477b830dd166c707c5b0b82a898e7b16f59a7d9d42778dd058272e8b", size = 79423461, upload-time = "2026-01-21T16:24:50.266Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/0d/98b410492609e34a155fa8b121b55c7dca229f39636851c3a9ec20edea21/torch-2.11.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:7b6a60d48062809f58595509c524b88e6ddec3ebe25833d6462eeab81e5f2ce4", size = 80529712, upload-time = "2026-03-23T18:12:02.608Z" },
+    { url = "https://files.pythonhosted.org/packages/84/03/acea680005f098f79fd70c1d9d5ccc0cb4296ec2af539a0450108232fc0c/torch-2.11.0-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:d91aac77f24082809d2c5a93f52a5f085032740a1ebc9252a7b052ef5a4fddc6", size = 419718178, upload-time = "2026-03-23T18:10:46.675Z" },
+    { url = "https://files.pythonhosted.org/packages/8c/8b/d7be22fbec9ffee6cff31a39f8750d4b3a65d349a286cf4aec74c2375662/torch-2.11.0-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:7aa2f9bbc6d4595ba72138026b2074be1233186150e9292865e04b7a63b8c67a", size = 530604548, upload-time = "2026-03-23T18:10:03.569Z" },
+    { url = "https://files.pythonhosted.org/packages/d1/bd/9912d30b68845256aabbb4a40aeefeef3c3b20db5211ccda653544ada4b6/torch-2.11.0-cp311-cp311-win_amd64.whl", hash = "sha256:73e24aaf8f36ab90d95cd1761208b2eb70841c2a9ca1a3f9061b39fc5331b708", size = 114519675, upload-time = "2026-03-23T18:11:52.995Z" },
 ]
 
 [[package]]
@@ -2233,7 +2341,7 @@ requires-dist = [
     { name = "pydantic", specifier = "==2.11.9" },
     { name = "scikit-learn", specifier = "==1.8.0" },
     { name = "scipy", specifier = "==1.15.3" },
-    { name = "shap", specifier = "==0.47.2" },
+    { name = "shap", specifier = "==0.51.0" },
     { name = "shortuuid", specifier = "==1.0.13" },
     { name = "toml", specifier = "==0.10.2" },
     { name = "tqdm", specifier = "==4.67.3" },
@@ -2243,11 +2351,11 @@ requires-dist = [
 [package.metadata.requires-dev]
 cade = [{ name = "cade-firce", specifier = "==0.4.2" }]
 dev = [
-    { name = "deptry", specifier = "==0.25.1" },
-    { name = "pytest", specifier = "==8.3.5" },
-    { name = "pytest-cov", specifier = "==6.0.0" },
-    { name = "ruff", specifier = "==0.15.7" },
-    { name = "twine", specifier = "==6.2.0" },
+    { name = "deptry", specifier = ">=0.25.1" },
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "pytest-cov", specifier = ">=7.1.0" },
+    { name = "ruff", specifier = ">=0.15.8" },
+    { name = "twine", specifier = ">=6.2.0" },
 ]
 lambda-tensorflow = [
     { name = "cade-firce", specifier = "==0.4.2" },
@@ -2256,13 +2364,13 @@ lambda-tensorflow = [
 ]
 lambda-torch = [
     { name = "cade-firce", specifier = "==0.4.2" },
-    { name = "torch", specifier = "==2.10.0" },
+    { name = "torch", specifier = "==2.11.0" },
 ]
 tensorflow = [
     { name = "tensorflow", marker = "sys_platform == 'darwin'", specifier = "==2.19.1" },
     { name = "tensorflow", extras = ["and-cuda"], marker = "sys_platform == 'linux'", specifier = "==2.19.1" },
 ]
-torch = [{ name = "torch", specifier = "==2.10.0" }]
+torch = [{ name = "torch", specifier = "==2.11.0" }]
 
 [[package]]
 name = "zipp"
