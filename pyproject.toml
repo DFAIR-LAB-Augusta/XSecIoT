@@ -79,7 +79,7 @@ Lab = "https://github.com/DFAIR-LAB-Augusta"
 [dependency-groups]
 dev = [
     "deptry>=0.25.1",
-    "pytest>=9.0.2",
+    "pytest>=9.0.3",
     "pytest-cov>=7.1.0",
     "ruff>=0.15.8",
     "twine>=6.2.0",
