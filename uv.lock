@@ -2314,12 +2314,22 @@ dev = [
 ]
 lambda-tensorflow = [
     { name = "cade-firce" },
+    { name = "deptry" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
     { name = "tensorflow", marker = "(sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow') or (sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
     { name = "tensorflow", extra = ["and-cuda"], marker = "(sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "twine" },
 ]
 lambda-torch = [
     { name = "cade-firce" },
+    { name = "deptry" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
     { name = "torch" },
+    { name = "twine" },
 ]
 tensorflow = [
     { name = "tensorflow", marker = "(sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform == 'darwin' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'linux' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
@@ -2359,12 +2369,22 @@ dev = [
 ]
 lambda-tensorflow = [
     { name = "cade-firce", specifier = "==0.4.2" },
+    { name = "deptry", specifier = ">=0.25.1" },
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "pytest-cov", specifier = ">=7.1.0" },
+    { name = "ruff", specifier = ">=0.15.8" },
     { name = "tensorflow", marker = "sys_platform == 'darwin'", specifier = "==2.19.1" },
     { name = "tensorflow", extras = ["and-cuda"], marker = "sys_platform == 'linux'", specifier = "==2.19.1" },
+    { name = "twine", specifier = ">=6.2.0" },
 ]
 lambda-torch = [
     { name = "cade-firce", specifier = "==0.4.2" },
+    { name = "deptry", specifier = ">=0.25.1" },
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "pytest-cov", specifier = ">=7.1.0" },
+    { name = "ruff", specifier = ">=0.15.8" },
     { name = "torch", specifier = "==2.11.0" },
+    { name = "twine", specifier = ">=6.2.0" },
 ]
 tensorflow = [
     { name = "tensorflow", marker = "sys_platform == 'darwin'", specifier = "==2.19.1" },

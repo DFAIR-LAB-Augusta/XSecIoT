@@ -101,11 +101,13 @@ cade = [
 lambda-torch = [
     { include-group = "torch" },
     { include-group = "cade" },
+    { include-group = "dev" },
 ]
 
 lambda-tensorflow = [
     { include-group = "tensorflow" },
     { include-group = "cade" },
+    { include-group = "dev" },
 ]
 
 [tool.uv]
