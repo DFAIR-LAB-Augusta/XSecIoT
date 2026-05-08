@@ -67,7 +67,7 @@ dependencies = [
     "tqdm>=4.67.3",
     "xgboost>=3.2.0",
     "pydantic>=2.12.5",
-    "pyarrow>=23.0.1",
+    "pyarrow>=24.0.0",
 ]
 
 [project.urls]
