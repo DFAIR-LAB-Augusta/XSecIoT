@@ -328,7 +328,16 @@ def _plot_classifier_grid(
 
             legend_handles = [
                 Line2D([0], [0], linestyle='-', marker='.', linewidth=1, label='CE'),
-                Line2D([0], [0], linestyle='--', marker='x', linewidth=1, label='Classifier'),
+                Line2D(
+                    [0],
+                    [0],
+                    linestyle='--',
+                    marker='x',
+                    linewidth=1,
+                    color='C1',
+                    markeredgecolor='C1',
+                    label='Classifier',
+                ),
             ]
             ax.legend(handles=legend_handles, loc='best', fontsize='small', frameon=False)
             ax.grid(True, linestyle='--', linewidth=0.5)
