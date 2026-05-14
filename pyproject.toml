@@ -8,7 +8,7 @@ sources = ["src"]
 
 [project]
 name = "xseciot"
-version = "1.1.1"
+version = "1.1.2"
 description = "Machine learning-based IoT intrusion detection with explainable AI and conformal evaluation."
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
@@ -56,7 +56,7 @@ dependencies = [
     "dask>=2026.3.0",
     "joblib>=1.5.3",
     "lime>=0.2.0.1",
-    "matplotlib>=3.10.8",
+    "matplotlib>=3.10.9",
     "numpy>=2.1.3",
     "pandas>=3.0.2",
     "scikit-learn>=1.8.0",
