@@ -316,7 +316,7 @@ def _plot_classifier_grid(
             if not any_data:
                 ax.text(0.5, 0.5, 'No data', ha='center', va='center', fontsize=9, alpha=0.7, transform=ax.transAxes)
             else:
-                ax.set_ylim(0, 1.0)
+                ax.set_ylim(0.9, 1.0)
 
             if row_idx == n_rows - 1:
                 ax.set_xlabel('Calibration step')
