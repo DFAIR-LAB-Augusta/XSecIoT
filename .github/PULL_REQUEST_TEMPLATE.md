@@ -1,5 +1,4 @@
 ## Summary
-<!-- What does this change do? -->
 
 ## Changes
 - [ ] Fix
@@ -16,4 +15,3 @@
 - [ ] `make deps.check`
 
 ## Notes
-<!-- Anything reviewers should know -->
