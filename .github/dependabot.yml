@@ -13,3 +13,6 @@ updates:
       interval: "weekly"
     cooldown:
       default-days: 14
+    ignore:
+      - dependency-name: "tensorflow"
+      - dependency-name: "tensorflow[and-cuda]"
