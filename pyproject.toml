@@ -86,7 +86,7 @@ dev = [
 ]
 
 torch = [
-    "torch==2.12.0",
+    "torch==2.12.1",
 ]
 
 tensorflow = [
