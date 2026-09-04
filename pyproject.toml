@@ -59,12 +59,12 @@ dependencies = [
     "matplotlib>=3.10.9,<4",
     "numpy>=2.1.3,<3",
     "pandas>=3.0.3,<4",
-    "scikit-learn>=1.8.0,<2",
+    "scikit-learn>=1.9.0,<2",
     "scipy>=1.17.1,<2",
     "shap>=0.51.0,<1",
     "shortuuid>=1.0.13,<2",
     "toml>=0.10.2,<1",
-    "tqdm>=4.67.3,<5",
+    "tqdm>=4.68.3,<5",
     "xgboost>=3.2.0,<4",
     "pydantic>=2.13.4,<3",
     "pyarrow>=24.0.0,<25",
@@ -79,14 +79,14 @@ Lab = "https://github.com/DFAIR-LAB-Augusta"
 [dependency-groups]
 dev = [
     "deptry>=0.25.1,<1",
-    "pytest>=9.0.3,<10",
+    "pytest>=9.1.0,<10",
     "pytest-cov>=7.1.0,<8",
-    "ruff>=0.15.13,<1",
+    "ruff>=0.15.17,<1",
     "twine>=6.2.0,<7",
 ]
 
 torch = [
-    "torch==2.12.0",
+    "torch==2.12.1",
 ]
 
 tensorflow = [
