@@ -101,3 +101,48 @@ def test_validate_inputs_accepts_valid_config(tmp_path):
     csv_path = tmp_path / 'data.csv'
     csv_path.write_text('src_ip,dst_ip\n1.2.3.4,5.6.7.8\n')
     _validate_inputs(csv_path, (AttackMapping('1.2.3.4', '5.6.7.8', 'XMasAttack'),))
+
+
+import pandas as pd
+
+from scripts.mc_labeling import _add_multiclass_labels
+
+
+def test_add_multiclass_labels_assigns_attack_and_benign(tmp_path):
+    csv_path = tmp_path / 'flows.csv'
+    pd.DataFrame({
+        'src_ip': ['1.2.3.4', '1.2.3.4', '9.9.9.9'],
+        'dst_ip': ['5.6.7.8', '5.6.7.8', '9.9.9.8'],
+        'flow_duration': [1, 2, 3],
+    }).to_csv(csv_path, index=False)
+
+    mapping = AttackMapping('1.2.3.4', '5.6.7.8', 'XMasAttack')
+    output_path = _add_multiclass_labels(csv_path, (mapping,))
+
+    assert output_path == tmp_path / 'flows_mc_labeled.csv'
+    result = pd.read_csv(output_path)
+    assert result['MC_Label'].tolist() == ['XMasAttack', 'XMasAttack', 'Benign']
+
+
+def test_add_multiclass_labels_multiple_mappings(tmp_path):
+    csv_path = tmp_path / 'flows.csv'
+    pd.DataFrame({
+        'src_ip': ['1.2.3.4', '10.0.0.1', '9.9.9.9'],
+        'dst_ip': ['5.6.7.8', '10.0.0.2', '9.9.9.8'],
+    }).to_csv(csv_path, index=False)
+
+    mappings = (
+        AttackMapping('1.2.3.4', '5.6.7.8', 'XMasAttack'),
+        AttackMapping('10.0.0.1', '10.0.0.2', 'PortScan'),
+    )
+    output_path = _add_multiclass_labels(csv_path, mappings)
+    result = pd.read_csv(output_path)
+    assert result['MC_Label'].tolist() == ['XMasAttack', 'PortScan', 'Benign']
+
+
+def test_add_multiclass_labels_missing_ip_columns(tmp_path):
+    csv_path = tmp_path / 'flows.csv'
+    pd.DataFrame({'flow_duration': [1, 2, 3]}).to_csv(csv_path, index=False)
+
+    with pytest.raises(ValueError, match="must contain 'src_ip' and 'dst_ip'"):
+        _add_multiclass_labels(csv_path, (AttackMapping('1.2.3.4', '5.6.7.8', 'X'),))

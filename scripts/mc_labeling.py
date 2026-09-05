@@ -105,3 +105,28 @@ def _validate_inputs(dataset_path: Path, mappings: Tuple[AttackMapping, ...]) ->
                 f"'{seen[pair]}' vs '{mapping.attack_name}'"
             )
         seen[pair] = mapping.attack_name
+
+
+def _add_multiclass_labels(dataset_path: Path, mappings: Tuple[AttackMapping, ...]) -> Path:
+    """
+    Add an MC_Label column to the dataset based on src/dst IP-pair -> attack-name
+    mappings. Flows matching no mapping are labeled DEFAULT_LABEL.
+    Returns the output file path.
+    """
+    try:
+        df = pd.read_csv(dataset_path)
+    except Exception as e:
+        raise ValueError(f'Failed to read CSV file: {e}')
+
+    if 'src_ip' not in df.columns or 'dst_ip' not in df.columns:
+        raise ValueError("CSV must contain 'src_ip' and 'dst_ip' columns.")
+
+    df['MC_Label'] = DEFAULT_LABEL
+    for mapping in mappings:
+        match = (df['src_ip'] == mapping.src_ip) & (df['dst_ip'] == mapping.dst_ip)
+        df.loc[match, 'MC_Label'] = mapping.attack_name
+
+    output_path = dataset_path.with_name(dataset_path.stem + '_mc_labeled' + dataset_path.suffix)
+    df.to_csv(output_path, index=False)
+
+    return output_path
