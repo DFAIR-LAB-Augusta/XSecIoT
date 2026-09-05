@@ -51,3 +51,34 @@ def _parse_mapping(raw: str) -> AttackMapping:
     if not attack_name:
         raise ValueError(f"attack_name must not be empty in mapping: '{raw}'")
     return AttackMapping(src_ip=src_ip, dst_ip=dst_ip, attack_name=attack_name)
+
+
+@dataclass(frozen=True)
+class MCLabelConfig:
+    dataset_path: Path
+    mappings: Tuple[AttackMapping, ...]
+
+
+def _parse_arguments(argv: List[str] | None = None) -> MCLabelConfig:
+    """
+    Parse and return command-line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description=(
+            'Label a dataset with an MC_Label column by matching flows against '
+            'src_ip/dst_ip pairs, each mapped to an attack name. Unmatched flows are '
+            f"labeled '{DEFAULT_LABEL}'."
+        )
+    )
+    parser.add_argument('dataset_path', type=str, help='Path to the CSV dataset.')
+    parser.add_argument(
+        '--mapping',
+        dest='mappings',
+        action='append',
+        required=True,
+        metavar='SRC_IP,DST_IP,ATTACK_NAME',
+        help='Attack mapping as src_ip,dst_ip,attack_name. Repeat for multiple attack pairs.',
+    )
+    args = parser.parse_args(argv)
+    mappings = tuple(_parse_mapping(raw) for raw in args.mappings)
+    return MCLabelConfig(dataset_path=Path(args.dataset_path), mappings=mappings)
