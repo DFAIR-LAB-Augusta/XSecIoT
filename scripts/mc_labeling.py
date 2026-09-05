@@ -82,3 +82,26 @@ def _parse_arguments(argv: List[str] | None = None) -> MCLabelConfig:
     args = parser.parse_args(argv)
     mappings = tuple(_parse_mapping(raw) for raw in args.mappings)
     return MCLabelConfig(dataset_path=Path(args.dataset_path), mappings=mappings)
+
+
+def _validate_inputs(dataset_path: Path, mappings: Tuple[AttackMapping, ...]) -> None:
+    """
+    Perform validations on input arguments.
+    Raises ValueError or FileNotFoundError as appropriate.
+    """
+    if not dataset_path.exists():
+        raise FileNotFoundError(f'File does not exist: {dataset_path}')
+    if not dataset_path.is_file():
+        raise ValueError(f'Provided path is not a file: {dataset_path}')
+    if dataset_path.suffix.lower() != '.csv':
+        raise ValueError('Only CSV files are supported.')
+
+    seen: dict[Tuple[str, str], str] = {}
+    for mapping in mappings:
+        pair = (mapping.src_ip, mapping.dst_ip)
+        if pair in seen and seen[pair] != mapping.attack_name:
+            raise ValueError(
+                f'duplicate mapping for {pair}: '
+                f"'{seen[pair]}' vs '{mapping.attack_name}'"
+            )
+        seen[pair] = mapping.attack_name

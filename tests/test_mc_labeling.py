@@ -68,3 +68,36 @@ def test_parse_arguments_multiple_mappings():
 def test_parse_arguments_requires_at_least_one_mapping():
     with pytest.raises(SystemExit):
         _parse_arguments(['data.csv'])
+
+
+from scripts.mc_labeling import _validate_inputs
+
+
+def test_validate_inputs_missing_file(tmp_path):
+    missing = tmp_path / 'nope.csv'
+    with pytest.raises(FileNotFoundError):
+        _validate_inputs(missing, (AttackMapping('1.2.3.4', '5.6.7.8', 'X'),))
+
+
+def test_validate_inputs_non_csv(tmp_path):
+    bad = tmp_path / 'data.txt'
+    bad.write_text('not a csv')
+    with pytest.raises(ValueError, match='Only CSV files are supported'):
+        _validate_inputs(bad, (AttackMapping('1.2.3.4', '5.6.7.8', 'X'),))
+
+
+def test_validate_inputs_duplicate_pair_conflicting_names(tmp_path):
+    csv_path = tmp_path / 'data.csv'
+    csv_path.write_text('src_ip,dst_ip\n1.2.3.4,5.6.7.8\n')
+    mappings = (
+        AttackMapping('1.2.3.4', '5.6.7.8', 'XMasAttack'),
+        AttackMapping('1.2.3.4', '5.6.7.8', 'PortScan'),
+    )
+    with pytest.raises(ValueError, match='duplicate mapping'):
+        _validate_inputs(csv_path, mappings)
+
+
+def test_validate_inputs_accepts_valid_config(tmp_path):
+    csv_path = tmp_path / 'data.csv'
+    csv_path.write_text('src_ip,dst_ip\n1.2.3.4,5.6.7.8\n')
+    _validate_inputs(csv_path, (AttackMapping('1.2.3.4', '5.6.7.8', 'XMasAttack'),))
