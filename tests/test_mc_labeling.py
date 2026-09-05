@@ -1,20 +1,27 @@
+from pathlib import Path
+
+import pandas as pd
 import pytest
 
-from scripts.mc_labeling import AttackMapping, _parse_mapping
+from scripts.mc_labeling import (
+    AttackMapping,
+    MCLabelConfig,
+    _add_multiclass_labels,
+    _parse_arguments,
+    _parse_mapping,
+    _validate_inputs,
+    main,
+)
 
 
 def test_parse_mapping_valid():
     mapping = _parse_mapping('192.168.1.192,192.168.1.103,XMasAttack')
-    assert mapping == AttackMapping(
-        src_ip='192.168.1.192', dst_ip='192.168.1.103', attack_name='XMasAttack'
-    )
+    assert mapping == AttackMapping(src_ip='192.168.1.192', dst_ip='192.168.1.103', attack_name='XMasAttack')
 
 
 def test_parse_mapping_strips_whitespace():
     mapping = _parse_mapping(' 192.168.1.192 , 192.168.1.103 , XMasAttack ')
-    assert mapping == AttackMapping(
-        src_ip='192.168.1.192', dst_ip='192.168.1.103', attack_name='XMasAttack'
-    )
+    assert mapping == AttackMapping(src_ip='192.168.1.192', dst_ip='192.168.1.103', attack_name='XMasAttack')
 
 
 def test_parse_mapping_wrong_field_count():
@@ -37,15 +44,11 @@ def test_parse_mapping_empty_attack_name():
         _parse_mapping('192.168.1.192,192.168.1.103, ')
 
 
-from pathlib import Path
-
-from scripts.mc_labeling import MCLabelConfig, _parse_arguments
-
-
 def test_parse_arguments_single_mapping():
     config = _parse_arguments([
         'data.csv',
-        '--mapping', '192.168.1.192,192.168.1.103,XMasAttack',
+        '--mapping',
+        '192.168.1.192,192.168.1.103,XMasAttack',
     ])
     assert config == MCLabelConfig(
         dataset_path=Path('data.csv'),
@@ -56,8 +59,10 @@ def test_parse_arguments_single_mapping():
 def test_parse_arguments_multiple_mappings():
     config = _parse_arguments([
         'data.csv',
-        '--mapping', '192.168.1.192,192.168.1.103,XMasAttack',
-        '--mapping', '10.0.0.1,10.0.0.2,PortScan',
+        '--mapping',
+        '192.168.1.192,192.168.1.103,XMasAttack',
+        '--mapping',
+        '10.0.0.1,10.0.0.2,PortScan',
     ])
     assert config.mappings == (
         AttackMapping('192.168.1.192', '192.168.1.103', 'XMasAttack'),
@@ -68,9 +73,6 @@ def test_parse_arguments_multiple_mappings():
 def test_parse_arguments_requires_at_least_one_mapping():
     with pytest.raises(SystemExit):
         _parse_arguments(['data.csv'])
-
-
-from scripts.mc_labeling import _validate_inputs
 
 
 def test_validate_inputs_missing_file(tmp_path):
@@ -101,11 +103,6 @@ def test_validate_inputs_accepts_valid_config(tmp_path):
     csv_path = tmp_path / 'data.csv'
     csv_path.write_text('src_ip,dst_ip\n1.2.3.4,5.6.7.8\n')
     _validate_inputs(csv_path, (AttackMapping('1.2.3.4', '5.6.7.8', 'XMasAttack'),))
-
-
-import pandas as pd
-
-from scripts.mc_labeling import _add_multiclass_labels
 
 
 def test_add_multiclass_labels_assigns_attack_and_benign(tmp_path):
@@ -146,9 +143,6 @@ def test_add_multiclass_labels_missing_ip_columns(tmp_path):
 
     with pytest.raises(ValueError, match="must contain 'src_ip' and 'dst_ip'"):
         _add_multiclass_labels(csv_path, (AttackMapping('1.2.3.4', '5.6.7.8', 'X'),))
-
-
-from scripts.mc_labeling import main
 
 
 def test_main_end_to_end_success(tmp_path, capsys):

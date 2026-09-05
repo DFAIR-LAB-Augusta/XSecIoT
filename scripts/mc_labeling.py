@@ -40,9 +40,7 @@ def _parse_mapping(raw: str) -> AttackMapping:
     """
     fields = [f.strip() for f in raw.split(',')]
     if len(fields) != 3:
-        raise ValueError(
-            f"Mapping '{raw}' must have exactly 3 comma-separated fields: src_ip,dst_ip,attack_name"
-        )
+        raise ValueError(f"Mapping '{raw}' must have exactly 3 comma-separated fields: src_ip,dst_ip,attack_name")
     src_ip, dst_ip, attack_name = fields
     if not _is_valid_ip(src_ip):
         raise ValueError(f'Invalid source IP address in mapping: {src_ip}')
@@ -100,10 +98,7 @@ def _validate_inputs(dataset_path: Path, mappings: Tuple[AttackMapping, ...]) ->
     for mapping in mappings:
         pair = (mapping.src_ip, mapping.dst_ip)
         if pair in seen and seen[pair] != mapping.attack_name:
-            raise ValueError(
-                f'duplicate mapping for {pair}: '
-                f"'{seen[pair]}' vs '{mapping.attack_name}'"
-            )
+            raise ValueError(f"duplicate mapping for {pair}: '{seen[pair]}' vs '{mapping.attack_name}'")
         seen[pair] = mapping.attack_name
 
 
