@@ -146,3 +146,41 @@ def test_add_multiclass_labels_missing_ip_columns(tmp_path):
 
     with pytest.raises(ValueError, match="must contain 'src_ip' and 'dst_ip'"):
         _add_multiclass_labels(csv_path, (AttackMapping('1.2.3.4', '5.6.7.8', 'X'),))
+
+
+from scripts.mc_labeling import main
+
+
+def test_main_end_to_end_success(tmp_path, capsys):
+    csv_path = tmp_path / 'flows.csv'
+    pd.DataFrame({
+        'src_ip': ['1.2.3.4', '9.9.9.9'],
+        'dst_ip': ['5.6.7.8', '9.9.9.8'],
+    }).to_csv(csv_path, index=False)
+
+    main([str(csv_path), '--mapping', '1.2.3.4,5.6.7.8,XMasAttack'])
+
+    captured = capsys.readouterr()
+    expected_output = tmp_path / 'flows_mc_labeled.csv'
+    assert str(expected_output) in captured.out
+    assert expected_output.exists()
+
+
+def test_main_exits_nonzero_on_missing_file(tmp_path, capsys):
+    missing = tmp_path / 'nope.csv'
+    with pytest.raises(SystemExit) as exc_info:
+        main([str(missing), '--mapping', '1.2.3.4,5.6.7.8,XMasAttack'])
+
+    assert exc_info.value.code == 1
+    captured = capsys.readouterr()
+    assert 'Error:' in captured.err
+
+
+def test_main_exits_nonzero_on_invalid_mapping(tmp_path, capsys):
+    csv_path = tmp_path / 'flows.csv'
+    pd.DataFrame({'src_ip': ['1.2.3.4'], 'dst_ip': ['5.6.7.8']}).to_csv(csv_path, index=False)
+
+    with pytest.raises(SystemExit) as exc_info:
+        main([str(csv_path), '--mapping', 'not-an-ip,5.6.7.8,XMasAttack'])
+
+    assert exc_info.value.code == 1

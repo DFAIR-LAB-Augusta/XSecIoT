@@ -130,3 +130,23 @@ def _add_multiclass_labels(dataset_path: Path, mappings: Tuple[AttackMapping, ..
     df.to_csv(output_path, index=False)
 
     return output_path
+
+
+def main(argv: List[str] | None = None) -> None:
+    """
+    Main function to execute the multiclass labeling pipeline.
+    """
+    try:
+        config = _parse_arguments(argv)
+        _validate_inputs(config.dataset_path, config.mappings)
+        output_path = _add_multiclass_labels(config.dataset_path, config.mappings)
+        print(f'Multiclass-labeled dataset saved to: {output_path}')
+    except SystemExit:
+        raise
+    except Exception as exc:
+        print(f'Error: {exc}', file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
