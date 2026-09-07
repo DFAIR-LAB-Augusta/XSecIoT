@@ -14,7 +14,7 @@ TREE_IGNORE := .venv|binary_models|logging|*pyc|tests|datasets|.pytest_cache|.ru
 
 TARGET_IP ?= 192.168.1.0/24
 
-.PHONY: help sync test clean \
+.PHONY: help sync sync-lean test clean \
         sim-bin sim-mc xseciot \
         bin-label mc-label merge \
         overall-perf overall-scrape
@@ -24,7 +24,9 @@ help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Examples:"
-	@echo "  make sync"
+	@echo "  make sync         # full deployment env: torch + xgboost + cade + dev"
+	@echo "  make sync-lean    # torch + dev only, no xgboost (matches CI; avoids the"
+	@echo "                    # nvidia-nccl-cu12/cu13 file collision between torch and xgboost's GPU wheel)"
 	@echo "  make test"
 	@echo "  make sim-bin"
 	@echo "  make sim-mc"
@@ -35,8 +37,11 @@ help:
 	@echo "  make overall-perf   LOG_DIR=logs"
 	@echo "  make overall-scrape LOG_DIR=logs"
 
-sync: 
+sync: ## Full deployment env: torch + xgboost + cade + dev
 	$(UV) sync --group lambda-torch
+
+sync-lean: ## torch + dev only (matches CI; skips xgboost to avoid its nvidia-nccl-cu12 vs torch's cu13 collision)
+	$(UV) sync --group torch
 
 test: 
 	OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \

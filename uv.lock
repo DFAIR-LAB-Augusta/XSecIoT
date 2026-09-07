@@ -2311,7 +2311,6 @@ dependencies = [
     { name = "shortuuid" },
     { name = "toml" },
     { name = "tqdm" },
-    { name = "xgboost" },
 ]
 
 [package.dev-dependencies]
@@ -2334,6 +2333,7 @@ lambda-tensorflow = [
     { name = "tensorflow", marker = "(sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow') or (sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
     { name = "tensorflow", extra = ["and-cuda"], marker = "(sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
     { name = "twine" },
+    { name = "xgboost" },
 ]
 lambda-torch = [
     { name = "cade-firce" },
@@ -2343,6 +2343,7 @@ lambda-torch = [
     { name = "ruff" },
     { name = "torch" },
     { name = "twine" },
+    { name = "xgboost" },
 ]
 tensorflow = [
     { name = "tensorflow", marker = "(sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform == 'darwin' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'linux' and extra == 'group-7-xseciot-tensorflow') or (sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
@@ -2350,6 +2351,9 @@ tensorflow = [
 ]
 torch = [
     { name = "torch" },
+]
+xgboost = [
+    { name = "xgboost" },
 ]
 
 [package.metadata]
@@ -2368,7 +2372,6 @@ requires-dist = [
     { name = "shortuuid", specifier = ">=1.0.13,<2" },
     { name = "toml", specifier = ">=0.10.2,<1" },
     { name = "tqdm", specifier = ">=4.68.3,<5" },
-    { name = "xgboost", specifier = ">=3.2.0,<4" },
 ]
 
 [package.metadata.requires-dev]
@@ -2389,6 +2392,7 @@ lambda-tensorflow = [
     { name = "tensorflow", marker = "sys_platform == 'darwin'", specifier = "==2.19.1" },
     { name = "tensorflow", extras = ["and-cuda"], marker = "sys_platform == 'linux'", specifier = "==2.19.1" },
     { name = "twine", specifier = ">=6.2.0,<7" },
+    { name = "xgboost", specifier = ">=3.2.0,<4" },
 ]
 lambda-torch = [
     { name = "cade-firce", specifier = "==0.4.2" },
@@ -2398,12 +2402,14 @@ lambda-torch = [
     { name = "ruff", specifier = ">=0.15.17,<1" },
     { name = "torch", specifier = "==2.12.1" },
     { name = "twine", specifier = ">=6.2.0,<7" },
+    { name = "xgboost", specifier = ">=3.2.0,<4" },
 ]
 tensorflow = [
     { name = "tensorflow", marker = "sys_platform == 'darwin'", specifier = "==2.19.1" },
     { name = "tensorflow", extras = ["and-cuda"], marker = "sys_platform == 'linux'", specifier = "==2.19.1" },
 ]
 torch = [{ name = "torch", specifier = "==2.12.1" }]
+xgboost = [{ name = "xgboost", specifier = ">=3.2.0,<4" }]
 
 [[package]]
 name = "zipp"
