@@ -3,6 +3,7 @@ import pytest
 import torch
 
 from firce.models.mlp_ce import MLP_CE
+from firce.models.mlp_ce_multiclass import MLPCEMulticlass
 
 DEVICE = torch.device('cpu')
 
@@ -68,16 +69,11 @@ def test_mlp_ce_binary_get_params_set_params_clone():
     assert model.threshold == 0.3
 
 
-from firce.models.mlp_ce_multiclass import MLPCEMulticlass
-
-
 def _make_multiclass_data(n=60, d=4, seed=0):
     rng = np.random.default_rng(seed)
     X = rng.normal(size=(n, d)).astype(np.float32)
     labels = np.array(['Benign', 'PortScan', 'XMasAttack'])
-    idx = np.argmax(
-        np.stack([X[:, 0], X[:, 1], -X[:, 0] - X[:, 1]], axis=1), axis=1
-    )
+    idx = np.argmax(np.stack([X[:, 0], X[:, 1], -X[:, 0] - X[:, 1]], axis=1), axis=1)
     y = labels[idx]
     return X, y, labels
 
