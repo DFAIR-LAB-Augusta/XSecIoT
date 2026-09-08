@@ -22,7 +22,7 @@ from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, ROLLING_C
 from firce.runtime.monitoring import filter_ce_kwargs
 from firce.runtime.sim_types import SimulationRuntime
 from firce.utils.circular_logger import CircularDequeLogger
-from firce.utils.config import ModelType, ModelVariant, MonitorType, SimulationConfig
+from firce.utils.config import ModelType, MonitorType, SimulationConfig
 from firce.utils.perf_stats import PerformanceStats
 from firce.utils.rolling_csv import RollingCSV
 from fire.preprocessing import clean_data
@@ -158,29 +158,22 @@ def ensure_model_artifacts(
             time.perf_counter() - start,
         )
 
-    if config.model_variant != ModelVariant.FEEDFORWARD and config.model_type == ModelType.MULTI:
+    if config.model_type == ModelType.MULTI:
         logger.info(
             "CE multiclass artifacts missing for '%s'; training now...",
             dataset_name,
         )
         start = time.perf_counter()
-        try:
-            train_ce_multiclass(
-                config,
-                str(config.aggregated_path),
-                variant=config.model_variant,
-                use_pca=config.use_pca,
-            )
-            logger.info(
-                'Multiclass CE training completed in %.4fs',
-                time.perf_counter() - start,
-            )
-        except NotImplementedError as exc:
-            logger.warning(
-                "Multiclass CE training not supported for variant '%s'; skipping: %s",
-                config.model_variant.value,
-                exc,
-            )
+        train_ce_multiclass(
+            config,
+            str(config.aggregated_path),
+            variant=config.model_variant,
+            use_pca=config.use_pca,
+        )
+        logger.info(
+            'Multiclass CE training completed in %.4fs',
+            time.perf_counter() - start,
+        )
 
 
 def create_rolling_logger(
