@@ -128,7 +128,9 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     """
     Loads aggregated data, performs scaling and PCA, then trains and evaluates
     multiple binary classifiers using the 'BinLabel' column as the target.
-    Trained models and transformation objects are saved in the 'binary_models' folder.
+    Trained models and transformation objects are saved in the 'binary_models_legacy_fire' folder
+    (namespaced away from firce.ce_model_training's 'binary_models' to avoid artifact collisions -
+    the two pipelines use overlapping filenames for the same dataset).
     """
     import xgboost as xgb
 
@@ -293,7 +295,7 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     print(f'Feedforward NN - Loss: {loss:.4f}, Accuracy: {acc:.4f}')
 
     dataset_name = os.path.basename(os.path.dirname(aggregated_file))
-    binary_models_dir = os.path.join(os.getcwd(), 'binary_models', dataset_name)
+    binary_models_dir = os.path.join(os.getcwd(), 'binary_models_legacy_fire', dataset_name)
     if not os.path.exists(binary_models_dir):
         os.makedirs(binary_models_dir)
 
@@ -388,7 +390,9 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     Loads aggregated data, performs scaling and PCA, then trains and evaluates
     several multi-class classifiers using the 'Label' column as the target (or
     'Attack' for UNSW). Trained models and transformation objects are saved in the
-    'multi_class_models' folder.
+    'multi_class_models_legacy_fire' folder (namespaced away from
+    firce.ce_model_training's 'multi_class_models' to avoid artifact collisions -
+    the two pipelines use overlapping filenames for the same dataset).
     """
     import xgboost as xgb
 
@@ -588,7 +592,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     )
 
     dataset_name = os.path.basename(os.path.dirname(aggregated_file))
-    multi_models_dir = os.path.join(os.getcwd(), 'multi_class_models', dataset_name)
+    multi_models_dir = os.path.join(os.getcwd(), 'multi_class_models_legacy_fire', dataset_name)
     if not os.path.exists(multi_models_dir):
         os.makedirs(multi_models_dir)
 
