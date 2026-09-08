@@ -17,6 +17,7 @@ import pandas as pd
 import torch
 
 from firce.models.feedforward_binary import FeedForwardBinary
+from firce.models.feedforward_multiclass import FeedForwardMulticlass
 from firce.models.torch_device import pick_device
 
 if TYPE_CHECKING:
@@ -79,7 +80,7 @@ def preprocess_chunk(chunk: pd.DataFrame, drop_cols: List[str]) -> pd.DataFrame:
 
 def load_simulation_objects(
     aggregated_file: str, model_type: str, model_variant: str, use_pca: bool = True
-) -> Tuple[StandardScaler, Optional[PCA], ClassifierMixin | xgb.Booster | FeedForwardBinary]:
+) -> Tuple[StandardScaler, Optional[PCA], ClassifierMixin | xgb.Booster | FeedForwardBinary | FeedForwardMulticlass]:
     """
     Load trained CE model, scaler, and (optionally) PCA from disk.
 
@@ -108,17 +109,10 @@ def load_simulation_objects(
         base = os.path.join(os.getcwd(), 'multi_class_models', dataset_name)
         scaler_file = os.path.join(base, 'scaler_multi.pkl')
         pca_file = os.path.join(base, 'pca_multi.pkl')
-        mapping = {
-            'dt': 'decision_tree_multi.pkl',
-            'rf': 'random_forest_multi.pkl',
-            'feedforward': 'feedforward_multi.pt',
-            'knn': 'knearest_multi.pkl',
-            'svm': 'svm_multi.pkl',
-            'xgb': 'xgboost_multi.pkl',
-        }
-        if model_variant not in mapping:
-            raise ValueError(f'Unsupported multi-class variant: {model_variant}')
-        model_file = os.path.join(base, mapping[model_variant])
+        if model_variant != 'feedforward':
+            model_file = os.path.join(base, f'{model_variant}_model_multi.pkl')
+        else:
+            model_file = os.path.join(base, 'feedforward_model_multi.pt')
 
     scaler = joblib.load(scaler_file)
     pca = joblib.load(pca_file) if use_pca else None
@@ -134,8 +128,15 @@ def load_simulation_objects(
     p_drop = float(ckpt.get('dropout', 0.3))
     state_dict = ckpt['state_dict']
 
-    logger.debug(f'Rebuilding FeedForwardBinary(input_dim={input_dim}, p_drop={p_drop})')
-    torch_model = FeedForwardBinary(input_dim=input_dim, p_drop=p_drop)
+    if model_type == 'binary':
+        logger.debug(f'Rebuilding FeedForwardBinary(input_dim={input_dim}, p_drop={p_drop})')
+        torch_model = FeedForwardBinary(input_dim=input_dim, p_drop=p_drop)
+    else:
+        num_classes = int(ckpt['num_classes'])
+        logger.debug(
+            f'Rebuilding FeedForwardMulticlass(input_dim={input_dim}, num_classes={num_classes}, p_drop={p_drop})'
+        )
+        torch_model = FeedForwardMulticlass(input_dim=input_dim, num_classes=num_classes, p_drop=p_drop)
     missing, unexpected = torch_model.load_state_dict(state_dict, strict=False)
     if missing:
         logger.debug(f'Missing keys when loading state_dict: {missing}')
