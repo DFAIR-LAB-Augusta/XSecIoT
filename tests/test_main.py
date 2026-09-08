@@ -1,10 +1,5 @@
 import sys
 
-import pytest
-
-pytest.importorskip('xgboost')
-pytest.importorskip('tensorflow')
-
 from fire.main import _parse_args
 
 
