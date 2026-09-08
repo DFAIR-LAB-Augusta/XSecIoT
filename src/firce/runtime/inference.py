@@ -179,7 +179,7 @@ def _prepare_chunk(
         Tuple of cleaned chunk and optional ground-truth series.
     """
     logger.debug('Chunk initially has %d columns', len(chunk.columns))
-    clean_chunk = clean_data(chunk, False)
+    clean_chunk = clean_data(chunk, runtime.config.is_unsw)
     logger.debug('Chunk has %d columns post-cleaning', len(clean_chunk.columns))
 
     label_col = _label_column(runtime.config.model_type)

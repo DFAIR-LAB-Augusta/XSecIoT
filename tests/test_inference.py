@@ -385,3 +385,52 @@ def test_append_unsw_row_binary_still_coerces_label(tmp_path, monkeypatch):
     appended = rolling.to_dataframe()
     assert len(appended) == 1
     assert appended['BinLabel'].iloc[0] == 1
+
+
+def test_prepare_chunk_unsw_applies_column_renaming(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    config = _make_config(tmp_path, model_type=ModelType.MULTI, is_unsw=True)
+    runtime = SimulationRuntime(
+        config=config,
+        perf_stats=PerformanceStats(),
+        sig_controller=None,
+        rolling=CircularDequeLogger(None, max_rows=200, columns=['MC_Label']),
+        scaler=None,
+        pca=None,
+        model=None,
+        label_encoder=None,
+        monitor=None,
+        train_df=pd.DataFrame(),
+    )
+
+    n = 5
+    raw_chunk = pd.DataFrame({
+        'IPV4_SRC_ADDR': ['10.0.0.1'] * n,
+        'IPV4_DST_ADDR': ['10.0.0.2'] * n,
+        'L4_SRC_PORT': [1024] * n,
+        'L4_DST_PORT': [80] * n,
+        'PROTOCOL': [6] * n,
+        'FLOW_START_MILLISECONDS': [1_600_000_000_000 + i * 1000 for i in range(n)],
+        'FLOW_END_MILLISECONDS': [1_600_000_000_500 + i * 1000 for i in range(n)],
+        'FLOW_DURATION_MILLISECONDS': [10.0] * n,
+        'IN_PKTS': [5] * n,
+        'OUT_PKTS': [5] * n,
+        'IN_BYTES': [500.0] * n,
+        'OUT_BYTES': [500.0] * n,
+        'SRC_TO_DST_IAT_MIN': [1.0] * n,
+        'SRC_TO_DST_IAT_MAX': [1.0] * n,
+        'SRC_TO_DST_IAT_AVG': [1.0] * n,
+        'SRC_TO_DST_IAT_STDDEV': [1.0] * n,
+        'DST_TO_SRC_IAT_MIN': [1.0] * n,
+        'DST_TO_SRC_IAT_MAX': [1.0] * n,
+        'DST_TO_SRC_IAT_AVG': [1.0] * n,
+        'DST_TO_SRC_IAT_STDDEV': [1.0] * n,
+    })
+
+    clean_chunk, _ = _prepare_chunk(runtime, raw_chunk)
+
+    assert 'tot_fwd_pkts' in clean_chunk.columns
+    assert 'tot_bwd_pkts' in clean_chunk.columns
+    assert 'fwd_pkt_len_mean' in clean_chunk.columns
+    assert 'IN_PKTS' not in clean_chunk.columns
+    assert 'IPV4_SRC_ADDR' not in clean_chunk.columns
