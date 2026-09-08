@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import pytest
 import torch
 
 from firce.runtime.retraining import retrain_runtime
@@ -99,9 +100,10 @@ def _make_runtime(tmp_path, model_variant=ModelVariant.DT):
     )
 
 
-def test_retrain_runtime_multiclass_updates_model_and_scaler(tmp_path, monkeypatch):
+@pytest.mark.parametrize('model_variant', [ModelVariant.DT, ModelVariant.KNN, ModelVariant.RF, ModelVariant.SVM])
+def test_retrain_runtime_multiclass_updates_model_and_scaler(tmp_path, monkeypatch, model_variant):
     monkeypatch.chdir(tmp_path)
-    runtime = _make_runtime(tmp_path)
+    runtime = _make_runtime(tmp_path, model_variant=model_variant)
 
     retrain_runtime(runtime)
 
@@ -110,6 +112,43 @@ def test_retrain_runtime_multiclass_updates_model_and_scaler(tmp_path, monkeypat
     assert len(runtime.monitor.fit_calls) == 1
     _, y_fit = runtime.monitor.fit_calls[0]
     assert set(y_fit.tolist()) <= {'Benign', 'PortScan', 'XMasAttack'}
+
+
+def test_retrain_runtime_raises_when_monitor_disabled(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runtime = _make_runtime(tmp_path)
+    runtime.monitor = None
+
+    with pytest.raises(RuntimeError, match='Monitor is disabled'):
+        retrain_runtime(runtime)
+
+
+def test_retrain_runtime_rejects_single_class_retraining_data(tmp_path, monkeypatch):
+    # train_ce_multiclass itself rejects <2 distinct MC_Label classes before
+    # retrain_runtime ever reaches _fit_monitor_on_retrained_data's own
+    # single-class skip-refit branch - that guard fires first in practice.
+    monkeypatch.chdir(tmp_path)
+    config = _make_config(tmp_path)
+    rolling = CircularDequeLogger(None, max_rows=200, columns=ROLLING_COLUMNS)
+    single_class_rows = _make_multiclass_rows().copy()
+    single_class_rows['MC_Label'] = 'Benign'
+    for row in single_class_rows.itertuples(index=False, name=None):
+        rolling.append(list(row))
+
+    runtime = SimulationRuntime(
+        config=config,
+        perf_stats=PerformanceStats(),
+        sig_controller=None,
+        rolling=rolling,
+        scaler=None,
+        pca=None,
+        model=None,
+        monitor=_StubMonitor(),
+        train_df=pd.DataFrame(),
+    )
+
+    with pytest.raises(ValueError, match='at least 2 distinct MC_Label classes'):
+        retrain_runtime(runtime)
 
 
 def test_retrain_runtime_multiclass_feedforward(tmp_path, monkeypatch):
