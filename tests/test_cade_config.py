@@ -1,4 +1,5 @@
 import pytest
+
 from pydantic import ValidationError
 
 from firce.drift_monitor.cade_config import CadeMonitorConfig
