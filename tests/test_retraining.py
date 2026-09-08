@@ -64,6 +64,45 @@ def _make_multiclass_rows(n=60, seed=0):
     })
 
 
+BINARY_ROLLING_COLUMNS = [
+    'device_id',
+    'session_id',
+    'src_ip',
+    'dst_ip',
+    'src_port',
+    'dst_port',
+    'protocol',
+    'timestamp',
+    'flow_duration',
+    'tot_fwd_pkt',
+    'tot_bwd_pkts',
+    'totlen_fwd_pkts',
+    'totlen_bwd_pkts',
+    'BinLabel',
+]
+
+
+def _make_binary_rows(n=60, seed=0):
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, 2, size=n)
+    return pd.DataFrame({
+        'device_id': range(n),
+        'session_id': range(n),
+        'src_ip': ['192.168.1.1'] * n,
+        'dst_ip': ['192.168.1.2'] * n,
+        'src_port': rng.integers(1024, 65535, size=n),
+        'dst_port': rng.integers(1, 1024, size=n),
+        'protocol': rng.integers(0, 2, size=n),
+        'timestamp': ['01-01-2020 00:00'] * n,
+        'flow_duration': rng.random(n) * 100,
+        'tot_fwd_pkt': rng.integers(1, 50, size=n),
+        'tot_bwd_pkts': rng.integers(0, 50, size=n),
+        'totlen_fwd_pkts': rng.random(n) * 1000,
+        'totlen_bwd_pkts': rng.random(n) * 1000,
+        'BinLabel': idx,
+    })
+
+
 def _make_config(tmp_path, **overrides):
     dummy = tmp_path / 'dummy.csv'
     dummy.write_text('a\n1\n')
@@ -149,6 +188,34 @@ def test_retrain_runtime_rejects_single_class_retraining_data(tmp_path, monkeypa
 
     with pytest.raises(ValueError, match='at least 2 distinct MC_Label classes'):
         retrain_runtime(runtime)
+
+
+def test_retrain_runtime_binary_updates_model_and_scaler(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    config = _make_config(tmp_path, model_type=ModelType.BINARY, model_variant=ModelVariant.DT)
+    rolling = CircularDequeLogger(None, max_rows=200, columns=BINARY_ROLLING_COLUMNS)
+    for row in _make_binary_rows().itertuples(index=False, name=None):
+        rolling.append(list(row))
+
+    runtime = SimulationRuntime(
+        config=config,
+        perf_stats=PerformanceStats(),
+        sig_controller=None,
+        rolling=rolling,
+        scaler=None,
+        pca=None,
+        model=None,
+        monitor=_StubMonitor(),
+        train_df=pd.DataFrame(),
+    )
+
+    retrain_runtime(runtime)
+
+    assert runtime.scaler is not None
+    assert runtime.model is not None
+    assert len(runtime.monitor.fit_calls) == 1
+    _, y_fit = runtime.monitor.fit_calls[0]
+    assert set(y_fit.tolist()) <= {0, 1}
 
 
 def test_retrain_runtime_multiclass_feedforward(tmp_path, monkeypatch):
