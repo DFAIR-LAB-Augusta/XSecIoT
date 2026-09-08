@@ -170,3 +170,29 @@ def test_train_ce_multiclass_too_few_classes_raises(tmp_path, monkeypatch):
 
     with pytest.raises(ValueError, match='at least 2 distinct MC_Label classes'):
         train_ce_multiclass(config, str(csv_path), variant=ModelVariant.DT, use_pca=False)
+
+
+def test_train_ce_multiclass_with_df_log_writes_retraining_dir(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_multiclass_csv(tmp_path)
+    df_log = pd.read_csv(csv_path)
+    config = _make_config(tmp_path, model_variant=ModelVariant.DT)
+
+    outdir = train_ce_multiclass(config, str(csv_path), variant=ModelVariant.DT, use_pca=False, df_log=df_log)
+
+    assert outdir.name.startswith('Model_dt_Retraining_')
+    assert (outdir / 'dt_model_multi.pkl').exists()
+    assert (outdir / 'label_encoder_multi.pkl').exists()
+
+
+def test_train_ce_multiclass_with_df_log_cleans_up_old_retraining_dirs(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_multiclass_csv(tmp_path)
+    df_log = pd.read_csv(csv_path)
+    config = _make_config(tmp_path, model_variant=ModelVariant.DT)
+
+    first = train_ce_multiclass(config, str(csv_path), variant=ModelVariant.DT, use_pca=False, df_log=df_log)
+    second = train_ce_multiclass(config, str(csv_path), variant=ModelVariant.DT, use_pca=False, df_log=df_log)
+
+    assert not first.exists()
+    assert second.exists()
