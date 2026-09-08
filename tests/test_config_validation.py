@@ -174,3 +174,87 @@ def test_initialize_simulation_runtime_binary_fits_ce_monitor(tmp_path, monkeypa
     thresholds = runtime.monitor._evaluator.thresholds
     assert set(thresholds.keys()) == {0, 1}
     assert runtime.label_encoder is None
+
+
+def _make_unsw_raw_csv(tmp_path, n=60, seed=0, dirname='UNSW_DS'):
+    rng = np.random.default_rng(seed)
+    ds_dir = tmp_path / dirname
+    ds_dir.mkdir(exist_ok=True)
+    csv_path = ds_dir / 'flows.csv'
+    labels = np.array(['Benign', 'DoS', 'Reconnaissance'])
+    idx = rng.integers(0, 3, size=n)
+    base_ms = 1_600_000_000_000
+    df = pd.DataFrame({
+        'IPV4_SRC_ADDR': ['10.0.0.1'] * n,
+        'IPV4_DST_ADDR': ['10.0.0.2'] * n,
+        'L4_SRC_PORT': rng.integers(1024, 65535, size=n),
+        'L4_DST_PORT': rng.integers(1, 1024, size=n),
+        'PROTOCOL': rng.integers(0, 2, size=n),
+        'FLOW_START_MILLISECONDS': base_ms + np.arange(n) * 1000,
+        'FLOW_END_MILLISECONDS': base_ms + np.arange(n) * 1000 + 500,
+        'FLOW_DURATION_MILLISECONDS': rng.random(n) * 100,
+        'IN_PKTS': rng.integers(1, 50, size=n),
+        'OUT_PKTS': rng.integers(1, 50, size=n),
+        'IN_BYTES': rng.random(n) * 1000,
+        'OUT_BYTES': rng.random(n) * 1000,
+        'SRC_TO_DST_IAT_MIN': rng.random(n) * 10,
+        'SRC_TO_DST_IAT_MAX': rng.random(n) * 10,
+        'SRC_TO_DST_IAT_AVG': rng.random(n) * 10,
+        'SRC_TO_DST_IAT_STDDEV': rng.random(n) * 10,
+        'DST_TO_SRC_IAT_MIN': rng.random(n) * 10,
+        'DST_TO_SRC_IAT_MAX': rng.random(n) * 10,
+        'DST_TO_SRC_IAT_AVG': rng.random(n) * 10,
+        'DST_TO_SRC_IAT_STDDEV': rng.random(n) * 10,
+        'Label': (idx != 0).astype(int),
+        'Attack': labels[idx],
+    })
+    df.to_csv(csv_path, index=False)
+    return csv_path
+
+
+def test_initialize_simulation_runtime_unsw_multiclass_seeds_mc_label(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_unsw_raw_csv(tmp_path)
+    config = _make_config(
+        tmp_path,
+        model_type=ModelType.MULTI,
+        model_variant=ModelVariant.DT,
+        aggregated_path=csv_path,
+        flows_path=csv_path,
+        is_unsw=True,
+        monitor_type=MonitorType.NONE,
+        use_circular_logger=True,
+    )
+
+    runtime = initialize_simulation_runtime(config)
+
+    assert 'MC_Label' in runtime.rolling.columns
+    assert 'BinLabel' not in runtime.rolling.columns
+    seeded = runtime.rolling.to_dataframe()
+    assert len(seeded) == 60
+    assert set(seeded['MC_Label'].unique()) == {'Benign', 'DoS', 'Reconnaissance'}
+    assert runtime.label_encoder is not None
+    assert sorted(runtime.label_encoder.classes_.tolist()) == ['Benign', 'DoS', 'Reconnaissance']
+
+
+def test_initialize_simulation_runtime_unsw_binary_still_works(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_unsw_raw_csv(tmp_path)
+    config = _make_config(
+        tmp_path,
+        model_type=ModelType.BINARY,
+        model_variant=ModelVariant.DT,
+        aggregated_path=csv_path,
+        flows_path=csv_path,
+        is_unsw=True,
+        monitor_type=MonitorType.NONE,
+        use_circular_logger=True,
+    )
+
+    runtime = initialize_simulation_runtime(config)
+
+    assert 'BinLabel' in runtime.rolling.columns
+    assert 'MC_Label' not in runtime.rolling.columns
+    seeded = runtime.rolling.to_dataframe()
+    assert len(seeded) == 60
+    assert set(seeded['BinLabel'].unique()) <= {0, 1}
