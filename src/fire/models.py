@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import shap
-import xgboost as xgb
 
 from lime.lime_tabular import LimeTabularExplainer
 from sklearn.decomposition import PCA
@@ -21,16 +20,9 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
-from tensorflow import random as tfr
-
-# type: ignore  # type: ignore
-from tensorflow.keras.layers import Dense, Dropout, Input
-from tensorflow.keras.models import Sequential  # type: ignore  # type: ignore
-from tensorflow.keras.utils import to_categorical  # type: ignore  # type: ignore
 
 logger = logging.getLogger(__name__)
 np.random.seed(42)
-tfr.set_seed(42)
 
 
 def _parse_args() -> argparse.Namespace:
@@ -138,6 +130,14 @@ def run_binary_classification(aggregated_file: str, isUNSW: bool, isPCA: bool) -
     multiple binary classifiers using the 'BinLabel' column as the target.
     Trained models and transformation objects are saved in the 'binary_models' folder.
     """
+    import xgboost as xgb
+
+    from tensorflow import random as tfr
+    from tensorflow.keras.layers import Dense, Dropout, Input
+    from tensorflow.keras.models import Sequential
+
+    tfr.set_seed(42)
+
     print(
         f'Agg Data Path: {aggregated_file}'
     )  # caffeinate python3 -m fire.main datasets/CIC_UNSW/NF-CICIDS2018-v3.csv --unsw --window_size 3s --step_size 5s >> output/WS3_SS5/CICtest.txt  # noqa: E501
@@ -390,6 +390,15 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     'Attack' for UNSW). Trained models and transformation objects are saved in the
     'multi_class_models' folder.
     """
+    import xgboost as xgb
+
+    from tensorflow import random as tfr
+    from tensorflow.keras.layers import Dense, Dropout, Input
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.utils import to_categorical
+
+    tfr.set_seed(42)
+
     print('Starting Multiclass', file=sys.stderr, flush=True)
     data = pd.read_csv(aggregated_file)
 
