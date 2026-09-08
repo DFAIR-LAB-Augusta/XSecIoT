@@ -60,10 +60,11 @@ def retrain_runtime(runtime: SimulationRuntime) -> None:
             df_log=df_log,
         )
 
-    scaler, pca, model = _load_retrained_artifacts(runtime, model_dir)
+    scaler, pca, model, label_encoder = _load_retrained_artifacts(runtime, model_dir)
     runtime.scaler = scaler
     runtime.pca = pca
     runtime.model = model
+    runtime.label_encoder = label_encoder
 
     _fit_monitor_on_retrained_data(runtime, df_log)
 
@@ -147,20 +148,23 @@ def _prune_unsw_retraining_frame(df_log: pd.DataFrame) -> pd.DataFrame:
 def _load_retrained_artifacts(
     runtime: SimulationRuntime,
     model_dir: Path,
-) -> tuple[Any, Any, Any]:
+) -> tuple[Any, Any, Any, Any]:
     """
-    Load retrained scaler, PCA, and model artifacts.
+    Load retrained scaler, PCA, model, and label encoder artifacts.
 
     Args:
         runtime: Mutable simulation runtime.
         model_dir: Directory containing trained artifacts.
 
     Returns:
-        Tuple of scaler, pca, and model.
+        Tuple of scaler, pca, model, and label encoder (None for binary).
     """
     suffix = 'binary' if runtime.config.model_type == ModelType.BINARY else 'multi'
     scaler = joblib.load(model_dir / f'scaler_{suffix}.pkl')
     pca = joblib.load(model_dir / f'pca_{suffix}.pkl') if runtime.config.use_pca else None
+    label_encoder = (
+        joblib.load(model_dir / 'label_encoder_multi.pkl') if runtime.config.model_type == ModelType.MULTI else None
+    )
 
     if runtime.config.model_variant.value == 'feedforward':
         ckpt_path = model_dir / f'feedforward_model_{suffix}.pt'
@@ -181,7 +185,7 @@ def _load_retrained_artifacts(
     else:
         model = joblib.load(model_dir / f'{runtime.config.model_variant.value}_model_{suffix}.pkl')
 
-    return scaler, pca, model
+    return scaler, pca, model, label_encoder
 
 
 def _fit_monitor_on_retrained_data(

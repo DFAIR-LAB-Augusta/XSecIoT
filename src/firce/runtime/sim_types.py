@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -33,3 +33,4 @@ class SimulationRuntime:
     model: ClassifierMixin | xgb.Booster | FeedForwardBinary
     monitor: DriftMonitor | None
     train_df: pd.DataFrame
+    label_encoder: Any | None = None

@@ -3,8 +3,10 @@ from __future__ import annotations
 import logging
 import time
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import joblib
 import pandas as pd
 
 from sklearn.svm import SVC
@@ -56,6 +58,7 @@ def initialize_simulation_runtime(config: SimulationConfig) -> SimulationRuntime
     seed_rolling_logger(config, rolling, train_df)
 
     scaler, pca, model = load_runtime_artifacts(config)
+    label_encoder = load_label_encoder(config)
     monitor = build_runtime_monitor(
         config=config,
         train_df=train_df,
@@ -74,6 +77,7 @@ def initialize_simulation_runtime(config: SimulationConfig) -> SimulationRuntime
         scaler=scaler,
         pca=pca,
         model=model,
+        label_encoder=label_encoder,
         monitor=monitor,
         train_df=train_df,
     )
@@ -332,6 +336,23 @@ def load_runtime_artifacts(
         config.model_variant.value,
         config.use_pca,
     )
+
+
+def load_label_encoder(config: SimulationConfig) -> Any | None:
+    """
+    Load the multiclass label encoder if applicable.
+
+    Args:
+        config: Simulation configuration.
+
+    Returns:
+        Fitted LabelEncoder for multiclass runs, or None for binary runs.
+    """
+    if config.model_type != ModelType.MULTI:
+        return None
+    dataset_name = config.aggregated_path.parent.name
+    encoder_path = Path('multi_class_models') / dataset_name / 'label_encoder_multi.pkl'
+    return joblib.load(encoder_path)
 
 
 def build_runtime_monitor(
