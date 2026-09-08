@@ -1,17 +1,15 @@
-# src/firce/models/mlp_ce
+# src/firce/models/mlp_ce_multiclass
 """
-CE-ready multilayer perceptron (MLP) for binary classification.
+CE-ready multilayer perceptron (MLP) for multiclass classification.
 
-This module defines `MLP_CE`, an MLP that can act as the *CE model*
-in your pipeline. It exposes scikit-learn–style methods (`fit`,
-`predict_proba`, `predict`) so it can be used directly by ICE/CCE/Approx-CCE
-without wrappers. Shared trunk/training/persistence scaffolding lives in
-`MLPCEBase`; see `mlp_ce_multiclass.py` for the multiclass sibling.
+This module defines `MLPCEMulticlass`, the multiclass sibling of `MLP_CE`:
+K output logits, cross-entropy loss, and softmax `predict_proba`. Shared
+trunk/training/persistence scaffolding lives in `MLPCEBase`.
 """
 
 import logging
 
-from typing import Optional, Tuple
+from typing import Optional, Sequence, Tuple
 
 import numpy as np
 import torch
@@ -22,20 +20,24 @@ from firce.models.mlp_ce_base import MLPCEBase
 logger = logging.getLogger(__name__)
 
 
-class MLP_CE(MLPCEBase):
+class MLPCEMulticlass(MLPCEBase):
     """
-    MLP for binary classification with CE-friendly APIs.
+    MLP for multiclass classification with CE-friendly APIs.
 
-    This class is intended to be the CE model. It exposes scikit-learn–style
-    methods (`fit`, `predict_proba`, `predict`) so your ICE/CCE/Approx-CCE
-    code can use it directly.
+    Exposes scikit-learn–style `fit`, `predict_proba`, `predict` so
+    ICE/CCE/Approx-CCE can use it directly, mirroring `MLP_CE`'s binary
+    interface but with K output logits, cross-entropy loss, and softmax
+    probabilities.
 
     Args:
         input_dim: Number of input features.
+        classes: The K known class labels (sortable, hashable values, e.g.
+            attack-type strings). Fixes the output layer size and the
+            column order of ``predict_proba``. Must contain at least 2
+            distinct values.
         device: Preferred torch device.
         widths: Hidden layer widths (applied in order). Defaults to (256, 128, 64).
         p_drop: Dropout probability after each hidden layer. Defaults to 0.2.
-        threshold: Positive-class decision threshold used by ``predict``. Defaults to 0.5.
         lr: Learning rate for Adam optimizer during ``fit``. Defaults to 1e-3.
         epochs: Number of training epochs for ``fit``. Defaults to 20.
         batch_size: Mini-batch size used in ``fit`` and inference. If ``None``,
@@ -46,16 +48,21 @@ class MLP_CE(MLPCEBase):
     def __init__(
         self,
         input_dim: int,
+        classes: Sequence,
         device: torch.device,
         widths: Tuple[int, ...] = (256, 128, 64),
         p_drop: float = 0.2,
-        threshold: float = 0.5,
         lr: float = 1e-3,
         epochs: int = 20,
         batch_size: Optional[int] = None,
         random_state: int = 42,
     ):
-        self.threshold = float(threshold)
+        classes_arr = np.array(sorted(set(classes)))
+        if len(classes_arr) < 2:
+            raise ValueError(f'classes must contain at least 2 distinct labels, got {classes_arr.tolist()}')
+        self.classes_ = classes_arr
+        self.num_classes = len(classes_arr)
+        self._label_to_index = {label: i for i, label in enumerate(classes_arr.tolist())}
         super().__init__(
             input_dim=input_dim,
             device=device,
@@ -68,35 +75,24 @@ class MLP_CE(MLPCEBase):
         )
 
     def _build_head(self, in_features: int) -> nn.Module:
-        return nn.Linear(in_features, 1)
+        return nn.Linear(in_features, self.num_classes)
 
     def _loss_fn(self) -> nn.Module:
-        return nn.BCEWithLogitsLoss()
+        return nn.CrossEntropyLoss()
 
     def _prepare_targets(self, y: np.ndarray) -> torch.Tensor:
-        y_arr = np.asarray(y).astype(np.float32, copy=False)
-        return torch.from_numpy(y_arr)
+        y_arr = np.asarray(y)
+        try:
+            idx = np.array([self._label_to_index[label] for label in y_arr.tolist()], dtype=np.int64)
+        except KeyError as exc:
+            raise ValueError(f'Label {exc} not found in known classes {self.classes_.tolist()}') from exc
+        return torch.from_numpy(idx)
 
     def _finalize_fit(self, y: np.ndarray) -> None:
-        classes = np.unique(np.asarray(y).astype(int))
-        if classes.tolist() != [0, 1]:
-            classes = np.array(sorted(classes.tolist()))
-        self.classes_ = classes
+        pass  # classes_ is fixed at construction time, not derived from fit data.
 
     def _extra_params(self) -> dict:
-        return {'threshold': self.threshold}
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Compute raw logits.
-
-        Args:
-            x: Input tensor of shape ``(N, input_dim)``.
-
-        Returns:
-            Logits of shape ``(N,)``.
-        """
-        return super().forward(x).squeeze(1)
+        return {'classes': self.classes_.tolist()}
 
     @torch.no_grad()
     def predict_proba(
@@ -114,12 +110,13 @@ class MLP_CE(MLPCEBase):
             device: Override device for inference. Defaults to the model device.
 
         Returns:
-            Array of shape ``(N, 2)`` with probabilities ``[P(0), P(1)]``.
+            Array of shape ``(N, K)`` with probabilities in ``classes_`` order.
         """
-        logits = self._forward_batches(X, batch_size, device).reshape(-1)
-        p1 = 1.0 / (1.0 + np.exp(-logits))
-        logger.debug(f'[mlp_ce.predict_proba] p1.shape={p1.shape}')
-        return np.stack([1.0 - p1, p1], axis=1)
+        logits = self._forward_batches(X, batch_size, device)
+        exp = np.exp(logits - logits.max(axis=1, keepdims=True))
+        proba = exp / exp.sum(axis=1, keepdims=True)
+        logger.debug(f'[mlp_ce_multiclass.predict_proba] proba.shape={proba.shape}')
+        return proba
 
     @torch.no_grad()
     def predict(
@@ -127,25 +124,23 @@ class MLP_CE(MLPCEBase):
         X: np.ndarray | torch.Tensor,
         batch_size: int = 4096,
         device: Optional[torch.device] = None,
-        threshold: Optional[float] = None,
     ) -> np.ndarray:
         """
-        Predict binary labels for input samples by thresholding ``P(class=1)``.
+        Predict class labels for input samples via argmax over ``predict_proba``.
 
         Args:
             X: Input features of shape ``(N, D)`` or a single sample ``(D,)``.
             batch_size: Inference batch size. Defaults to ``4096``.
             device: Override device for inference. Defaults to the model device.
-            threshold: Override decision threshold. Defaults to the instance value.
 
         Returns:
-            Integer labels of shape ``(N,)`` with values in ``{0, 1}``.
+            Array of shape ``(N,)`` with values drawn from ``classes_``.
         """
-        thr = self.threshold if threshold is None else float(threshold)
-        proba = self.predict_proba(X, batch_size=batch_size, device=device)[:, 1]
-        y = (proba > thr).astype(np.int32, copy=False)
-        logger.debug(f'[mlp_ce.predict] shape={y.shape}, mean_prob={float(proba.mean()):.6f}, thr={thr}')
-        return y
+        proba = self.predict_proba(X, batch_size=batch_size, device=device)
+        idx = np.argmax(proba, axis=1)
+        preds = self.classes_[idx]
+        logger.debug(f'[mlp_ce_multiclass.predict] shape={preds.shape}')
+        return preds
 
 
 if __name__ == '__main__':
