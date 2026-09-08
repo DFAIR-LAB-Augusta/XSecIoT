@@ -37,3 +37,15 @@ def test_get_rolling_columns_binary_still_includes_bin_label(tmp_path):
 
     assert 'BinLabel' in columns
     assert 'MC_Label' not in columns
+
+
+import pytest
+
+from firce.runtime.bootstrap import initialize_simulation_runtime
+
+
+def test_initialize_simulation_runtime_rejects_unsw_multiclass(tmp_path):
+    config = _make_config(tmp_path, model_type=ModelType.MULTI, is_unsw=True)
+
+    with pytest.raises(ValueError, match='UNSW \\+ multiclass'):
+        initialize_simulation_runtime(config)

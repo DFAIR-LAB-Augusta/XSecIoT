@@ -47,7 +47,19 @@ def initialize_simulation_runtime(config: SimulationConfig) -> SimulationRuntime
 
     Returns:
         Fully initialized runtime state.
+
+    Raises:
+        ValueError: If `is_unsw` and `model_type=multi` are combined — the UNSW
+            rolling-log schema has no MC_Label slot yet (see xseciot issue #108).
     """
+    if config.is_unsw and config.model_type == ModelType.MULTI:
+        raise ValueError(
+            'UNSW + multiclass live simulation is not yet supported: the UNSW rolling-log '
+            'schema has no MC_Label slot (see xseciot issue #108). Training via '
+            'train_ce_multiclass works standalone; use model_type=binary with is_unsw=True, '
+            'or model_type=multi with is_unsw=False, for live simulation until #108 lands.'
+        )
+
     sig_controller = create_sig_controller(config)
     perf_stats = create_perf_stats()
     train_df = load_training_frame(config)
