@@ -562,7 +562,7 @@ def run_multiclass_classification(aggregated_file: str, isUNSW: bool, isPCA: boo
     y1_encoded = label_encoder.fit_transform(y1)
     y1_categorical = to_categorical(y1_encoded)
     X_train_nn, X_test_nn, y_train_nn, y_test_nn = train_test_split(
-        X1_pca,
+        X1_final,
         y1_categorical,
         test_size=0.2,
         random_state=42,  # type: ignore
