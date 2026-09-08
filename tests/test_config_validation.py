@@ -76,6 +76,33 @@ def _make_multiclass_csv(tmp_path, n=60, seed=0, dirname='DS'):
     return csv_path
 
 
+def _make_binary_csv(tmp_path, n=60, seed=0, dirname='DS'):
+    rng = np.random.default_rng(seed)
+    ds_dir = tmp_path / dirname
+    ds_dir.mkdir(exist_ok=True)
+    csv_path = ds_dir / 'flows.csv'
+    labels = np.array(['Benign', 'Attack'])
+    idx = rng.integers(0, 2, size=n)
+    df = pd.DataFrame({
+        'device_id': range(n),
+        'session_id': range(n),
+        'src_ip': ['192.168.1.1'] * n,
+        'dst_ip': ['192.168.1.2'] * n,
+        'src_port': rng.integers(1024, 65535, size=n),
+        'dst_port': rng.integers(1, 1024, size=n),
+        'protocol': rng.integers(0, 2, size=n),
+        'timestamp': ['01-01-2020 00:00'] * n,
+        'flow_duration': rng.random(n) * 100,
+        'tot_fwd_pkt': rng.integers(1, 50, size=n),
+        'tot_bwd_pkts': rng.integers(0, 50, size=n),
+        'totlen_fwd_pkts': rng.random(n) * 1000,
+        'totlen_bwd_pkts': rng.random(n) * 1000,
+        'Label': labels[idx],
+    })
+    df.to_csv(csv_path, index=False)
+    return csv_path
+
+
 @pytest.mark.parametrize(
     'model_variant', [ModelVariant.DT, ModelVariant.KNN, ModelVariant.RF, ModelVariant.SVM, ModelVariant.FEEDFORWARD]
 )
@@ -115,3 +142,24 @@ def test_initialize_simulation_runtime_multiclass_fits_ce_monitor(tmp_path, monk
     assert runtime.monitor is not None
     thresholds = runtime.monitor._evaluator.thresholds
     assert set(thresholds.keys()) == {'Benign', 'PortScan', 'XMasAttack'}
+
+
+def test_initialize_simulation_runtime_binary_fits_ce_monitor(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_binary_csv(tmp_path)
+    config = _make_config(
+        tmp_path,
+        model_type=ModelType.BINARY,
+        model_variant=ModelVariant.DT,
+        aggregated_path=csv_path,
+        flows_path=csv_path,
+        monitor_type=MonitorType.CE,
+        ce_type=CEType.ICE,
+    )
+
+    runtime = initialize_simulation_runtime(config)
+
+    assert runtime.monitor is not None
+    thresholds = runtime.monitor._evaluator.thresholds
+    assert set(thresholds.keys()) == {0, 1}
+    assert runtime.label_encoder is None
