@@ -1,5 +1,4 @@
 import logging
-import time
 import warnings
 
 from pathlib import Path
@@ -9,19 +8,13 @@ import joblib
 import pandas as pd
 import torch
 
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-
 from firce.ce_model_training import train_ce_binary, train_ce_multiclass
-from firce.drift_monitor.base import DriftMonitor
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.feedforward_multiclass import FeedForwardMulticlass
 from firce.runtime.bootstrap import SimulationRuntime
 from firce.runtime.constants import FULL_DROP_COLS
 from firce.utils.circular_logger import CircularDequeLogger
-from firce.utils.config import ModelType, ModelVariant, MonitorType, SimulationConfig
-from firce.utils.perf_stats import PerformanceStats
-from firce.utils.rolling_csv import RollingCSV
+from firce.utils.config import ModelType
 from fire.preprocessing import clean_data
 from fire.simulations import preprocess_chunk
 
