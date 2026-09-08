@@ -270,20 +270,9 @@ def train_ce_binary(
 
     else:
         if 'Label' in df.columns:
-            df['BinLabel'] = df['Label'].map({'Benign': 0}).fillna(1).astype(int)
+            df['BinLabel'] = df['Label']
         elif 'BinLabel' in df.columns:
-            if df['BinLabel'].dtype == object:
-                df['BinLabel'] = df['BinLabel'].map({'Benign': 0}).fillna(1)
-                logger.debug('')
-            non_finite_mask = ~np.isfinite(df['BinLabel'])
-            if non_finite_mask.any():
-                offending_vals = df.loc[non_finite_mask, 'BinLabel'].head(5).tolist()
-                logger.error(
-                    f"[train_ce_binary] Non-finite values found in 'BinLabel' before casting to int: {offending_vals}"
-                )
-                raise ValueError(f"Non-finite values in 'BinLabel': {offending_vals}")
-
-            df['BinLabel'] = df['BinLabel'].astype(int)
+            logger.debug("'BinLabel' already present; deferring normalization to the shared label-mapping step.")
         else:
             raise ValueError(
                 f"Dataset must contain either 'Label' or 'BinLabel' column.Columns found: {df.columns.tolist()}"
@@ -302,7 +291,7 @@ def train_ce_binary(
 
     y_series = df[label_col]
 
-    if y_series.dtype == object:
+    if pd.api.types.is_string_dtype(y_series):
         label_map = {
             'BENIGN': 0,
             'Benign': 0,
