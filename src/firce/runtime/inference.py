@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import logging
 import time
 import warnings
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import pandas as pd
 import torch
-import xgboost as xgb
 
 from sklearn.base import ClassifierMixin
 from sklearn.decomposition import PCA
@@ -24,6 +27,9 @@ from firce.utils.circular_logger import CircularDequeLogger
 from firce.utils.config import ModelType, ModelVariant, MonitorType, SimulationConfig
 from fire.preprocessing import clean_data
 from fire.simulations import preprocess_chunk
+
+if TYPE_CHECKING:
+    import xgboost as xgb
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +83,9 @@ def predict_row(
         )
         X_s = scaler.transform(X_row)
     X_p = pca.transform(X_s) if config.use_pca and pca is not None else X_s
+
+    if config.model_variant == ModelVariant.XGB:
+        import xgboost as xgb
 
     if config.model_variant == ModelVariant.XGB and isinstance(model, xgb.Booster):
         fnames = [f'f_{i}' for i in range(X_p.shape[1])]
