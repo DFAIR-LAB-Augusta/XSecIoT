@@ -15,7 +15,7 @@ from firce.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multi
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
 from firce.drift_monitor.factory import build_monitor
 from firce.models.mlp_ce import MLP_CE
-from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, ROLLING_COLS, _label_column
+from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, _label_column, get_unsw_rolling_columns
 from firce.runtime.monitoring import filter_ce_kwargs
 from firce.runtime.sim_types import SimulationRuntime
 from firce.utils.circular_logger import CircularDequeLogger
@@ -47,19 +47,7 @@ def initialize_simulation_runtime(config: SimulationConfig) -> SimulationRuntime
 
     Returns:
         Fully initialized runtime state.
-
-    Raises:
-        ValueError: If `is_unsw` and `model_type=multi` are combined — the UNSW
-            rolling-log schema has no MC_Label slot yet (see xseciot issue #108).
     """
-    if config.is_unsw and config.model_type == ModelType.MULTI:
-        raise ValueError(
-            'UNSW + multiclass live simulation is not yet supported: the UNSW rolling-log '
-            'schema has no MC_Label slot (see xseciot issue #108). Training via '
-            'train_ce_multiclass works standalone; use model_type=binary with is_unsw=True, '
-            'or model_type=multi with is_unsw=False, for live simulation until #108 lands.'
-        )
-
     sig_controller = create_sig_controller(config)
     perf_stats = create_perf_stats()
     train_df = load_training_frame(config)
@@ -142,12 +130,22 @@ def load_training_frame(config: SimulationConfig) -> pd.DataFrame:
         else:
             df_train['BinLabel'] = df_train['Label'].map({'Benign': 0}).fillna(1).astype(int)
 
+    if (
+        config.model_type == ModelType.MULTI
+        and config.is_unsw
+        and 'MC_Label' not in df_train.columns
+        and 'Attack' in df_train.columns
+    ):
+        df_train['MC_Label'] = df_train['Attack']
+
     df_train = df_train.drop(columns='Label', errors='ignore')
     df_train = df_train.drop(columns='Unnamed: 0', errors='ignore')
 
     if config.is_unsw:
         df_train = _unsw_clean(clean_data(df_train, config.is_unsw))
-        extra_features = set(df_train.columns) - set(FINAL_LOG_COLUMNS)
+        label_col = _label_column(config.model_type)
+        expected_columns = {label_col if col == 'BinLabel' else col for col in FINAL_LOG_COLUMNS}
+        extra_features = set(df_train.columns) - expected_columns
         logger.debug('UNSW extra features beyond mandatory set: %s', extra_features)
         if extra_features:
             raise RuntimeError('Unexpected UNSW features found. Diagnose before retraining.')
@@ -237,7 +235,7 @@ def get_rolling_columns(config: SimulationConfig) -> list[str]:
         Rolling logger column list.
     """
     if config.is_unsw:
-        return ROLLING_COLS.copy()
+        return get_unsw_rolling_columns(config.model_type)
 
     drop_before_seed = set(get_seed_drop_columns())
     label_col = _label_column(config.model_type)

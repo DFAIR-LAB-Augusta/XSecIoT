@@ -321,3 +321,67 @@ def test_record_prediction_outcome_binary_tracks_incorrect(tmp_path, monkeypatch
 
     assert row_to_log['BinLabel'].iloc[0] == wrong_value
     assert runtime.perf_stats.correct_log == [False]
+
+
+def test_append_unsw_row_multiclass_writes_mc_label(tmp_path, monkeypatch):
+    from firce.runtime.constants import get_unsw_rolling_columns
+    from firce.runtime.inference import _append_unsw_row
+
+    monkeypatch.chdir(tmp_path)
+    config = _make_config(tmp_path, model_type=ModelType.MULTI, is_unsw=True)
+    columns = get_unsw_rolling_columns(ModelType.MULTI)
+    rolling = CircularDequeLogger(None, max_rows=200, columns=columns)
+    runtime = SimulationRuntime(
+        config=config,
+        perf_stats=PerformanceStats(),
+        sig_controller=None,
+        rolling=rolling,
+        scaler=None,
+        pca=None,
+        model=None,
+        label_encoder=None,
+        monitor=None,
+        train_df=pd.DataFrame(),
+    )
+
+    row_values = {col: 1.0 for col in columns if col != 'MC_Label'}
+    row_values['MC_Label'] = 'DoS'
+    row_to_log = pd.DataFrame([row_values])
+
+    _append_unsw_row(runtime, row_to_log)
+
+    appended = rolling.to_dataframe()
+    assert len(appended) == 1
+    assert appended['MC_Label'].iloc[0] == 'DoS'
+
+
+def test_append_unsw_row_binary_still_coerces_label(tmp_path, monkeypatch):
+    from firce.runtime.constants import get_unsw_rolling_columns
+    from firce.runtime.inference import _append_unsw_row
+
+    monkeypatch.chdir(tmp_path)
+    config = _make_config(tmp_path, model_type=ModelType.BINARY, is_unsw=True)
+    columns = get_unsw_rolling_columns(ModelType.BINARY)
+    rolling = CircularDequeLogger(None, max_rows=200, columns=columns)
+    runtime = SimulationRuntime(
+        config=config,
+        perf_stats=PerformanceStats(),
+        sig_controller=None,
+        rolling=rolling,
+        scaler=None,
+        pca=None,
+        model=None,
+        label_encoder=None,
+        monitor=None,
+        train_df=pd.DataFrame(),
+    )
+
+    row_values = {col: 1.0 for col in columns if col != 'BinLabel'}
+    row_values['BinLabel'] = 'Attack'
+    row_to_log = pd.DataFrame([row_values])
+
+    _append_unsw_row(runtime, row_to_log)
+
+    appended = rolling.to_dataframe()
+    assert len(appended) == 1
+    assert appended['BinLabel'].iloc[0] == 1
