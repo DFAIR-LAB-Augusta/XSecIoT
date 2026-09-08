@@ -32,7 +32,6 @@ import shortuuid
 import torch
 import torch.mps
 import torch.nn as nn
-import xgboost as xgb
 
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
@@ -370,6 +369,8 @@ def train_ce_binary(
             model = SVC(kernel='rbf', probability=True, random_state=config.seed)
             model.fit(Xf, y)
         case ModelVariant.XGB:
+            import xgboost as xgb
+
             model = xgb.XGBClassifier(objective='binary:logistic', random_state=config.seed)
             model.fit(Xf, y)
         case ModelVariant.FEEDFORWARD:
