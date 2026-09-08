@@ -20,12 +20,12 @@ Typical usage:
 
 import logging
 
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, Optional
 
 import numpy as np
 
-from scipy.stats import mode
 from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 from sklearn.model_selection import StratifiedKFold
 
@@ -202,7 +202,10 @@ class CrossConformalEvaluator:
         all_preds = np.stack(all_preds, axis=0)
         all_scores = np.stack(all_scores, axis=0)
 
-        final_preds, _ = mode(all_preds, axis=0, keepdims=False)
+        final_preds = np.array(
+            [Counter(all_preds[:, i]).most_common(1)[0][0] for i in range(all_preds.shape[1])],
+            dtype=all_preds.dtype,
+        )
 
         avg_scores = np.mean(all_scores, axis=0)
 
