@@ -12,9 +12,10 @@ import torch
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from firce.ce_model_training import train_ce_binary
+from firce.ce_model_training import train_ce_binary, train_ce_multiclass
 from firce.drift_monitor.base import DriftMonitor
 from firce.models.feedforward_binary import FeedForwardBinary
+from firce.models.feedforward_multiclass import FeedForwardMulticlass
 from firce.runtime.bootstrap import SimulationRuntime
 from firce.runtime.constants import FULL_DROP_COLS
 from firce.utils.circular_logger import CircularDequeLogger
@@ -25,6 +26,11 @@ from fire.preprocessing import clean_data
 from fire.simulations import preprocess_chunk
 
 logger = logging.getLogger(__name__)
+
+
+def _label_column(model_type: ModelType) -> str:
+    """Return the label column name for the given model type."""
+    return 'BinLabel' if model_type == ModelType.BINARY else 'MC_Label'
 
 
 def retrain_runtime(runtime: SimulationRuntime) -> None:
@@ -45,12 +51,21 @@ def retrain_runtime(runtime: SimulationRuntime) -> None:
     if runtime.config.is_unsw:
         df_log = _prune_unsw_retraining_frame(df_log)
 
-    model_dir = train_ce_binary(
-        runtime.config,
-        runtime.config.log_path.as_posix(),
-        runtime.perf_stats,
-        df_log,
-    )
+    if runtime.config.model_type == ModelType.BINARY:
+        model_dir = train_ce_binary(
+            runtime.config,
+            runtime.config.log_path.as_posix(),
+            runtime.perf_stats,
+            df_log,
+        )
+    else:
+        model_dir = train_ce_multiclass(
+            runtime.config,
+            runtime.config.log_path.as_posix(),
+            variant=runtime.config.model_variant,
+            use_pca=runtime.config.use_pca,
+            df_log=df_log,
+        )
 
     scaler, pca, model = _load_retrained_artifacts(runtime, model_dir)
     runtime.scaler = scaler
@@ -83,15 +98,18 @@ def _load_retraining_frame(runtime: SimulationRuntime) -> pd.DataFrame:
             len(df_log),
         )
 
-    values = df_log['BinLabel']
-    logger.debug('[pre-clean] BinLabel dtype=%s, n_rows=%d', values.dtype, len(values))
+    label_col = _label_column(runtime.config.model_type)
+    values = df_log[label_col]
+    logger.debug('[pre-clean] %s dtype=%s, n_rows=%d', label_col, values.dtype, len(values))
     logger.debug(
-        '[pre-clean] BinLabel nunique(excl NaN)=%d, n_nan=%d',
+        '[pre-clean] %s nunique(excl NaN)=%d, n_nan=%d',
+        label_col,
         values.nunique(dropna=True),
         int(values.isna().sum()),
     )
     logger.debug(
-        '[pre-clean] BinLabel unique values (raw): %s',
+        '[pre-clean] %s unique values (raw): %s',
+        label_col,
         list(pd.unique(values)),
     )
     return df_log
@@ -129,7 +147,7 @@ def _prune_unsw_retraining_frame(df_log: pd.DataFrame) -> pd.DataFrame:
         'fwd_iat_tot',
         'bwd_iat_tot',
     ]
-    to_drop = set(df_log.columns) - set(ce_columns) - {'Label', 'BinLabel'}
+    to_drop = set(df_log.columns) - set(ce_columns) - {'Label', 'BinLabel', 'MC_Label', 'Attack'}
     return df_log.drop(columns=list(to_drop))
 
 
@@ -147,28 +165,28 @@ def _load_retrained_artifacts(
     Returns:
         Tuple of scaler, pca, and model.
     """
-    scaler = joblib.load(model_dir / 'scaler_binary.pkl')
-    pca = joblib.load(model_dir / 'pca_binary.pkl') if runtime.config.use_pca else None
+    suffix = 'binary' if runtime.config.model_type == ModelType.BINARY else 'multi'
+    scaler = joblib.load(model_dir / f'scaler_{suffix}.pkl')
+    pca = joblib.load(model_dir / f'pca_{suffix}.pkl') if runtime.config.use_pca else None
 
     if runtime.config.model_variant.value == 'feedforward':
-        logger.debug(
-            'Loading Torch feedforward model from %s',
-            model_dir / 'feedforward_model_binary.pt',
-        )
-        checkpoint = torch.load(
-            model_dir / 'feedforward_model_binary.pt',
-            map_location='cpu',
-        )
+        ckpt_path = model_dir / f'feedforward_model_{suffix}.pt'
+        logger.debug('Loading Torch feedforward model from %s', ckpt_path)
+        checkpoint = torch.load(ckpt_path, map_location='cpu')
         input_dim = int(checkpoint.get('input_dim'))
         p_drop = float(checkpoint.get('dropout', 0.3))
         state_dict = checkpoint['state_dict']
 
-        model = FeedForwardBinary(input_dim=input_dim, p_drop=p_drop)
+        if runtime.config.model_type == ModelType.BINARY:
+            model = FeedForwardBinary(input_dim=input_dim, p_drop=p_drop)
+        else:
+            num_classes = int(checkpoint['num_classes'])
+            model = FeedForwardMulticlass(input_dim=input_dim, num_classes=num_classes, p_drop=p_drop)
         model.load_state_dict(state_dict, strict=False)
         model.to(runtime.config.device)
         model.eval()
     else:
-        model = joblib.load(model_dir / f'{runtime.config.model_variant.value}_model_binary.pkl')
+        model = joblib.load(model_dir / f'{runtime.config.model_variant.value}_model_{suffix}.pkl')
 
     return scaler, pca, model
 
@@ -199,7 +217,8 @@ def _fit_monitor_on_retrained_data(
     else:
         x_monitor = x_scaled
 
-    y = clean_df['BinLabel']
+    label_col = _label_column(runtime.config.model_type)
+    y = clean_df[label_col]
 
     if y.nunique() < 2:
         logger.warning(
