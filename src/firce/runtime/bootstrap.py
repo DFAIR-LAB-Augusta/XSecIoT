@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import logging
 import time
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
-import xgboost as xgb
 
 from sklearn.base import ClassifierMixin
 from sklearn.decomposition import PCA
@@ -26,6 +27,9 @@ from firce.utils.perf_stats import PerformanceStats
 from firce.utils.rolling_csv import RollingCSV
 from fire.preprocessing import clean_data
 from fire.simulations import load_simulation_objects, preprocess_chunk
+
+if TYPE_CHECKING:
+    import xgboost as xgb
 
 logger = logging.getLogger(__name__)
 

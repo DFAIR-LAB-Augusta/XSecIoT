@@ -1,5 +1,7 @@
 # fire.simulations
 
+from __future__ import annotations
+
 import argparse
 import logging
 import multiprocessing as mp
@@ -7,13 +9,12 @@ import os
 import time
 
 from functools import partial
-from typing import List, Literal, Optional, Tuple
+from typing import TYPE_CHECKING, List, Literal, Optional, Tuple
 
 import joblib
 import numpy as np
 import pandas as pd
 import torch
-import xgboost as xgb
 
 from sklearn.base import ClassifierMixin
 from sklearn.decomposition import PCA
@@ -21,6 +22,9 @@ from sklearn.preprocessing import StandardScaler
 
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.torch_device import pick_device
+
+if TYPE_CHECKING:
+    import xgboost as xgb
 
 logger = logging.getLogger(__name__)
 np.random.seed(42)
@@ -199,10 +203,15 @@ def process_chunk(
     X_p = pca.transform(X_s) if use_pca and pca is not None else X_s
 
     # 4) predict
-    if model_variant.startswith('xgb') and isinstance(model, xgb.Booster):
-        fnames = [f'f_{i}' for i in range(X_p.shape[1])]
-        dtest = xgb.DMatrix(X_p, feature_names=fnames)
-        preds = model.predict(dtest)
+    if model_variant.startswith('xgb'):
+        import xgboost as xgb
+
+        if isinstance(model, xgb.Booster):
+            fnames = [f'f_{i}' for i in range(X_p.shape[1])]
+            dtest = xgb.DMatrix(X_p, feature_names=fnames)
+            preds = model.predict(dtest)
+        else:
+            preds = model.predict(X_p)  # type: ignore
     else:
         preds = model.predict(X_p)  # type: ignore
         if model_variant == 'feedforward':
