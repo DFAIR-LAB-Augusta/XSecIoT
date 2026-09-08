@@ -15,7 +15,7 @@ from firce.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multi
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
 from firce.drift_monitor.factory import build_monitor
 from firce.models.mlp_ce import MLP_CE
-from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, ROLLING_COLS
+from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, ROLLING_COLS, _label_column
 from firce.runtime.monitoring import filter_ce_kwargs
 from firce.runtime.sim_types import SimulationRuntime
 from firce.utils.circular_logger import CircularDequeLogger
@@ -228,7 +228,8 @@ def get_rolling_columns(config: SimulationConfig) -> list[str]:
         return ROLLING_COLS.copy()
 
     drop_before_seed = set(get_seed_drop_columns())
-    return [col for col in FINAL_LOG_COLUMNS if col not in drop_before_seed]
+    label_col = _label_column(config.model_type)
+    return [label_col if col == 'BinLabel' else col for col in FINAL_LOG_COLUMNS if col not in drop_before_seed]
 
 
 def build_seed_frame(
