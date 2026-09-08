@@ -200,7 +200,9 @@ def test_train_ce_multiclass_with_df_log_cleans_up_old_retraining_dirs(tmp_path,
 
 
 @pytest.mark.parametrize('variant', [ModelVariant.DT, ModelVariant.KNN, ModelVariant.RF, ModelVariant.SVM])
-def test_train_ce_binary_classical_variants(tmp_path, monkeypatch, sim_config_factory, binary_flow_csv_factory, variant):
+def test_train_ce_binary_classical_variants(
+    tmp_path, monkeypatch, sim_config_factory, binary_flow_csv_factory, variant
+):
     monkeypatch.chdir(tmp_path)
     csv_path = binary_flow_csv_factory(tmp_path)
     config = sim_config_factory(tmp_path, model_type=ModelType.BINARY, model_variant=variant)
@@ -213,7 +215,9 @@ def test_train_ce_binary_classical_variants(tmp_path, monkeypatch, sim_config_fa
     assert not (outdir / 'pca_binary.pkl').exists()
 
 
-def test_train_ce_binary_with_pca_writes_pca_artifact(tmp_path, monkeypatch, sim_config_factory, binary_flow_csv_factory):
+def test_train_ce_binary_with_pca_writes_pca_artifact(
+    tmp_path, monkeypatch, sim_config_factory, binary_flow_csv_factory
+):
     monkeypatch.chdir(tmp_path)
     csv_path = binary_flow_csv_factory(tmp_path)
     config = sim_config_factory(tmp_path, model_type=ModelType.BINARY, model_variant=ModelVariant.DT, use_pca=True)
