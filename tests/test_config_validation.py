@@ -153,6 +153,13 @@ def test_initialize_simulation_runtime_multiclass_fits_ce_monitor(tmp_path, monk
     assert runtime.monitor is not None
     thresholds = runtime.monitor._evaluator.thresholds
     assert set(thresholds.keys()) == {'Benign', 'PortScan', 'XMasAttack'}
+    # Regression guard: CE calibration must not mutate the production model.
+    # ICE.calibrate() does an in-place self.model.fit(...) as part of its own
+    # calibration split - if _build_monitor_model shares runtime.model's exact
+    # object reference instead of cloning it, this refit corrupts runtime.model
+    # (fit on raw string MC_Label instead of the LabelEncoder-integer-encoded
+    # labels train_ce_multiclass originally used), breaking every live prediction.
+    assert all(isinstance(c, (int, np.integer)) for c in runtime.model.classes_)
 
 
 def test_initialize_simulation_runtime_binary_fits_ce_monitor(tmp_path, monkeypatch):

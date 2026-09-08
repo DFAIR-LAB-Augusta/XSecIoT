@@ -13,6 +13,7 @@ from sklearn.svm import SVC
 
 from firce.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
+from firce.conformalEval.utils import clone_model
 from firce.drift_monitor.factory import build_monitor
 from firce.models.mlp_ce import MLP_CE
 from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, _label_column, get_unsw_rolling_columns
@@ -479,7 +480,7 @@ def _build_monitor_model(
             device=config.device,
         )
 
-    return model
+    return clone_model(model)
 
 
 if __name__ == '__main__':
