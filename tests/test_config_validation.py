@@ -136,12 +136,13 @@ def test_initialize_simulation_runtime_multiclass_all_variants(tmp_path, monkeyp
     assert 'MC_Label' in runtime.rolling.columns
 
 
-def test_initialize_simulation_runtime_multiclass_fits_ce_monitor(tmp_path, monkeypatch):
+@pytest.mark.parametrize('model_variant', [ModelVariant.DT, ModelVariant.KNN, ModelVariant.RF, ModelVariant.SVM])
+def test_initialize_simulation_runtime_multiclass_fits_ce_monitor(tmp_path, monkeypatch, model_variant):
     monkeypatch.chdir(tmp_path)
     csv_path = _make_multiclass_csv(tmp_path)
     config = _make_config(
         tmp_path,
-        model_variant=ModelVariant.DT,
+        model_variant=model_variant,
         aggregated_path=csv_path,
         flows_path=csv_path,
         monitor_type=MonitorType.CE,
