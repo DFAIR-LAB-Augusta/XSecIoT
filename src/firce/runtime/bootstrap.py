@@ -1,31 +1,37 @@
+from __future__ import annotations
+
 import logging
 import time
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
-import xgboost as xgb
 
-from sklearn.base import ClassifierMixin
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 from firce.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
-from firce.drift_monitor.base import DriftMonitor
 from firce.drift_monitor.factory import build_monitor
-from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.mlp_ce import MLP_CE
 from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, ROLLING_COLS
 from firce.runtime.monitoring import filter_ce_kwargs
 from firce.runtime.sim_types import SimulationRuntime
 from firce.utils.circular_logger import CircularDequeLogger
-from firce.utils.config import ModelType, ModelVariant, MonitorType, SimulationConfig
+from firce.utils.config import ModelType, MonitorType, SimulationConfig
 from firce.utils.perf_stats import PerformanceStats
 from firce.utils.rolling_csv import RollingCSV
 from fire.preprocessing import clean_data
 from fire.simulations import load_simulation_objects, preprocess_chunk
+
+if TYPE_CHECKING:
+    import xgboost as xgb
+
+    from sklearn.base import ClassifierMixin
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import StandardScaler
+
+    from firce.drift_monitor.base import DriftMonitor
+    from firce.models.feedforward_binary import FeedForwardBinary
 
 logger = logging.getLogger(__name__)
 
@@ -154,29 +160,22 @@ def ensure_model_artifacts(
             time.perf_counter() - start,
         )
 
-    if config.model_variant != ModelVariant.FEEDFORWARD and config.model_type == ModelType.MULTI:
+    if config.model_type == ModelType.MULTI:
         logger.info(
             "CE multiclass artifacts missing for '%s'; training now...",
             dataset_name,
         )
         start = time.perf_counter()
-        try:
-            train_ce_multiclass(
-                config,
-                str(config.aggregated_path),
-                variant=config.model_variant,
-                use_pca=config.use_pca,
-            )
-            logger.info(
-                'Multiclass CE training completed in %.4fs',
-                time.perf_counter() - start,
-            )
-        except NotImplementedError as exc:
-            logger.warning(
-                "Multiclass CE training not supported for variant '%s'; skipping: %s",
-                config.model_variant.value,
-                exc,
-            )
+        train_ce_multiclass(
+            config,
+            str(config.aggregated_path),
+            variant=config.model_variant,
+            use_pca=config.use_pca,
+        )
+        logger.info(
+            'Multiclass CE training completed in %.4fs',
+            time.perf_counter() - start,
+        )
 
 
 def create_rolling_logger(

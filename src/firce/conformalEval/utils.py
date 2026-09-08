@@ -9,7 +9,10 @@ from typing import Any
 import numpy as np
 import toml
 
-from xgboost import XGBClassifier
+try:
+    from xgboost import XGBClassifier
+except ImportError:
+    XGBClassifier = None
 
 logger = logging.getLogger(__name__)
 
