@@ -125,3 +125,20 @@ def test_mlp_ce_multiclass_save_load_roundtrip(tmp_path):
     assert sorted(loaded.classes_.tolist()) == sorted(model.classes_.tolist())
     proba_after = loaded.predict_proba(X)
     assert np.allclose(proba_before, proba_after, atol=1e-5)
+
+
+def test_mlp_ce_multiclass_get_params_set_params_clone():
+    X, y, labels = _make_multiclass_data()
+    model = MLPCEMulticlass(input_dim=X.shape[1], classes=labels, device=DEVICE, epochs=3)
+    model.fit(X, y)
+
+    params = model.get_params()
+    assert params['input_dim'] == X.shape[1]
+    assert sorted(params['classes']) == sorted(labels.tolist())
+
+    clone = model.clone()
+    assert sorted(clone.classes_.tolist()) == sorted(labels.tolist())
+    assert clone.is_fitted_ is False
+
+    model.set_params(epochs=7)
+    assert model.epochs == 7
