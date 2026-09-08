@@ -233,7 +233,10 @@ def _process_chunk_rows(
             PRED_THRESHOLD,
         )
 
-        if prediction not in [0, 1]:
+        if runtime.config.model_type == ModelType.BINARY:
+            if prediction not in (0, 1):
+                logger.error('Row %d prediction: %r', row_index, prediction)
+        elif runtime.label_encoder is not None and prediction not in range(len(runtime.label_encoder.classes_)):
             logger.error('Row %d prediction: %r', row_index, prediction)
 
         logger.debug('Classified row in %.4fs', time.perf_counter() - start)
