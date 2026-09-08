@@ -18,6 +18,7 @@ from firce.runtime.constants import (
     PRED_THRESHOLD,
     ROLLING_COLS,
     _label_column,
+    get_unsw_rolling_columns,
 )
 from firce.runtime.retraining import retrain_runtime
 from firce.utils.circular_logger import CircularDequeLogger
@@ -364,10 +365,11 @@ def _append_unsw_row(
         row_to_log: Row to append.
 
     Raises:
-        ValueError: If BinLabel is invalid.
+        ValueError: If BinLabel is invalid (binary runs only).
         AssertionError: If logger schema does not match expected schema.
     """
-    allowed = ROLLING_COLS
+    allowed = get_unsw_rolling_columns(runtime.config.model_type)
+    label_col = _label_column(runtime.config.model_type)
     logger_obj = runtime.rolling
 
     if (
@@ -400,7 +402,8 @@ def _append_unsw_row(
         )
 
     pruned = series.reindex(index=allowed)
-    pruned['BinLabel'] = _coerce_binary_label(pruned['BinLabel'])
+    if runtime.config.model_type == ModelType.BINARY:
+        pruned[label_col] = _coerce_binary_label(pruned[label_col])
 
     assert len(pruned) == len(allowed), f'[rolling] row width mismatch: {len(pruned)} vs expected {len(allowed)}'
     logger_obj.append(pruned.tolist())
