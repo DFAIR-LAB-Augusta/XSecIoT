@@ -252,10 +252,6 @@ def test_train_ce_binary_xgb(tmp_path, monkeypatch, sim_config_factory, binary_f
 
 
 def test_train_ce_binary_normalizes_string_labels(tmp_path, monkeypatch, sim_config_factory):
-    # The non-UNSW 'Label' path maps only the exact literal 'Benign' to 0 and
-    # everything else to 1 (see #114 - the richer case-insensitive map further
-    # down the function never actually reaches this path, since 'BinLabel' is
-    # already created as an int column by the time that block runs).
     monkeypatch.chdir(tmp_path)
     ds_dir = tmp_path / 'DS'
     ds_dir.mkdir()
@@ -301,13 +297,7 @@ def test_train_ce_binary_normalizes_case_insensitive_string_labels_via_label_col
     assert set(model.classes_.tolist()) == {0, 1}
 
 
-def test_train_ce_binary_string_binlabel_crashes_under_pandas3(tmp_path, monkeypatch, sim_config_factory):
-    # KNOWN BUG (#114): pandas 3's default infer_string=True means CSV-read
-    # string columns are no longer literally `dtype == object`, so the
-    # `if df['BinLabel'].dtype == object:` normalization check never fires,
-    # and the code falls through to np.isfinite() on the raw string column,
-    # which crashes. This test documents actual current behavior; it is not
-    # asserting this is correct - see #114 for the fix.
+def test_train_ce_binary_normalizes_string_binlabel_column(tmp_path, monkeypatch, sim_config_factory):
     monkeypatch.chdir(tmp_path)
     ds_dir = tmp_path / 'DS'
     ds_dir.mkdir()
@@ -321,8 +311,12 @@ def test_train_ce_binary_string_binlabel_crashes_under_pandas3(tmp_path, monkeyp
     }).to_csv(csv_path, index=False)
     config = sim_config_factory(tmp_path, model_type=ModelType.BINARY, model_variant=ModelVariant.DT)
 
-    with pytest.raises(TypeError, match='isfinite'):
-        train_ce_binary(config, str(csv_path), PerformanceStats())
+    outdir = train_ce_binary(config, str(csv_path), PerformanceStats())
+
+    import joblib
+
+    model = joblib.load(outdir / 'dt_model_binary.pkl')
+    assert set(model.classes_.tolist()) == {0, 1}
 
 
 def test_train_ce_binary_missing_label_column_raises(tmp_path, monkeypatch, sim_config_factory):
