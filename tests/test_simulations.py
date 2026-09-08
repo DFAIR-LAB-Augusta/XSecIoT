@@ -20,7 +20,9 @@ def test_parse_args_defaults(monkeypatch):
 
 def test_parse_args_overrides(monkeypatch):
     monkeypatch.setattr(
-        sys, 'argv', ['prog', 'agg.csv', '--mode', 'parallel', '--model_type', 'multi', '--model_variant', 'rf', '--unsw']
+        sys,
+        'argv',
+        ['prog', 'agg.csv', '--mode', 'parallel', '--model_type', 'multi', '--model_variant', 'rf', '--unsw'],
     )
     args = _parse_args()
 
