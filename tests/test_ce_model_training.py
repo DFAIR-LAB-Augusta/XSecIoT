@@ -277,6 +277,30 @@ def test_train_ce_binary_normalizes_string_labels(tmp_path, monkeypatch, sim_con
     assert set(model.classes_.tolist()) == {0, 1}
 
 
+def test_train_ce_binary_normalizes_case_insensitive_string_labels_via_label_column(
+    tmp_path, monkeypatch, sim_config_factory
+):
+    monkeypatch.chdir(tmp_path)
+    ds_dir = tmp_path / 'DS'
+    ds_dir.mkdir()
+    csv_path = ds_dir / 'flows.csv'
+    n = 40
+    rng = np.random.default_rng(0)
+    pd.DataFrame({
+        'flow_duration': rng.random(n) * 100,
+        'tot_fwd_pkt': rng.integers(1, 50, size=n),
+        'Label': ['BENIGN' if i % 2 == 0 else 'ATTACK' for i in range(n)],
+    }).to_csv(csv_path, index=False)
+    config = sim_config_factory(tmp_path, model_type=ModelType.BINARY, model_variant=ModelVariant.DT)
+
+    outdir = train_ce_binary(config, str(csv_path), PerformanceStats())
+
+    import joblib
+
+    model = joblib.load(outdir / 'dt_model_binary.pkl')
+    assert set(model.classes_.tolist()) == {0, 1}
+
+
 def test_train_ce_binary_string_binlabel_crashes_under_pandas3(tmp_path, monkeypatch, sim_config_factory):
     # KNOWN BUG (#114): pandas 3's default infer_string=True means CSV-read
     # string columns are no longer literally `dtype == object`, so the
