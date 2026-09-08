@@ -2,6 +2,8 @@ import inspect
 import sys
 
 import numpy as np
+import pandas as pd
+import pytest
 
 from sklearn.tree import DecisionTreeClassifier
 
@@ -90,3 +92,95 @@ def test_explain_with_shap_writes_summary_png(tmp_path):
     )
 
     assert (tmp_path / 'shap_test_summary.png').exists()
+
+
+def _make_multiclass_fixture_csv(tmp_path, n_per_class=12):
+    rng = np.random.default_rng(0)
+    rows = []
+    for label, offset in [('Benign', 0.0), ('PortScan', 3.0), ('XMasAttack', -3.0)]:
+        for _ in range(n_per_class):
+            rows.append({
+                'flow_duration': rng.normal(offset, 1.0),
+                'tot_fwd_pkt': rng.normal(offset, 1.0),
+                'tot_bwd_pkts': rng.normal(offset, 1.0),
+                'totlen_fwd_pkts': rng.normal(offset, 1.0),
+                'totlen_bwd_pkts': rng.normal(offset, 1.0),
+                'Label': label,
+            })
+    df = pd.DataFrame(rows).sample(frac=1.0, random_state=0).reset_index(drop=True)
+    dataset_dir = tmp_path / 'dataset'
+    dataset_dir.mkdir()
+    csv_path = dataset_dir / 'aggregated.csv'
+    df.to_csv(csv_path, index=False)
+    return csv_path
+
+
+def test_run_multiclass_classification_no_pca_does_not_crash(tmp_path, monkeypatch):
+    pytest.importorskip('xgboost')
+    pytest.importorskip('tensorflow')
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_multiclass_fixture_csv(tmp_path)
+
+    run_multiclass_classification(str(csv_path), isUNSW=False, isPCA=False)
+
+    models_dir = tmp_path / 'multi_class_models_legacy_fire' / 'dataset'
+    assert (models_dir / 'random_forest_multi.pkl').exists()
+    assert (models_dir / 'feedforward_multi.pkl').exists()
+    assert (models_dir / 'scaler_multi.pkl').exists()
+    assert not (models_dir / 'pca_multi.pkl').exists()
+
+
+def test_run_multiclass_classification_with_pca_writes_pca_artifact(tmp_path, monkeypatch):
+    pytest.importorskip('xgboost')
+    pytest.importorskip('tensorflow')
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_multiclass_fixture_csv(tmp_path)
+
+    run_multiclass_classification(str(csv_path), isUNSW=False, isPCA=True)
+
+    models_dir = tmp_path / 'multi_class_models_legacy_fire' / 'dataset'
+    assert (models_dir / 'pca_multi.pkl').exists()
+    assert (models_dir / 'random_forest_multi.pkl').exists()
+
+
+def _make_binary_fixture_csv(tmp_path, n_per_class=15):
+    rng = np.random.default_rng(1)
+    rows = []
+    for label, offset in [('Benign', 0.0), ('PortScan', 3.0)]:
+        for _ in range(n_per_class):
+            rows.append({
+                'flow_duration': rng.normal(offset, 1.0),
+                'tot_fwd_pkt': rng.normal(offset, 1.0),
+                'tot_bwd_pkts': rng.normal(offset, 1.0),
+                'totlen_fwd_pkts': rng.normal(offset, 1.0),
+                'totlen_bwd_pkts': rng.normal(offset, 1.0),
+                'Label': label,
+            })
+    df = pd.DataFrame(rows).sample(frac=1.0, random_state=0).reset_index(drop=True)
+    dataset_dir = tmp_path / 'bindataset'
+    dataset_dir.mkdir()
+    csv_path = dataset_dir / 'aggregated.csv'
+    df.to_csv(csv_path, index=False)
+    return csv_path
+
+
+def test_run_binary_classification_writes_expected_artifacts(tmp_path, monkeypatch):
+    pytest.importorskip('xgboost')
+    pytest.importorskip('tensorflow')
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_binary_fixture_csv(tmp_path)
+
+    run_binary_classification(str(csv_path), isUNSW=False, isPCA=False)
+
+    models_dir = tmp_path / 'binary_models_legacy_fire' / 'bindataset'
+    for filename in (
+        'scaler_binary.pkl',
+        'feedforward_model_binary.pkl',
+        'xgb_model_binary.pkl',
+        'svm_model_binary.pkl',
+        'dt_model_binary.pkl',
+        'knn_model_binary.pkl',
+        'rf_model_binary.pkl',
+    ):
+        assert (models_dir / filename).exists(), filename
+    assert not (models_dir / 'pca_binary.pkl').exists()
