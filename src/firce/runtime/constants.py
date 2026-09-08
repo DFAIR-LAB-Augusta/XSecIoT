@@ -1,3 +1,11 @@
+from firce.utils.config import ModelType
+
+
+def _label_column(model_type: ModelType) -> str:
+    """Return the label column name for the given model type."""
+    return 'BinLabel' if model_type == ModelType.BINARY else 'MC_Label'
+
+
 PRED_THRESHOLD: float = 0.5
 DROP_COLS: list[str] = [
     'Label',

@@ -12,18 +12,13 @@ from firce.ce_model_training import train_ce_binary, train_ce_multiclass
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.feedforward_multiclass import FeedForwardMulticlass
 from firce.runtime.bootstrap import SimulationRuntime
-from firce.runtime.constants import FULL_DROP_COLS
+from firce.runtime.constants import FULL_DROP_COLS, _label_column
 from firce.utils.circular_logger import CircularDequeLogger
 from firce.utils.config import ModelType
 from fire.preprocessing import clean_data
 from fire.simulations import preprocess_chunk
 
 logger = logging.getLogger(__name__)
-
-
-def _label_column(model_type: ModelType) -> str:
-    """Return the label column name for the given model type."""
-    return 'BinLabel' if model_type == ModelType.BINARY else 'MC_Label'
 
 
 def retrain_runtime(runtime: SimulationRuntime) -> None:

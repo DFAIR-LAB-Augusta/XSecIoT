@@ -17,8 +17,9 @@ from firce.runtime.constants import (
     FULL_DROP_COLS,
     PRED_THRESHOLD,
     ROLLING_COLS,
+    _label_column,
 )
-from firce.runtime.retraining import _label_column, retrain_runtime
+from firce.runtime.retraining import retrain_runtime
 from firce.utils.circular_logger import CircularDequeLogger
 from firce.utils.config import ModelType, ModelVariant, MonitorType, SimulationConfig
 from fire.preprocessing import clean_data
