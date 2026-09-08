@@ -15,13 +15,14 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 from firce.models.feedforward_binary import FeedForwardBinary
+from firce.models.feedforward_multiclass import FeedForwardMulticlass
 from firce.runtime.constants import (
     DROP_COLS,
     FULL_DROP_COLS,
     PRED_THRESHOLD,
     ROLLING_COLS,
 )
-from firce.runtime.retraining import retrain_runtime
+from firce.runtime.retraining import _label_column, retrain_runtime
 from firce.runtime.sim_types import SimulationRuntime
 from firce.utils.circular_logger import CircularDequeLogger
 from firce.utils.config import ModelType, ModelVariant, MonitorType, SimulationConfig
@@ -40,7 +41,7 @@ def predict_row(
     scaler: StandardScaler,
     pca: PCA | None,
     config: SimulationConfig,
-    model: ClassifierMixin | xgb.Booster | FeedForwardBinary,
+    model: ClassifierMixin | xgb.Booster | FeedForwardBinary | FeedForwardMulticlass,
     threshold: float,
 ) -> int:
     """
@@ -108,6 +109,16 @@ def predict_row(
         logger.debug(f'[predict_row][ff] prob={prob:.6f}, thr={threshold}')
         return int(prob > threshold)
 
+    if config.model_variant == ModelVariant.FEEDFORWARD and isinstance(model, FeedForwardMulticlass):
+        dev = config.device
+        xt = torch.from_numpy(np.asarray(X_p, dtype=np.float32)).to(dev)
+        model.eval()
+        with torch.no_grad():
+            logits = model(xt)
+            pred_idx = int(torch.argmax(logits, dim=-1).item())
+        logger.debug(f'[predict_row][ff-multi] pred_idx={pred_idx}')
+        return pred_idx
+
     if hasattr(model, 'predict'):
         with warnings.catch_warnings():
             warnings.filterwarnings(
@@ -168,10 +179,11 @@ def _prepare_chunk(
     clean_chunk = clean_data(chunk, False)
     logger.debug('Chunk has %d columns post-cleaning', len(clean_chunk.columns))
 
-    ground_truth = clean_chunk['BinLabel'].reset_index(drop=True) if 'BinLabel' in clean_chunk.columns else None
+    label_col = _label_column(runtime.config.model_type)
+    ground_truth = clean_chunk[label_col].reset_index(drop=True) if label_col in clean_chunk.columns else None
 
-    if 'BinLabel' in clean_chunk.columns:
-        clean_chunk = clean_chunk.drop(columns=['BinLabel'])
+    if label_col in clean_chunk.columns:
+        clean_chunk = clean_chunk.drop(columns=[label_col])
 
     if runtime.config.is_unsw:
         to_drop = clean_chunk.columns.difference(ROLLING_COLS[:-1])
@@ -292,7 +304,32 @@ def _record_prediction_outcome(
                 )
                 logger.debug('Row %d details: %s', row_index, raw_row.to_json())
     else:
-        row_to_log['Label'] = prediction
+        label = (
+            runtime.label_encoder.inverse_transform([prediction])[0]
+            if runtime.label_encoder is not None
+            else prediction
+        )
+        row_to_log['MC_Label'] = label
+        logger.debug('Row %d prediction: %r', row_index, label)
+
+        if ground_truth is not None:
+            true_value = ground_truth.iloc[row_index]
+            is_correct = label == true_value
+            runtime.perf_stats.correct_log.append(is_correct)
+
+            logger.debug(
+                '[Index %d] Predicted=%s, Actual=%s',
+                row_index,
+                label,
+                true_value,
+            )
+            if not is_correct:
+                logger.info(
+                    '[Incorrect] Predicted=%s, Actual=%s',
+                    label,
+                    true_value,
+                )
+                logger.debug('Row %d details: %s', row_index, raw_row.to_json())
 
 
 def _append_row_to_rolling_log(
