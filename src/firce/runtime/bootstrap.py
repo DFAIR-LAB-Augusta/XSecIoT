@@ -7,16 +7,11 @@ from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
-from sklearn.base import ClassifierMixin
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 from firce.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
-from firce.drift_monitor.base import DriftMonitor
 from firce.drift_monitor.factory import build_monitor
-from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.mlp_ce import MLP_CE
 from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, ROLLING_COLS
 from firce.runtime.monitoring import filter_ce_kwargs
@@ -30,6 +25,13 @@ from fire.simulations import load_simulation_objects, preprocess_chunk
 
 if TYPE_CHECKING:
     import xgboost as xgb
+
+    from sklearn.base import ClassifierMixin
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import StandardScaler
+
+    from firce.drift_monitor.base import DriftMonitor
+    from firce.models.feedforward_binary import FeedForwardBinary
 
 logger = logging.getLogger(__name__)
 

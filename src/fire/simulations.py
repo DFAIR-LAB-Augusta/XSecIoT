@@ -16,15 +16,15 @@ import numpy as np
 import pandas as pd
 import torch
 
-from sklearn.base import ClassifierMixin
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.torch_device import pick_device
 
 if TYPE_CHECKING:
     import xgboost as xgb
+
+    from sklearn.base import ClassifierMixin
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import StandardScaler
 
 logger = logging.getLogger(__name__)
 np.random.seed(42)
