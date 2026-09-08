@@ -127,9 +127,7 @@ def test_predict_row_multiclass_returns_valid_class_index(tmp_path, monkeypatch,
     clean_chunk, _ = _prepare_chunk(runtime, chunk)
     row = clean_chunk.iloc[[0]]
 
-    prediction = predict_row(
-        row, DROP_COLS, runtime.scaler, runtime.pca, runtime.config, runtime.model, PRED_THRESHOLD
-    )
+    prediction = predict_row(row, DROP_COLS, runtime.scaler, runtime.pca, runtime.config, runtime.model, PRED_THRESHOLD)
 
     assert prediction in range(len(runtime.label_encoder.classes_))
 

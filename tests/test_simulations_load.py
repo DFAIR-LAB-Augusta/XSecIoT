@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 import torch
 
-from fire.simulations import load_simulation_objects
 from firce.ce_model_training import train_ce_multiclass
 from firce.models.feedforward_multiclass import FeedForwardMulticlass
 from firce.utils.config import CEType, ModelType, ModelVariant, SimulationConfig
+from fire.simulations import load_simulation_objects
 
 DEVICE = torch.device('cpu')
 

@@ -10,10 +10,6 @@ import numpy as np
 import pandas as pd
 import torch
 
-from sklearn.base import ClassifierMixin
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.feedforward_multiclass import FeedForwardMulticlass
 from firce.runtime.constants import (
@@ -23,7 +19,6 @@ from firce.runtime.constants import (
     ROLLING_COLS,
 )
 from firce.runtime.retraining import _label_column, retrain_runtime
-from firce.runtime.sim_types import SimulationRuntime
 from firce.utils.circular_logger import CircularDequeLogger
 from firce.utils.config import ModelType, ModelVariant, MonitorType, SimulationConfig
 from fire.preprocessing import clean_data
@@ -31,6 +26,12 @@ from fire.simulations import preprocess_chunk
 
 if TYPE_CHECKING:
     import xgboost as xgb
+
+    from sklearn.base import ClassifierMixin
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import StandardScaler
+
+    from firce.runtime.sim_types import SimulationRuntime
 
 logger = logging.getLogger(__name__)
 
