@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
+import pytest
 import torch
 
-from firce.runtime.bootstrap import get_rolling_columns
+from firce.runtime.bootstrap import get_rolling_columns, initialize_simulation_runtime
 from firce.utils.config import CEType, ModelType, ModelVariant, MonitorType, SimulationConfig
 
 DEVICE = torch.device('cpu')
@@ -39,11 +40,6 @@ def test_get_rolling_columns_binary_still_includes_bin_label(tmp_path):
 
     assert 'BinLabel' in columns
     assert 'MC_Label' not in columns
-
-
-import pytest
-
-from firce.runtime.bootstrap import initialize_simulation_runtime
 
 
 def test_initialize_simulation_runtime_rejects_unsw_multiclass(tmp_path):
