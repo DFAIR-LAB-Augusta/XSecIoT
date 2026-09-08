@@ -348,3 +348,8 @@ ROLLING_COLS = [
     'bwd_iat_tot',
     'BinLabel',
 ]
+
+
+def get_unsw_rolling_columns(model_type: ModelType) -> list[str]:
+    """Return the UNSW rolling-log schema for the given model type."""
+    return ROLLING_COLS[:-1] + [_label_column(model_type)]
