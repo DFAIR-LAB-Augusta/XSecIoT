@@ -576,16 +576,14 @@ def train_ce_multiclass(
         if 'MC_Label' not in df.columns:
             if 'Attack' not in df.columns:
                 raise ValueError(
-                    f"UNSW multiclass dataset must contain 'Attack' or 'MC_Label'. "
-                    f'Columns found: {df.columns.tolist()}'
+                    f"UNSW multiclass dataset must contain 'Attack' or 'MC_Label'. Columns found: {df.columns.tolist()}"
                 )
             logger.info("Using UNSW dataset format: mapping 'Attack' to multiclass 'MC_Label'")
             df['MC_Label'] = df['Attack']
         df = _unsw_clean(df)
     elif 'MC_Label' not in df.columns:
         raise ValueError(
-            f"Dataset must contain an 'MC_Label' column for multiclass training. "
-            f'Columns found: {df.columns.tolist()}'
+            f"Dataset must contain an 'MC_Label' column for multiclass training. Columns found: {df.columns.tolist()}"
         )
 
     df = df.drop(columns=[c for c in df.columns if c.startswith('Unnamed')], errors='ignore')
@@ -600,7 +598,7 @@ def train_ce_multiclass(
 
     if df['MC_Label'].nunique() < 2:
         raise ValueError(
-            f"Need at least 2 distinct MC_Label classes to train, found: {df['MC_Label'].unique().tolist()}"
+            f'Need at least 2 distinct MC_Label classes to train, found: {df["MC_Label"].unique().tolist()}'
         )
 
     X = df.select_dtypes(include=[np.number]).drop(columns=['MC_Label'], errors='ignore')
