@@ -42,11 +42,22 @@ def test_get_rolling_columns_binary_still_includes_bin_label(tmp_path):
     assert 'MC_Label' not in columns
 
 
-def test_initialize_simulation_runtime_rejects_unsw_multiclass(tmp_path):
+def test_get_rolling_columns_unsw_multiclass_includes_mc_label(tmp_path):
     config = _make_config(tmp_path, model_type=ModelType.MULTI, is_unsw=True)
+    columns = get_rolling_columns(config)
 
-    with pytest.raises(ValueError, match='UNSW \\+ multiclass'):
-        initialize_simulation_runtime(config)
+    assert 'MC_Label' in columns
+    assert 'BinLabel' not in columns
+    assert len(columns) == 21
+
+
+def test_get_rolling_columns_unsw_binary_still_includes_bin_label(tmp_path):
+    config = _make_config(tmp_path, model_type=ModelType.BINARY, model_variant=ModelVariant.DT, is_unsw=True)
+    columns = get_rolling_columns(config)
+
+    assert 'BinLabel' in columns
+    assert 'MC_Label' not in columns
+    assert len(columns) == 21
 
 
 def _make_multiclass_csv(tmp_path, n=60, seed=0, dirname='DS'):
