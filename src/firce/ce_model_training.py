@@ -542,6 +542,7 @@ def train_ce_multiclass(
     flows_csv: str,
     variant: ModelVariant,
     use_pca: bool = True,
+    df_log: pd.DataFrame | None = None,
 ) -> Path:
     """
     Train a multiclass CE model on labeled flow data and save all artifacts.
@@ -555,9 +556,16 @@ def train_ce_multiclass(
     Args:
         config: Simulation configuration (uses `is_unsw`, `seed`, `device`).
         flows_csv: Path to the CSV file containing labeled multiclass flow data.
+            Only used to name the output directory when `df_log` is given
+            (matching `train_ce_binary`'s retraining convention) — the data
+            itself comes from `df_log` in that case, not from re-reading this path.
         variant: Model architecture to use. One of "dt", "knn", "rf", "svm",
             "xgb", "feedforward".
         use_pca: If True, apply PCA to reduce feature space to 95% explained variance.
+        df_log: If given, train on this in-memory dataframe instead of reading
+            `flows_csv` from disk (the retraining path — mirrors `train_ce_binary`'s
+            `df_log` parameter exactly, including the `Model_<variant>_Retraining_<uuid>/`
+            output directory convention and stale-directory cleanup).
 
     Returns:
         The output directory artifacts were written to.
@@ -566,11 +574,24 @@ def train_ce_multiclass(
         ValueError: If the dataset has no usable multiclass label column,
             fewer than 2 distinct classes, or an unsupported variant is given.
     """
-    logger.info(f'Training multiclass CE model with {flows_csv} dataset')
-    df = clean_data(pd.read_csv(flows_csv), config.is_unsw)
-    dataset = Path(flows_csv).parent.name
-    outdir = Path('multi_class_models') / dataset
-    outdir.mkdir(parents=True, exist_ok=True)
+    if df_log is None:
+        logger.info(f'Training multiclass CE model with {flows_csv} dataset')
+        df = clean_data(pd.read_csv(flows_csv), config.is_unsw)
+        dataset = Path(flows_csv).parent.name
+        outdir = Path('multi_class_models') / dataset
+        outdir.mkdir(parents=True, exist_ok=True)
+    else:
+        df = df_log
+        pattern = f'multi_class_models/Model_{variant.value}_Retraining_*'
+        for path in glob.glob(pattern):
+            if Path(path).is_dir():
+                logger.info(f'Removing old retraining directory: {path}')
+                shutil.rmtree(path)
+        outdir = (
+            Path('multi_class_models') / f'Model_{variant.value}_Retraining_{shortuuid.ShortUUID().random(length=8)}'
+        )
+        outdir.mkdir(parents=True, exist_ok=True)
+        logger.info(f'Output directory for multiclass model retraining artifacts: {outdir}')
 
     if config.is_unsw:
         if 'MC_Label' not in df.columns:
