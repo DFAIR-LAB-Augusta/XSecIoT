@@ -56,7 +56,7 @@ def select_events_to_explain(
         ValueError: If `mode` is not one of the supported values.
     """
     if mode not in _VALID_MODES:
-        raise ValueError(f"Unknown selective-generation mode {mode!r}; expected one of {_VALID_MODES}")
+        raise ValueError(f'Unknown selective-generation mode {mode!r}; expected one of {_VALID_MODES}')
 
     n = len(flags)
 
