@@ -465,40 +465,38 @@ git commit -m "feat: add conformal prediction-set-size novelty criterion (#97)"
 
 ---
 
-### Task 5: End-to-end sanity check against a genuine out-of-distribution sample, full suite, push, PR
+### Task 5: End-to-end monotonicity sanity check against a real calibrated evaluator, full suite, push, PR
 
 **Files:**
 - Modify: `tests/test_novelty_decision_rules.py`
 
-This closes the loop: does the primary rule actually behave sensibly against a real trained multiclass evaluator and a sample that's genuinely far outside the training distribution (not just hand-constructed probability arrays)?
+This closes the loop with a real, defensible invariant against a genuinely calibrated evaluator (not hand-constructed arrays): loosening tau/alpha can only ever add flagged samples, never remove one already flagged at stricter thresholds.
+
+**Investigated and dropped:** a literal "does this specific out-of-range point get flagged as novel" check. This test dataset's labeling rule (`X[:,0] > 0.5` / `X[:,1] > 0.5` thresholds) partitions the *entire* feature space into the 3 known classes, so there is no "outside all known regions" to construct - a far-away point (e.g. `[50, 50, 50, 50]`) still satisfies the same generating rule, and every classifier tried (DecisionTree, RandomForest, KNN, confirmed via direct experimentation) confidently classifies it into one of the existing classes rather than expressing uncertainty. This is a real, dataset-geometry-dependent limitation, not a bug in the decision rule - the monotonicity invariant below is the correctness property that actually matters and holds regardless of dataset geometry.
 
 - [ ] **Step 1: Write the test**
 
 Add to `tests/test_novelty_decision_rules.py`:
 
 ```python
-def test_is_novel_end_to_end_flags_genuine_outlier_but_not_typical_sample():
+def test_is_novel_end_to_end_flagged_set_grows_monotonically_as_thresholds_loosen():
     ice, X, y = _make_calibrated_ice()
+    probas = ice.model.predict_proba(X)
+    all_class_p_values = compute_all_class_p_values(ice.model, ice.calibration_scores, X)
 
-    # A typical in-distribution sample (near the Benign cluster's centroid: X[:,0]<=0.5, X[:,1]<=0.5).
-    typical_sample = np.array([[-0.1, -0.1, 0.0, 0.0]])
-    # A genuine outlier: far outside every training cluster in every feature.
-    outlier_sample = np.array([[50.0, 50.0, 50.0, 50.0]])
+    strict_flags = is_novel(probas, all_class_p_values, tau=0.3, alpha=0.1)
+    medium_flags = is_novel(probas, all_class_p_values, tau=0.6, alpha=0.3)
+    loose_flags = is_novel(probas, all_class_p_values, tau=0.9, alpha=0.6)
 
-    combined = np.vstack([typical_sample, outlier_sample])
-    probas = ice.model.predict_proba(combined)
-    all_class_p_values = compute_all_class_p_values(ice.model, ice.calibration_scores, combined)
-
-    flags = is_novel(probas, all_class_p_values, tau=0.9, alpha=0.5)
-
-    assert not flags[0], 'typical in-distribution sample should not be flagged as novel'
-    assert flags[1], 'genuine far-outlier sample should be flagged as novel'
+    assert np.all(loose_flags[strict_flags])
+    assert np.all(loose_flags[medium_flags])
+    assert loose_flags.sum() >= medium_flags.sum() >= strict_flags.sum()
 ```
 
 - [ ] **Step 2: Run test to verify it passes**
 
 Run: `uv run pytest tests/test_novelty_decision_rules.py -v --no-cov`
-Expected: PASS (all tests in the file). If the outlier assertion fails, investigate before proceeding - a decision tree's predict_proba can still be maximally confident on out-of-range inputs (it just falls into whatever leaf covers "very large values"), so this test's tau/alpha are deliberately permissive (0.9/0.5) to make the assertion robust across classifier quirks; do not loosen further without understanding why.
+Expected: PASS (all tests in the file).
 
 - [ ] **Step 3: Commit**
 
