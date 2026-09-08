@@ -96,3 +96,22 @@ def test_initialize_simulation_runtime_multiclass_all_variants(tmp_path, monkeyp
     assert runtime.scaler is not None
     assert runtime.label_encoder is not None
     assert 'MC_Label' in runtime.rolling.columns
+
+
+def test_initialize_simulation_runtime_multiclass_fits_ce_monitor(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_multiclass_csv(tmp_path)
+    config = _make_config(
+        tmp_path,
+        model_variant=ModelVariant.DT,
+        aggregated_path=csv_path,
+        flows_path=csv_path,
+        monitor_type=MonitorType.CE,
+        ce_type=CEType.ICE,
+    )
+
+    runtime = initialize_simulation_runtime(config)
+
+    assert runtime.monitor is not None
+    thresholds = runtime.monitor._evaluator.thresholds
+    assert set(thresholds.keys()) == {'Benign', 'PortScan', 'XMasAttack'}

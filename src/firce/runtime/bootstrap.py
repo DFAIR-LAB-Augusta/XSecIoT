@@ -408,7 +408,7 @@ def build_runtime_monitor(
         else x_scaled
     )
 
-    y_train = train_df['BinLabel'] if config.model_type == ModelType.BINARY else train_df['Label']
+    y_train = train_df[_label_column(config.model_type)]
 
     monitor_model = _build_monitor_model(
         config=config,
