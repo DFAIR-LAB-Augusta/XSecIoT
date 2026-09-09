@@ -335,3 +335,49 @@ def generate_structured_report(
     raw_output = generator(prompt, max_new_tokens=max_new_tokens)
     parsed = _StructuredReportSchema.model_validate_json(raw_output)
     return {'summary': parsed.summary, 'suggested_label': parsed.suggested_label, 'raw_output': raw_output}
+
+
+def evaluate_prompt_strategies(
+    backend: 'TransformersLocalBackend',
+    scenarios: list,
+    novelty_context: dict,
+    strategies: tuple = _VALID_STRATEGIES,
+    max_new_tokens: int = 64,
+) -> dict:
+    """
+    Compare prompt strategies on structured-output compliance rate (#138's
+    explicit deliverable), using #99's regex-based generate_report/
+    parse_report_output - not #141's grammar-constrained generate_structured_report,
+    which is always 100% compliant by construction regardless of prompt content
+    and would be a useless differentiator for this specific comparison.
+
+    Results reflect whatever local model backend is passed in - a small,
+    untrained test model will show different (likely less meaningful)
+    behavior than a real trained checkpoint; this harness measures the
+    comparison mechanism, not a universal claim about which strategy is best.
+
+    Args:
+        backend: A TransformersLocalBackend.
+        scenarios: List of #98's explain_with_shap/explain_with_lime output dicts.
+        novelty_context: Novelty-signal scalars shared across all scenarios (see build_report_prompt).
+        strategies: Which strategies to compare (subset of _VALID_STRATEGIES).
+        max_new_tokens: Forwarded to generate_report.
+
+    Returns:
+        Dict mapping each strategy to {'compliance_rate': float, 'reports': list[dict]}
+        (reports are generate_report's raw per-scenario output, for inspection).
+    """
+    results = {}
+    for strategy in strategies:
+        reports = []
+        for xai_result in scenarios:
+            prompt = build_report_prompt(xai_result, novelty_context, strategy=strategy)
+            raw_output = backend.generate(prompt, max_new_tokens=max_new_tokens)
+            reports.append(parse_report_output(raw_output))
+
+        compliant = sum(1 for r in reports if r['summary'] is not None and r['suggested_label'] is not None)
+        results[strategy] = {
+            'compliance_rate': compliant / len(scenarios) if scenarios else 0.0,
+            'reports': reports,
+        }
+    return results
