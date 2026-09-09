@@ -35,6 +35,7 @@ from firce.conformalEval.utils import (
     compute_class_thresholds,
     compute_p_values,
     load_conformal_config,
+    pick_average_strategy,
 )
 from firce.utils.perf_stats import PerformanceStats
 
@@ -154,9 +155,10 @@ class CrossConformalEvaluator:
 
         logger.info('CCE calibration completed successfully.')
         acc = float(accuracy_score(all_true, all_pred))
-        prec = float(precision_score(all_true, all_pred, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
-        rec = float(recall_score(all_true, all_pred, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
-        f1 = float(f1_score(all_true, all_pred, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
+        average = pick_average_strategy(y)
+        prec = float(precision_score(all_true, all_pred, average=average))
+        rec = float(recall_score(all_true, all_pred, average=average))
+        f1 = float(f1_score(all_true, all_pred, average=average))
 
         logger.info('[CCE] Model Performance Across Calibration Folds:')
         logger.info('Accuracy:  %.4f', acc)

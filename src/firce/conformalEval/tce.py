@@ -22,7 +22,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
-from firce.conformalEval.utils import compute_p_values, load_conformal_config
+from firce.conformalEval.utils import compute_p_values, load_conformal_config, pick_average_strategy
 from firce.utils.perf_stats import PerformanceStats
 
 logger = logging.getLogger(__name__)
@@ -87,9 +87,10 @@ class ApproximateTransductiveConformalEvaluator:
         preds = self.model.predict(X)
 
         acc = float(accuracy_score(y, preds))
-        prec = float(precision_score(y, preds, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
-        rec = float(recall_score(y, preds, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
-        f1 = float(f1_score(y, preds, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
+        average = pick_average_strategy(y)
+        prec = float(precision_score(y, preds, average=average))
+        rec = float(recall_score(y, preds, average=average))
+        f1 = float(f1_score(y, preds, average=average))
 
         logger.info('Model Performance on Training Data:')
         logger.info('Accuracy:  %.4f', acc)

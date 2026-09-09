@@ -105,3 +105,21 @@ def test_conformal_drift_monitor_multiclass_fit_and_detect(ce_type, extra_kwargs
     assert result.row_flags.dtype == bool
     assert result.chunk_drift == bool(result.row_flags.any())
     assert result.metadata['chunk_size'] == 1
+
+
+@pytest.mark.parametrize('evaluator_name', list(EVALUATOR_FACTORIES))
+def test_calibrate_on_two_class_string_labeled_subset_does_not_crash(evaluator_name):
+    # Regression test for a real bug found while building #101's open-world
+    # evaluation harness: training on exactly 2 of a multiclass problem's
+    # classes (e.g. holding one class out entirely for open-world novelty
+    # testing) produces a 2-unique-value *string*-labeled y, which used to
+    # crash calibrate()'s internal precision/recall/F1 computation.
+    X, y = _make_multiclass_data()
+    two_class_mask = y != 'XMasAttack'
+    X_subset, y_subset = X[two_class_mask], y[two_class_mask]
+    evaluator = EVALUATOR_FACTORIES[evaluator_name]()
+
+    evaluator.calibrate(X_subset, y_subset, PerformanceStats())
+
+    thresholds = evaluator.get_thresholds()
+    assert set(thresholds.keys()) == {'Benign', 'PortScan'}
