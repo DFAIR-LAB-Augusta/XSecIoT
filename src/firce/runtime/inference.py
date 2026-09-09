@@ -531,9 +531,7 @@ def _prepare_monitor_chunk_features(
     return x_scaled
 
 
-def _score_chunk_novelty(
-    runtime: SimulationRuntime, clean_chunk: pd.DataFrame
-) -> tuple[np.ndarray, np.ndarray] | None:
+def _score_chunk_novelty(runtime: SimulationRuntime, clean_chunk: pd.DataFrame) -> tuple[np.ndarray, np.ndarray] | None:
     """
     Compute novelty flags for an entire chunk in one batched call, reusing
     _prepare_monitor_chunk_features (already used for chunk-level drift

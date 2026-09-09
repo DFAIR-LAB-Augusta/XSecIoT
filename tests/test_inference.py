@@ -451,12 +451,10 @@ def _make_novelty_test_runtime(tmp_path, novelty_enabled=True, **config_override
     dummy.write_text('a\n1\n')
     rng = np.random.default_rng(0)
     n = 60
-    X = pd.DataFrame(
-        {
-            'flow_duration': rng.normal(size=n),
-            'tot_fwd_pkt': rng.normal(size=n),
-        }
-    )
+    X = pd.DataFrame({
+        'flow_duration': rng.normal(size=n),
+        'tot_fwd_pkt': rng.normal(size=n),
+    })
     y = np.select([X['flow_duration'] > 0.5], ['Attack'], default='Benign')
 
     scaler = StandardScaler().fit(X)
@@ -516,7 +514,9 @@ def test_score_chunk_novelty_returns_flags_and_features_when_enabled(tmp_path):
 
 def test_generate_novelty_reports_populates_runtime_with_explanations_only_by_default(tmp_path):
     # novelty_llm_backend_type stays None (default) - explanation-only path.
-    runtime, clean_chunk = _make_novelty_test_runtime(tmp_path, novelty_enabled=True, novelty_tau=0.99, novelty_alpha=0.99)
+    runtime, clean_chunk = _make_novelty_test_runtime(
+        tmp_path, novelty_enabled=True, novelty_tau=0.99, novelty_alpha=0.99
+    )
     novelty_flags, x_monitor = _score_chunk_novelty(runtime, clean_chunk)
 
     _generate_novelty_reports(runtime, clean_chunk, x_monitor, novelty_flags)
