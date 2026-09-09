@@ -4,9 +4,19 @@ import pandas as pd
 import pytest
 import torch
 
+from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeClassifier
+
 from firce.ce_model_training import train_ce_binary, train_ce_multiclass
+from firce.drift_monitor.conformal_monitor import ConformalDriftMonitor
 from firce.runtime.constants import DROP_COLS, PRED_THRESHOLD
-from firce.runtime.inference import _prepare_chunk, _record_prediction_outcome, predict_row
+from firce.runtime.inference import (
+    _generate_novelty_reports,
+    _prepare_chunk,
+    _record_prediction_outcome,
+    _score_chunk_novelty,
+    predict_row,
+)
 from firce.runtime.sim_types import SimulationRuntime
 from firce.utils.circular_logger import CircularDequeLogger
 from firce.utils.config import CEType, ModelType, ModelVariant, SimulationConfig
@@ -434,3 +444,85 @@ def test_prepare_chunk_unsw_applies_column_renaming(tmp_path, monkeypatch):
     assert 'fwd_pkt_len_mean' in clean_chunk.columns
     assert 'IN_PKTS' not in clean_chunk.columns
     assert 'IPV4_SRC_ADDR' not in clean_chunk.columns
+
+
+def _make_novelty_test_runtime(tmp_path, novelty_enabled=True, **config_overrides):
+    dummy = tmp_path / 'dummy.csv'
+    dummy.write_text('a\n1\n')
+    rng = np.random.default_rng(0)
+    n = 60
+    X = pd.DataFrame({
+        'flow_duration': rng.normal(size=n),
+        'tot_fwd_pkt': rng.normal(size=n),
+    })
+    y = np.select([X['flow_duration'] > 0.5], ['Attack'], default='Benign')
+
+    scaler = StandardScaler().fit(X)
+    X_scaled = scaler.transform(X)
+
+    monitor = ConformalDriftMonitor(
+        CEType.ICE, DecisionTreeClassifier(random_state=0), calibration_split=0.3, random_state=0
+    )
+    monitor.fit(X_scaled, y, PerformanceStats())
+
+    config = SimulationConfig(
+        model_type=ModelType.BINARY,
+        model_variant=ModelVariant.DT,
+        ce_type=CEType.ICE,
+        aggregated_path=dummy,
+        flows_path=dummy,
+        device=DEVICE,
+        novelty_enabled=novelty_enabled,
+        **config_overrides,
+    )
+
+    runtime = SimulationRuntime(
+        config=config,
+        perf_stats=PerformanceStats(),
+        sig_controller=None,
+        rolling=CircularDequeLogger(None, max_rows=500, columns=['flow_duration', 'tot_fwd_pkt', 'BinLabel']),
+        scaler=scaler,
+        pca=None,
+        model=monitor.model,
+        label_encoder=None,
+        monitor=monitor,
+        train_df=pd.DataFrame(),
+    )
+    clean_chunk = X.copy()
+    return runtime, clean_chunk
+
+
+def test_score_chunk_novelty_returns_none_when_disabled(tmp_path):
+    runtime, clean_chunk = _make_novelty_test_runtime(tmp_path, novelty_enabled=False)
+
+    result = _score_chunk_novelty(runtime, clean_chunk)
+
+    assert result is None
+
+
+def test_score_chunk_novelty_returns_flags_and_features_when_enabled(tmp_path):
+    runtime, clean_chunk = _make_novelty_test_runtime(tmp_path, novelty_enabled=True)
+
+    result = _score_chunk_novelty(runtime, clean_chunk)
+
+    assert result is not None
+    novelty_flags, x_monitor = result
+    assert novelty_flags.shape == (len(clean_chunk),)
+    assert novelty_flags.dtype == bool
+    assert x_monitor.shape[0] == len(clean_chunk)
+
+
+def test_generate_novelty_reports_populates_runtime_with_explanations_only_by_default(tmp_path):
+    # novelty_llm_backend_type stays None (default) - explanation-only path.
+    runtime, clean_chunk = _make_novelty_test_runtime(
+        tmp_path, novelty_enabled=True, novelty_tau=0.99, novelty_alpha=0.99
+    )
+    novelty_flags, x_monitor = _score_chunk_novelty(runtime, clean_chunk)
+
+    _generate_novelty_reports(runtime, clean_chunk, x_monitor, novelty_flags)
+
+    if novelty_flags.any():
+        assert len(runtime.novelty_reports) > 0
+        record = runtime.novelty_reports[0]
+        assert 'explanation' in record
+        assert record['llm_report'] is None  # no LLM backend configured

@@ -16,6 +16,7 @@ from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
 from firce.conformalEval.utils import clone_model
 from firce.drift_monitor.factory import build_monitor
 from firce.models.mlp_ce import MLP_CE
+from firce.novelty.llm_reporting import create_local_llm_backend
 from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, _label_column, get_unsw_rolling_columns
 from firce.runtime.monitoring import filter_ce_kwargs
 from firce.runtime.sim_types import SimulationRuntime
@@ -70,6 +71,12 @@ def initialize_simulation_runtime(config: SimulationConfig) -> SimulationRuntime
         perf_stats=perf_stats,
     )
 
+    llm_backend = None
+    if config.novelty_llm_backend_type is not None:
+        llm_backend = create_local_llm_backend(
+            config.novelty_llm_backend_type, model_name_or_path=config.novelty_llm_model_path
+        )
+
     return SimulationRuntime(
         config=config,
         perf_stats=perf_stats,
@@ -81,6 +88,7 @@ def initialize_simulation_runtime(config: SimulationConfig) -> SimulationRuntime
         label_encoder=label_encoder,
         monitor=monitor,
         train_df=train_df,
+        llm_backend=llm_backend,
     )
 
 

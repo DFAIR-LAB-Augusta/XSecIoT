@@ -10,8 +10,12 @@ import numpy as np
 import pandas as pd
 import torch
 
+from firce.drift_monitor.conformal_monitor import ConformalDriftMonitor
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.feedforward_multiclass import FeedForwardMulticlass
+from firce.novelty.decision_rules import compute_all_class_p_values, is_novel, max_softmax_confidence
+from firce.novelty.explain import explain_with_lime, explain_with_shap, select_events_to_explain
+from firce.novelty.llm_reporting import generate_report
 from firce.runtime.constants import (
     DROP_COLS,
     FULL_DROP_COLS,
@@ -156,6 +160,11 @@ def process_chunk(
 
     clean_chunk, ground_truth = _prepare_chunk(runtime, chunk)
     _process_chunk_rows(runtime, clean_chunk, ground_truth)
+
+    novelty_result = _score_chunk_novelty(runtime, clean_chunk)
+    if novelty_result is not None:
+        novelty_flags, x_monitor = novelty_result
+        _generate_novelty_reports(runtime, clean_chunk, x_monitor, novelty_flags)
 
     drift_detected = _detect_chunk_drift(runtime, clean_chunk)
     if drift_detected:
@@ -520,6 +529,100 @@ def _prepare_monitor_chunk_features(
     if runtime.config.monitor_type == MonitorType.CE and runtime.config.use_pca and runtime.pca is not None:
         return runtime.pca.transform(x_scaled)
     return x_scaled
+
+
+def _score_chunk_novelty(runtime: SimulationRuntime, clean_chunk: pd.DataFrame) -> tuple[np.ndarray, np.ndarray] | None:
+    """
+    Compute novelty flags for an entire chunk in one batched call, reusing
+    _prepare_monitor_chunk_features (already used for chunk-level drift
+    detection - produces exactly the feature matrix a CE-calibrated model expects).
+
+    Returns None when novelty detection isn't enabled or the configured
+    monitor isn't CE-calibrated (ConformalDriftMonitor) - CADE/None monitors
+    have no per-class calibration to build novelty p-values from.
+
+    Args:
+        runtime: Mutable simulation runtime.
+        clean_chunk: Cleaned chunk dataframe (post _prepare_chunk).
+
+    Returns:
+        (novelty_flags, x_monitor) if active, else None. novelty_flags is a
+        boolean array of shape (n_rows,); x_monitor is the feature matrix
+        used to compute it (also needed by _generate_novelty_reports for explanation).
+    """
+    if not runtime.config.novelty_enabled or not isinstance(runtime.monitor, ConformalDriftMonitor):
+        return None
+
+    x_monitor = _prepare_monitor_chunk_features(runtime, clean_chunk)
+    model = runtime.monitor.model
+    probas = model.predict_proba(x_monitor)
+    all_class_p_values = compute_all_class_p_values(model, runtime.monitor.calibration_scores, x_monitor)
+    novelty_flags = is_novel(
+        probas, all_class_p_values, tau=runtime.config.novelty_tau, alpha=runtime.config.novelty_alpha
+    )
+    return novelty_flags, x_monitor
+
+
+def _explain_model_type(config: SimulationConfig) -> str:
+    """Tree-based variants use SHAP's fast TreeExplainer path; everything else uses KernelExplainer."""
+    return 'tree' if config.model_variant in (ModelVariant.DT, ModelVariant.RF, ModelVariant.XGB) else 'kernel'
+
+
+def _generate_novelty_reports(
+    runtime: SimulationRuntime,
+    clean_chunk: pd.DataFrame,
+    x_monitor: np.ndarray,
+    novelty_flags: np.ndarray,
+) -> None:
+    """
+    Generate and record explanations (and, if a local LLM backend is
+    configured, structured reports) for the events selected by #98's
+    selective-generation policy.
+
+    Args:
+        runtime: Mutable simulation runtime (novelty_reports is appended to in place).
+        clean_chunk: Cleaned chunk dataframe (used only for column names as feature names).
+        x_monitor: The feature matrix novelty_flags was computed against (_score_chunk_novelty's output).
+        novelty_flags: Boolean novelty flags for this chunk.
+    """
+    config = runtime.config
+    selected_indices = select_events_to_explain(
+        novelty_flags,
+        mode=config.novelty_selective_mode,
+        sample_rate=config.novelty_sample_rate,
+        window_size=config.novelty_window_size,
+    )
+    if len(selected_indices) == 0:
+        return
+
+    model = runtime.monitor.model
+    feature_names = (
+        list(runtime.scaler.feature_names_in_)
+        if hasattr(runtime.scaler, 'feature_names_in_')
+        else [f'f{i}' for i in range(x_monitor.shape[1])]
+    )
+    model_type = _explain_model_type(config)
+    class_names = [str(c) for c in model.classes_]
+    max_softmax = max_softmax_confidence(model.predict_proba(x_monitor))
+
+    for idx in selected_indices:
+        if config.novelty_explain_method == 'lime':
+            explanation = explain_with_lime(model, x_monitor, x_monitor[idx], feature_names, class_names)
+        else:
+            explanation = explain_with_shap(model, x_monitor, x_monitor[idx], feature_names, model_type=model_type)
+
+        llm_report = None
+        if runtime.llm_backend is not None:
+            novelty_context = {
+                'max_softmax': float(max_softmax[idx]),
+                'tau': config.novelty_tau,
+                'alpha': config.novelty_alpha,
+            }
+            llm_report = generate_report(runtime.llm_backend, explanation, novelty_context)
+
+        record = {'row_index': int(idx), 'explanation': explanation, 'llm_report': llm_report}
+        runtime.novelty_reports.append(record)
+        logger.info('Novelty report generated for row %d: %s', idx, record)
 
 
 def _handle_detected_drift(

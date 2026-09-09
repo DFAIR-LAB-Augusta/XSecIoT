@@ -15,7 +15,7 @@ Key benefits over plain dataclasses:
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import torch
 
@@ -156,6 +156,16 @@ class SimulationConfig(BaseModel):
     monitor_type: MonitorType = MonitorType.CE
     monitor_kwargs: Dict[str, Any] = Field(default_factory=dict)
 
+    novelty_enabled: bool = False
+    novelty_tau: float = 0.6
+    novelty_alpha: float = 0.3
+    novelty_selective_mode: str = 'unknown_only'
+    novelty_sample_rate: float = 0.1
+    novelty_window_size: int = 10
+    novelty_explain_method: str = 'shap'
+    novelty_llm_backend_type: Optional[str] = None
+    novelty_llm_model_path: Optional[str] = None
+
     device: torch.device = Field(default_factory=pick_device)
 
     @field_validator('threshold')
@@ -164,6 +174,32 @@ class SimulationConfig(BaseModel):
         """Validate that `threshold` lies within the unit interval."""
         if not (0.0 <= value <= 1.0):
             raise ValueError('threshold must be in [0, 1]')
+        return value
+
+    @field_validator('novelty_tau', 'novelty_alpha', 'novelty_sample_rate')
+    @classmethod
+    def _novelty_float_in_unit_interval(cls, value: float) -> float:
+        """Validate that novelty tau/alpha/sample_rate lie within [0, 1]."""
+        if not (0.0 <= value <= 1.0):
+            raise ValueError('must be in [0, 1]')
+        return value
+
+    @field_validator('novelty_selective_mode')
+    @classmethod
+    def _novelty_selective_mode_is_valid(cls, value: str) -> str:
+        """Validate novelty_selective_mode against firce.novelty.explain's supported modes."""
+        valid_modes = ('sampled', 'unknown_only', 'windowed')
+        if value not in valid_modes:
+            raise ValueError(f'novelty_selective_mode must be one of {valid_modes}')
+        return value
+
+    @field_validator('novelty_explain_method')
+    @classmethod
+    def _novelty_explain_method_is_valid(cls, value: str) -> str:
+        """Validate novelty_explain_method against firce.novelty.explain's supported methods."""
+        valid_methods = ('shap', 'lime')
+        if value not in valid_methods:
+            raise ValueError(f'novelty_explain_method must be one of {valid_methods}')
         return value
 
     @field_validator('chunk_size', 'max_rows')
