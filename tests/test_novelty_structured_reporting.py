@@ -1,6 +1,7 @@
 from tokenizers import Tokenizer, decoders, models, pre_tokenizers, trainers
 from transformers import GPT2Config, GPT2LMHeadModel, PreTrainedTokenizerFast
 
+from firce.novelty.llm_reporting import TransformersLocalBackend, generate_report, generate_structured_report
 
 _CORPUS = (
     'novelty detected class benign portscan xmasattack summary label suggested feature '
@@ -51,9 +52,6 @@ def test_tiny_fixture_builds_without_error():
     assert tokenizer.vocab_size > 0
 
 
-from firce.novelty.llm_reporting import TransformersLocalBackend, generate_structured_report
-
-
 def test_generate_structured_report_always_produces_parseable_output():
     # The exact tiny UNTRAINED model that (per #141's own investigation) fails
     # to close an unbounded JSON string within 200+ tokens produces valid,
@@ -91,9 +89,6 @@ def test_generate_structured_report_respects_field_length_bounds():
 
     assert len(report['summary']) <= 200
     assert len(report['suggested_label']) <= 80
-
-
-from firce.novelty.llm_reporting import generate_report
 
 
 def test_structured_output_compliance_rate_beats_regex_baseline():
