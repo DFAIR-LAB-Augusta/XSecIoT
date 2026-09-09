@@ -28,7 +28,11 @@ def _make_tiny_model_and_tokenizer():
     tokenizer = _make_tiny_tokenizer()
     config = GPT2Config(
         vocab_size=tokenizer.vocab_size,
-        n_positions=256,
+        # 768: confirmed via direct execution that build_report_prompt's real
+        # output is ~360 tokens with this byte-level BPE tokenizer (fragments
+        # much more heavily than #99's WordLevel tokenizer at the same tiny
+        # vocab size), plus room for a 200-256 token generation budget.
+        n_positions=768,
         n_embd=16,
         n_layer=2,
         n_head=2,
@@ -45,3 +49,45 @@ def test_tiny_fixture_builds_without_error():
     model, tokenizer = _make_tiny_model_and_tokenizer()
     assert model is not None
     assert tokenizer.vocab_size > 0
+
+
+from firce.novelty.llm_reporting import TransformersLocalBackend, generate_structured_report
+
+
+def test_generate_structured_report_always_produces_parseable_output():
+    # The exact tiny UNTRAINED model that (per #141's own investigation) fails
+    # to close an unbounded JSON string within 200+ tokens produces valid,
+    # parseable output here once the schema's fields are bounded - this is
+    # the guarantee this issue is about, demonstrated against the worst case
+    # (a model with no learned tendency to produce sensible output at all).
+    model, tokenizer = _make_tiny_model_and_tokenizer()
+    backend = TransformersLocalBackend(model, tokenizer)
+
+    xai_result = {
+        'predicted_class': 'Benign',
+        'contributions': {'flow_duration': 0.8, 'tot_fwd_pkt': -0.3},
+    }
+    novelty_context = {'max_softmax': 0.42, 'tau': 0.6, 'alpha': 0.3}
+
+    report = generate_structured_report(backend, xai_result, novelty_context, max_new_tokens=200)
+
+    # Unlike #99's generate_report, these must never be None - that's the
+    # entire point of grammar-constrained decoding: guaranteed structure.
+    assert report['summary'] is not None
+    assert report['suggested_label'] is not None
+    assert isinstance(report['summary'], str)
+    assert isinstance(report['suggested_label'], str)
+    assert isinstance(report['raw_output'], str)
+
+
+def test_generate_structured_report_respects_field_length_bounds():
+    model, tokenizer = _make_tiny_model_and_tokenizer()
+    backend = TransformersLocalBackend(model, tokenizer)
+
+    xai_result = {'predicted_class': 'Benign', 'contributions': {'flow_duration': 0.5}}
+    novelty_context = {'max_softmax': 0.5, 'tau': 0.6, 'alpha': 0.3}
+
+    report = generate_structured_report(backend, xai_result, novelty_context, max_new_tokens=200)
+
+    assert len(report['summary']) <= 200
+    assert len(report['suggested_label']) <= 80

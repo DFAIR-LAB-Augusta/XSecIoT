@@ -109,7 +109,11 @@ def _make_tiny_model_and_tokenizer():
     tokenizer = _make_tiny_tokenizer()
     config = GPT2Config(
         vocab_size=tokenizer.vocab_size,
-        n_positions=256,
+        # 768: confirmed via direct execution that build_report_prompt's real
+        # output is ~360 tokens with this byte-level BPE tokenizer (fragments
+        # much more heavily than #99's WordLevel tokenizer at the same tiny
+        # vocab size), plus room for a 200-256 token generation budget.
+        n_positions=768,
         n_embd=16,
         n_layer=2,
         n_head=2,
