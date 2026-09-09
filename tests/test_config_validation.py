@@ -3,6 +3,8 @@ import pandas as pd
 import pytest
 import torch
 
+from pydantic import ValidationError
+
 from firce.runtime.bootstrap import get_rolling_columns, initialize_simulation_runtime
 from firce.utils.config import CEType, ModelType, ModelVariant, MonitorType, SimulationConfig
 
@@ -266,3 +268,32 @@ def test_initialize_simulation_runtime_unsw_binary_still_works(tmp_path, monkeyp
     seeded = runtime.rolling.to_dataframe()
     assert len(seeded) == 60
     assert set(seeded['BinLabel'].unique()) <= {0, 1}
+
+
+def test_simulation_config_novelty_fields_default_to_disabled(tmp_path):
+    config = _make_config(tmp_path)
+
+    assert config.novelty_enabled is False
+    assert config.novelty_tau == 0.6
+    assert config.novelty_alpha == 0.3
+    assert config.novelty_selective_mode == 'unknown_only'
+    assert config.novelty_sample_rate == 0.1
+    assert config.novelty_window_size == 10
+    assert config.novelty_explain_method == 'shap'
+    assert config.novelty_llm_backend_type is None
+    assert config.novelty_llm_model_path is None
+
+
+def test_simulation_config_novelty_tau_alpha_must_be_unit_interval(tmp_path):
+    with pytest.raises(ValidationError):
+        _make_config(tmp_path, novelty_tau=1.5)
+
+
+def test_simulation_config_novelty_selective_mode_must_be_valid(tmp_path):
+    with pytest.raises(ValidationError, match='novelty_selective_mode'):
+        _make_config(tmp_path, novelty_selective_mode='not_a_real_mode')
+
+
+def test_simulation_config_novelty_explain_method_must_be_valid(tmp_path):
+    with pytest.raises(ValidationError, match='novelty_explain_method'):
+        _make_config(tmp_path, novelty_explain_method='not_a_real_method')
