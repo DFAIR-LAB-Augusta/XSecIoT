@@ -109,7 +109,43 @@ def create_local_llm_backend(backend_type: str, **kwargs) -> LocalLLMBackend:
     raise ValueError(f'Unknown local LLM backend type {backend_type!r}; expected one of {_BACKEND_TYPES}')
 
 
-def build_report_prompt(xai_result: dict, novelty_context: dict, top_k: int = 5) -> str:
+_FEW_SHOT_EXAMPLES = (
+    (
+        {'predicted_class': 'Benign', 'contributions': {'flow_duration': 1.2, 'tot_fwd_pkt': -0.1}},
+        {'max_softmax': 0.55, 'tau': 0.6, 'alpha': 0.3},
+        'Summary: A single flow with an unusually long duration but otherwise typical packet counts.\n'
+        'Suggested label: possible long-lived idle connection\n',
+    ),
+    (
+        {'predicted_class': 'PortScan', 'contributions': {'tot_fwd_pkt': 2.1, 'flow_duration': -0.9}},
+        {'max_softmax': 0.48, 'tau': 0.6, 'alpha': 0.3},
+        'Summary: A burst of short flows with high forward-packet counts targeting multiple ports.\n'
+        'Suggested label: possible scanning burst\n',
+    ),
+)
+
+_VALID_STRATEGIES = ('zero_shot', 'few_shot', 'cot')
+
+
+def _format_feature_lines(xai_result: dict, top_k: int) -> str:
+    contributions = xai_result['contributions']
+    top_features = sorted(contributions.items(), key=lambda item: abs(item[1]), reverse=True)[:top_k]
+    return '\n'.join(f'- {name}: {value:+.4f}' for name, value in top_features)
+
+
+def _format_context_block(xai_result: dict, novelty_context: dict, top_k: int) -> str:
+    feature_lines = _format_feature_lines(xai_result, top_k)
+    return (
+        f"Model's top predicted class: {xai_result['predicted_class']}\n"
+        f'Model confidence (max softmax): {novelty_context.get("max_softmax", "unknown")}\n'
+        f'Confidence threshold (tau): {novelty_context.get("tau", "unknown")}\n'
+        f'Conformal significance (alpha): {novelty_context.get("alpha", "unknown")}\n\n'
+        f'Top contributing features (feature: contribution, positive = pushes toward the predicted class):\n'
+        f'{feature_lines}\n\n'
+    )
+
+
+def build_report_prompt(xai_result: dict, novelty_context: dict, top_k: int = 5, strategy: str = 'zero_shot') -> str:
     """
     Build a constrained, structured prompt from #98's XAI output and #97's
     novelty-signal context.
@@ -117,11 +153,18 @@ def build_report_prompt(xai_result: dict, novelty_context: dict, top_k: int = 5)
     Implements the proposal's explicit risk mitigation - "constrained LLM
     prompting with structured outputs and bounded vocabulary" - via a fixed
     output-format instruction (Summary: / Suggested label:) that
-    parse_report_output expects.
+    parse_report_output expects, identical across all three strategies.
 
     Only ever includes flow-level numeric features (xai_result['contributions'])
     and novelty-signal scalars (novelty_context) - never raw event payload data,
     per the proposal's governance note.
+
+    Three prototyped strategies (#138, "prototype and compare" per the
+    proposal - not a single committed design):
+      - 'zero_shot' (default): #99's original single-shot template, unchanged.
+      - 'few_shot': prepends two small worked examples before the actual query.
+      - 'cot': adds a "reason step by step first" instruction and a Reasoning:
+        scratchpad line before the final Summary:/Suggested label: answer.
 
     Args:
         xai_result: Output of firce.novelty.explain.explain_with_shap/explain_with_lime
@@ -129,24 +172,56 @@ def build_report_prompt(xai_result: dict, novelty_context: dict, top_k: int = 5)
         novelty_context: Dict of novelty-signal scalars, e.g. {'max_softmax': ...,
             'tau': ..., 'alpha': ...} (from firce.novelty.decision_rules).
         top_k: Number of top-|contribution| features to include in the prompt.
+        strategy: One of 'zero_shot', 'few_shot', 'cot'.
 
     Returns:
         A single prompt string ready to pass to a LocalLLMBackend.generate().
-    """
-    contributions = xai_result['contributions']
-    top_features = sorted(contributions.items(), key=lambda item: abs(item[1]), reverse=True)[:top_k]
-    feature_lines = '\n'.join(f'- {name}: {value:+.4f}' for name, value in top_features)
 
-    return (
+    Raises:
+        ValueError: If strategy is not a supported value.
+    """
+    if strategy not in _VALID_STRATEGIES:
+        raise ValueError(f'Unknown prompt strategy {strategy!r}; expected one of {_VALID_STRATEGIES}')
+
+    intro = (
         'You are a network security assistant. An event was flagged as a possible '
         'unknown/emerging behavior by an automated novelty-detection system.\n\n'
-        f"Model's top predicted class: {xai_result['predicted_class']}\n"
-        f'Model confidence (max softmax): {novelty_context.get("max_softmax", "unknown")}\n'
-        f'Confidence threshold (tau): {novelty_context.get("tau", "unknown")}\n'
-        f'Conformal significance (alpha): {novelty_context.get("alpha", "unknown")}\n\n'
-        f'Top contributing features (feature: contribution, positive = pushes toward the predicted class):\n'
-        f'{feature_lines}\n\n'
-        'Respond in exactly this format:\n'
+    )
+    context_block = _format_context_block(xai_result, novelty_context, top_k)
+
+    if strategy == 'few_shot':
+        examples_block = ''
+        for example_xai, example_context, example_answer in _FEW_SHOT_EXAMPLES:
+            examples_block += (
+                'Example:\n' + _format_context_block(example_xai, example_context, top_k) + example_answer + '\n'
+            )
+        return (
+            intro
+            + 'Here are two worked examples of the expected response format:\n\n'
+            + examples_block
+            + 'Now analyze this new event:\n\n'
+            + context_block
+            + 'Respond in exactly this format:\n'
+            'Summary: <one sentence describing the anomalous behavior>\n'
+            'Suggested label: <a short descriptive phrase, not a definitive classification>\n'
+        )
+
+    if strategy == 'cot':
+        return (
+            intro
+            + context_block
+            + 'First, reason step by step about what these feature contributions suggest, writing your '
+            'reasoning after "Reasoning:". Then give your final answer in exactly this format:\n'
+            'Reasoning: <your step-by-step analysis>\n'
+            'Summary: <one sentence describing the anomalous behavior>\n'
+            'Suggested label: <a short descriptive phrase, not a definitive classification>\n'
+        )
+
+    # strategy == 'zero_shot' (#99's original template, unchanged)
+    return (
+        intro
+        + context_block
+        + 'Respond in exactly this format:\n'
         'Summary: <one sentence describing the anomalous behavior>\n'
         'Suggested label: <a short descriptive phrase, not a definitive classification>\n'
     )

@@ -167,3 +167,47 @@ def test_generate_report_end_to_end_with_real_tiny_model():
     assert 'summary' in report
     assert 'suggested_label' in report
     assert isinstance(report['raw_output'], str)
+
+
+def test_build_report_prompt_default_strategy_is_unchanged_from_99():
+    xai_result = {'predicted_class': 'Benign', 'contributions': {'flow_duration': 0.8}}
+    novelty_context = {'max_softmax': 0.5, 'tau': 0.6, 'alpha': 0.3}
+
+    default_prompt = build_report_prompt(xai_result, novelty_context)
+    explicit_zero_shot_prompt = build_report_prompt(xai_result, novelty_context, strategy='zero_shot')
+
+    assert default_prompt == explicit_zero_shot_prompt
+
+
+def test_build_report_prompt_few_shot_includes_worked_examples():
+    xai_result = {'predicted_class': 'Benign', 'contributions': {'flow_duration': 0.8}}
+    novelty_context = {'max_softmax': 0.5, 'tau': 0.6, 'alpha': 0.3}
+
+    prompt = build_report_prompt(xai_result, novelty_context, strategy='few_shot')
+
+    assert 'Summary:' in prompt
+    assert 'Suggested label:' in prompt
+    # Few-shot must be strictly longer than zero-shot (worked examples prepended).
+    zero_shot_prompt = build_report_prompt(xai_result, novelty_context, strategy='zero_shot')
+    assert len(prompt) > len(zero_shot_prompt)
+
+
+def test_build_report_prompt_cot_includes_reasoning_instruction():
+    xai_result = {'predicted_class': 'Benign', 'contributions': {'flow_duration': 0.8}}
+    novelty_context = {'max_softmax': 0.5, 'tau': 0.6, 'alpha': 0.3}
+
+    prompt = build_report_prompt(xai_result, novelty_context, strategy='cot')
+
+    assert 'Reasoning:' in prompt
+    assert 'Summary:' in prompt
+    assert 'Suggested label:' in prompt
+    # Reasoning instruction must appear before the final-answer format instruction.
+    assert prompt.index('Reasoning:') < prompt.index('Summary:')
+
+
+def test_build_report_prompt_unknown_strategy_raises_value_error():
+    xai_result = {'predicted_class': 'Benign', 'contributions': {'flow_duration': 0.8}}
+    novelty_context = {'max_softmax': 0.5, 'tau': 0.6, 'alpha': 0.3}
+
+    with pytest.raises(ValueError, match='strategy'):
+        build_report_prompt(xai_result, novelty_context, strategy='not_a_real_strategy')
