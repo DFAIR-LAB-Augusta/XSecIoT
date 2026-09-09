@@ -13,7 +13,6 @@ from firce.novelty.llm_reporting import (
     parse_report_output,
 )
 
-
 _CORPUS = (
     'novelty detected class benign portscan xmasattack summary label suggested feature '
     'contributes value increase decrease scanning burst possible unknown emerging behavior'

@@ -138,9 +138,9 @@ def build_report_prompt(xai_result: dict, novelty_context: dict, top_k: int = 5)
         'You are a network security assistant. An event was flagged as a possible '
         'unknown/emerging behavior by an automated novelty-detection system.\n\n'
         f"Model's top predicted class: {xai_result['predicted_class']}\n"
-        f"Model confidence (max softmax): {novelty_context.get('max_softmax', 'unknown')}\n"
-        f"Confidence threshold (tau): {novelty_context.get('tau', 'unknown')}\n"
-        f"Conformal significance (alpha): {novelty_context.get('alpha', 'unknown')}\n\n"
+        f'Model confidence (max softmax): {novelty_context.get("max_softmax", "unknown")}\n'
+        f'Confidence threshold (tau): {novelty_context.get("tau", "unknown")}\n'
+        f'Conformal significance (alpha): {novelty_context.get("alpha", "unknown")}\n\n'
         f'Top contributing features (feature: contribution, positive = pushes toward the predicted class):\n'
         f'{feature_lines}\n\n'
         'Respond in exactly this format:\n'
