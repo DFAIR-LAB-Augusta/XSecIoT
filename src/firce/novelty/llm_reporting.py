@@ -21,7 +21,10 @@ import re
 
 from typing import Any, Optional, Protocol
 
+import outlines
 import torch
+
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -203,3 +206,57 @@ def generate_report(
     prompt = build_report_prompt(xai_result, novelty_context, top_k=top_k)
     raw_output = backend.generate(prompt, max_new_tokens=max_new_tokens)
     return parse_report_output(raw_output)
+
+
+class _StructuredReportSchema(BaseModel):
+    """
+    Bounded output schema for grammar-constrained report generation.
+
+    Field lengths are bounded (Field(max_length=...)) so the constrained-decoding
+    grammar itself is finite - this is what guarantees generation completes as
+    valid JSON within a computable token budget, regardless of model quality
+    (confirmed via direct execution: an unbounded string field lets even a
+    deliberately tiny/untrained model generate indefinitely without closing
+    the string; bounding it does not).
+    """
+
+    summary: str = Field(max_length=200)
+    suggested_label: str = Field(max_length=80)
+
+
+def generate_structured_report(
+    backend: 'TransformersLocalBackend',
+    xai_result: dict,
+    novelty_context: dict,
+    max_new_tokens: int = 256,
+    top_k: int = 5,
+) -> dict:
+    """
+    Full pipeline with grammar-constrained (guaranteed-structured) output, as
+    an alternative to generate_report's regex-based best-effort parsing.
+
+    Uses the outlines library to force every generated token to stay within
+    the grammar defined by _StructuredReportSchema - unlike parse_report_output
+    (regex extraction from free-form text, degrades to None on non-conforming
+    output), summary/suggested_label are never None here: the output is
+    guaranteed syntactically valid JSON matching the schema by construction.
+
+    Args:
+        backend: A TransformersLocalBackend (consumes .model/.tokenizer directly;
+            outlines needs the raw transformers model/tokenizer, not just the
+            generate() method).
+        xai_result: Output of firce.novelty.explain.explain_with_shap/explain_with_lime.
+        novelty_context: Novelty-signal scalars (see build_report_prompt).
+        max_new_tokens: Token budget for generation.
+        top_k: Forwarded to build_report_prompt.
+
+    Returns:
+        Dict with keys 'summary', 'suggested_label' (always non-None str),
+        'raw_output' (the raw generated JSON string).
+    """
+    prompt = build_report_prompt(xai_result, novelty_context, top_k=top_k)
+    outlines_model = outlines.from_transformers(backend.model, backend.tokenizer)
+    generator = outlines.Generator(outlines_model, _StructuredReportSchema)
+    raw_output = generator(prompt, max_new_tokens=max_new_tokens)
+    parsed = _StructuredReportSchema.model_validate_json(raw_output)
+    return {'summary': parsed.summary, 'suggested_label': parsed.suggested_label, 'raw_output': raw_output}
