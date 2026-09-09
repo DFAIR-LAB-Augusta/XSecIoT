@@ -41,9 +41,7 @@ def load_technique_reference() -> Dict[str, dict]:
         return json.load(f)
 
 
-def suggest_mitre_techniques(
-    report: dict, top_k: int = 3, reference: Optional[Dict[str, dict]] = None
-) -> List[dict]:
+def suggest_mitre_techniques(report: dict, top_k: int = 3, reference: Optional[Dict[str, dict]] = None) -> List[dict]:
     """
     Heuristically rank MITRE ATT&CK techniques by textual similarity to an
     LLM-generated report (#99's generate_report output).
@@ -70,7 +68,7 @@ def suggest_mitre_techniques(
     query_text = ' '.join(query_parts) if query_parts else (report.get('raw_output') or '')
 
     technique_ids = list(reference.keys())
-    corpus = [f"{reference[tid]['name']} {reference[tid]['description']}" for tid in technique_ids]
+    corpus = [f'{reference[tid]["name"]} {reference[tid]["description"]}' for tid in technique_ids]
 
     vectorizer = TfidfVectorizer(stop_words='english')
     technique_vectors = vectorizer.fit_transform(corpus)
