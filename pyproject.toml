@@ -86,6 +86,7 @@ dev = [
 
 torch = [
     "torch==2.12.1",
+    "transformers>=4.57.0,<5",
 ]
 
 tensorflow = [
