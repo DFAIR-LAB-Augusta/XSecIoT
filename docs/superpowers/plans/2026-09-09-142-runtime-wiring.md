@@ -343,7 +343,9 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler
 
 
-def _make_novelty_test_runtime(novelty_enabled=True, **config_overrides):
+def _make_novelty_test_runtime(tmp_path, novelty_enabled=True, **config_overrides):
+    dummy = tmp_path / 'dummy.csv'
+    dummy.write_text('a\n1\n')
     rng = np.random.default_rng(0)
     n = 60
     X = pd.DataFrame(
@@ -366,8 +368,8 @@ def _make_novelty_test_runtime(novelty_enabled=True, **config_overrides):
         model_type=ModelType.BINARY,
         model_variant=ModelVariant.DT,
         ce_type=CEType.ICE,
-        aggregated_path=Path('unused.csv'),
-        flows_path=Path('unused.csv'),
+        aggregated_path=dummy,
+        flows_path=dummy,
         device=DEVICE,
         novelty_enabled=novelty_enabled,
         **config_overrides,
@@ -389,16 +391,16 @@ def _make_novelty_test_runtime(novelty_enabled=True, **config_overrides):
     return runtime, clean_chunk
 
 
-def test_score_chunk_novelty_returns_none_when_disabled():
-    runtime, clean_chunk = _make_novelty_test_runtime(novelty_enabled=False)
+def test_score_chunk_novelty_returns_none_when_disabled(tmp_path):
+    runtime, clean_chunk = _make_novelty_test_runtime(tmp_path, novelty_enabled=False)
 
     result = _score_chunk_novelty(runtime, clean_chunk)
 
     assert result is None
 
 
-def test_score_chunk_novelty_returns_flags_and_features_when_enabled():
-    runtime, clean_chunk = _make_novelty_test_runtime(novelty_enabled=True)
+def test_score_chunk_novelty_returns_flags_and_features_when_enabled(tmp_path):
+    runtime, clean_chunk = _make_novelty_test_runtime(tmp_path, novelty_enabled=True)
 
     result = _score_chunk_novelty(runtime, clean_chunk)
 
@@ -409,9 +411,9 @@ def test_score_chunk_novelty_returns_flags_and_features_when_enabled():
     assert x_monitor.shape[0] == len(clean_chunk)
 
 
-def test_generate_novelty_reports_populates_runtime_with_explanations_only_by_default():
+def test_generate_novelty_reports_populates_runtime_with_explanations_only_by_default(tmp_path):
     # novelty_llm_backend_type stays None (default) - explanation-only path.
-    runtime, clean_chunk = _make_novelty_test_runtime(novelty_enabled=True, novelty_tau=0.99, novelty_alpha=0.99)
+    runtime, clean_chunk = _make_novelty_test_runtime(tmp_path, novelty_enabled=True, novelty_tau=0.99, novelty_alpha=0.99)
     novelty_flags, x_monitor = _score_chunk_novelty(runtime, clean_chunk)
 
     _generate_novelty_reports(runtime, clean_chunk, x_monitor, novelty_flags)
