@@ -106,7 +106,11 @@ def _make_tiny_model_and_tokenizer():
     tokenizer = _make_tiny_tokenizer()
     config = GPT2Config(
         vocab_size=tokenizer.vocab_size,
-        n_positions=64,
+        # 256 comfortably fits build_report_prompt's real output (~120 tokens
+        # with this tiny word-level vocab) plus generated tokens; n_positions
+        # only sizes the position-embedding table, so this stays cheap even
+        # for such a small model.
+        n_positions=256,
         n_embd=16,
         n_layer=2,
         n_head=2,
@@ -579,13 +583,14 @@ def test_generate_report_end_to_end_with_real_tiny_model():
 
     report = generate_report(backend, xai_result, novelty_context, max_new_tokens=10)
 
-    # summary/suggested_label may legitimately be None (this tiny untrained
-    # model has no reason to follow the requested format) - the pipeline
-    # wiring and graceful degradation is what's under test, not output quality.
+    # summary/suggested_label may legitimately be None, and raw_output may
+    # legitimately be empty (greedy decoding on this tiny untrained model can
+    # pick EOS as its very first token - confirmed via direct execution) -
+    # the pipeline wiring and graceful degradation is what's under test here,
+    # not output quality or length.
     assert 'summary' in report
     assert 'suggested_label' in report
     assert isinstance(report['raw_output'], str)
-    assert len(report['raw_output']) > 0
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
