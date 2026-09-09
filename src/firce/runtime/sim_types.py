@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -34,3 +34,5 @@ class SimulationRuntime:
     monitor: DriftMonitor | None
     train_df: pd.DataFrame
     label_encoder: Any | None = None
+    llm_backend: Any | None = None
+    novelty_reports: list = field(default_factory=list)

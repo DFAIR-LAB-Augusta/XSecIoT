@@ -186,6 +186,25 @@ def test_initialize_simulation_runtime_binary_fits_ce_monitor(tmp_path, monkeypa
     assert runtime.label_encoder is None
 
 
+def test_initialize_simulation_runtime_novelty_disabled_by_default(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_binary_csv(tmp_path)
+    config = _make_config(
+        tmp_path,
+        model_type=ModelType.BINARY,
+        model_variant=ModelVariant.DT,
+        aggregated_path=csv_path,
+        flows_path=csv_path,
+        monitor_type=MonitorType.CE,
+        ce_type=CEType.ICE,
+    )
+
+    runtime = initialize_simulation_runtime(config)
+
+    assert runtime.novelty_reports == []
+    assert runtime.llm_backend is None
+
+
 def _make_unsw_raw_csv(tmp_path, n=60, seed=0, dirname='UNSW_DS'):
     rng = np.random.default_rng(seed)
     ds_dir = tmp_path / dirname
