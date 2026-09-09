@@ -87,6 +87,7 @@ dev = [
 torch = [
     "torch==2.12.1",
     "transformers>=4.57.0,<5",
+    "outlines>=0.1.0,<2",
 ]
 
 tensorflow = [
