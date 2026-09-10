@@ -9,7 +9,10 @@ from typing import Any
 import numpy as np
 import toml
 
-from xgboost import XGBClassifier
+try:
+    from xgboost import XGBClassifier
+except ImportError:
+    XGBClassifier = None
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +126,30 @@ def compute_class_thresholds(calibration_scores, significance):
         Dict[Any, float]: Per-class thresholds
     """
     return {cls: float(np.quantile(scores, 1 - significance)) for cls, scores in calibration_scores.items()}
+
+
+def pick_average_strategy(y) -> str:
+    """
+    Choose the appropriate sklearn `average` argument for precision/recall/F1
+    given the label set actually present.
+
+    Only literal {0, 1} label sets are treated as conventional binary
+    classification (average='binary', which requires a determinable
+    pos_label). Any other 2-unique-value label set (e.g. a string-labeled
+    2-of-K subset of a multiclass problem, as constructed when holding one
+    class out entirely for open-world novelty evaluation) falls back to
+    'weighted', matching the existing 3+-class behavior - sklearn's
+    average='binary' has no meaningful pos_label for non-{0,1} labels and
+    raises rather than picking one arbitrarily.
+
+    Args:
+        y: Array of class labels.
+
+    Returns:
+        'binary' if the unique label set is exactly a subset of {0, 1}, else 'weighted'.
+    """
+    unique_labels = set(np.unique(y).tolist())
+    return 'binary' if unique_labels <= {0, 1} else 'weighted'
 
 
 def load_conformal_config(path: Path = Path('src/firce/conformalEval/conformal_config.toml')) -> dict:

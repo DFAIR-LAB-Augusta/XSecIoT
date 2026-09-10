@@ -20,12 +20,12 @@ Typical usage:
 
 import logging
 
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, Optional
 
 import numpy as np
 
-from scipy.stats import mode
 from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 from sklearn.model_selection import StratifiedKFold
 
@@ -35,6 +35,7 @@ from firce.conformalEval.utils import (
     compute_class_thresholds,
     compute_p_values,
     load_conformal_config,
+    pick_average_strategy,
 )
 from firce.utils.perf_stats import PerformanceStats
 
@@ -154,9 +155,10 @@ class CrossConformalEvaluator:
 
         logger.info('CCE calibration completed successfully.')
         acc = float(accuracy_score(all_true, all_pred))
-        prec = float(precision_score(all_true, all_pred, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
-        rec = float(recall_score(all_true, all_pred, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
-        f1 = float(f1_score(all_true, all_pred, average='binary' if len(np.unique(y)) == 2 else 'weighted'))
+        average = pick_average_strategy(y)
+        prec = float(precision_score(all_true, all_pred, average=average))
+        rec = float(recall_score(all_true, all_pred, average=average))
+        f1 = float(f1_score(all_true, all_pred, average=average))
 
         logger.info('[CCE] Model Performance Across Calibration Folds:')
         logger.info('Accuracy:  %.4f', acc)
@@ -202,7 +204,10 @@ class CrossConformalEvaluator:
         all_preds = np.stack(all_preds, axis=0)
         all_scores = np.stack(all_scores, axis=0)
 
-        final_preds, _ = mode(all_preds, axis=0, keepdims=False)
+        final_preds = np.array(
+            [Counter(all_preds[:, i]).most_common(1)[0][0] for i in range(all_preds.shape[1])],
+            dtype=all_preds.dtype,
+        )
 
         avg_scores = np.mean(all_scores, axis=0)
 

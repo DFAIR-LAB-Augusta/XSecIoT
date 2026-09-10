@@ -7,15 +7,16 @@ RUFF ?= ruff
 
 LABELED_DATASET_PATH ?= ./datasets/CEFlows/mc_labeled/
 UNLABELED_DATASET_PATH ?= ./datasets/CEFlows/unlabeled/
+MC_MAPPING_ARGS ?=
 LOG_DIR      ?=
 
 TREE_IGNORE := .venv|binary_models|logging|*pyc|tests|datasets|.pytest_cache|.ruff_cache|.git|assets|feature_engineering|.vscode
 
 TARGET_IP ?= 192.168.1.0/24
 
-.PHONY: help sync test clean \
+.PHONY: help sync sync-lean test clean \
         sim-bin sim-mc xseciot \
-        bin-label merge \
+        bin-label mc-label merge \
         overall-perf overall-scrape
 
 help: 
@@ -23,18 +24,24 @@ help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Examples:"
-	@echo "  make sync"
+	@echo "  make sync         # full deployment env: torch + xgboost + cade + dev"
+	@echo "  make sync-lean    # torch + dev only, no xgboost (matches CI; avoids the"
+	@echo "                    # nvidia-nccl-cu12/cu13 file collision between torch and xgboost's GPU wheel)"
 	@echo "  make test"
 	@echo "  make sim-bin"
 	@echo "  make sim-mc"
 	@echo "  make xseciot"
 	@echo "  make bin-label UNLABELED_DATASET_PATH=datasets/CEFlows/CEFlows2_merged.csv"
+	@echo "  make mc-label  UNLABELED_DATASET_PATH=datasets/CEFlows/CEFlows2_merged.csv MC_MAPPING_ARGS='--mapping 192.168.1.192,192.168.1.103,XMasAttack'"
 	@echo "  make merge     LABELED_DATASET_PATH=datasets/CEFlows/indiv"
 	@echo "  make overall-perf   LOG_DIR=logs"
 	@echo "  make overall-scrape LOG_DIR=logs"
 
-sync: 
+sync: ## Full deployment env: torch + xgboost + cade + dev
 	$(UV) sync --group lambda-torch
+
+sync-lean: ## torch + dev only (matches CI; skips xgboost to avoid its nvidia-nccl-cu12 vs torch's cu13 collision)
+	$(UV) sync --group torch
 
 test: 
 	OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
@@ -64,9 +71,14 @@ bin.unsw:
 	 	--useCircularLogger --debug --useMLP --useAC --unsw \
 		--pipeline simulation
 
-label: 
+label:
 	@if [ -z "$(UNLABELED_DATASET_PATH)" ]; then echo "ERROR: set UNLABELED_DATASET_PATH=..."; exit 1; fi
 	$(UV) run scripts/labeling.py --dataset_path "$(UNLABELED_DATASET_PATH)"
+
+mc-label:
+	@if [ -z "$(UNLABELED_DATASET_PATH)" ]; then echo "ERROR: set UNLABELED_DATASET_PATH=..."; exit 1; fi
+	@if [ -z "$(MC_MAPPING_ARGS)" ]; then echo "ERROR: set MC_MAPPING_ARGS='--mapping SRC_IP,DST_IP,ATTACK_NAME [--mapping ...]'"; exit 1; fi
+	$(UV) run scripts/mc_labeling.py "$(UNLABELED_DATASET_PATH)" $(MC_MAPPING_ARGS)
 
 merge:
 	@if [ -z "$(LABELED_DATASET_PATH)" ]; then echo "ERROR: set LABELED_DATASET_PATH=..."; exit 1; fi

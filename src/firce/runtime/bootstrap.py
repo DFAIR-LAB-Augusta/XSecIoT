@@ -1,31 +1,41 @@
+from __future__ import annotations
+
 import logging
 import time
 
-from typing import Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
+import joblib
 import pandas as pd
-import xgboost as xgb
 
-from sklearn.base import ClassifierMixin
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 from firce.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
-from firce.drift_monitor.base import DriftMonitor
+from firce.conformalEval.utils import clone_model
 from firce.drift_monitor.factory import build_monitor
-from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.mlp_ce import MLP_CE
-from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, ROLLING_COLS
+from firce.novelty.llm_reporting import create_local_llm_backend
+from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, _label_column, get_unsw_rolling_columns
 from firce.runtime.monitoring import filter_ce_kwargs
 from firce.runtime.sim_types import SimulationRuntime
 from firce.utils.circular_logger import CircularDequeLogger
-from firce.utils.config import ModelType, ModelVariant, MonitorType, SimulationConfig
+from firce.utils.config import ModelType, MonitorType, SimulationConfig
 from firce.utils.perf_stats import PerformanceStats
 from firce.utils.rolling_csv import RollingCSV
 from fire.preprocessing import clean_data
 from fire.simulations import load_simulation_objects, preprocess_chunk
+
+if TYPE_CHECKING:
+    import xgboost as xgb
+
+    from sklearn.base import ClassifierMixin
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import StandardScaler
+
+    from firce.drift_monitor.base import DriftMonitor
+    from firce.models.feedforward_binary import FeedForwardBinary
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +60,7 @@ def initialize_simulation_runtime(config: SimulationConfig) -> SimulationRuntime
     seed_rolling_logger(config, rolling, train_df)
 
     scaler, pca, model = load_runtime_artifacts(config)
+    label_encoder = load_label_encoder(config)
     monitor = build_runtime_monitor(
         config=config,
         train_df=train_df,
@@ -60,6 +71,12 @@ def initialize_simulation_runtime(config: SimulationConfig) -> SimulationRuntime
         perf_stats=perf_stats,
     )
 
+    llm_backend = None
+    if config.novelty_llm_backend_type is not None:
+        llm_backend = create_local_llm_backend(
+            config.novelty_llm_backend_type, model_name_or_path=config.novelty_llm_model_path
+        )
+
     return SimulationRuntime(
         config=config,
         perf_stats=perf_stats,
@@ -68,8 +85,10 @@ def initialize_simulation_runtime(config: SimulationConfig) -> SimulationRuntime
         scaler=scaler,
         pca=pca,
         model=model,
+        label_encoder=label_encoder,
         monitor=monitor,
         train_df=train_df,
+        llm_backend=llm_backend,
     )
 
 
@@ -120,12 +139,22 @@ def load_training_frame(config: SimulationConfig) -> pd.DataFrame:
         else:
             df_train['BinLabel'] = df_train['Label'].map({'Benign': 0}).fillna(1).astype(int)
 
+    if (
+        config.model_type == ModelType.MULTI
+        and config.is_unsw
+        and 'MC_Label' not in df_train.columns
+        and 'Attack' in df_train.columns
+    ):
+        df_train['MC_Label'] = df_train['Attack']
+
     df_train = df_train.drop(columns='Label', errors='ignore')
     df_train = df_train.drop(columns='Unnamed: 0', errors='ignore')
 
     if config.is_unsw:
         df_train = _unsw_clean(clean_data(df_train, config.is_unsw))
-        extra_features = set(df_train.columns) - set(FINAL_LOG_COLUMNS)
+        label_col = _label_column(config.model_type)
+        expected_columns = {label_col if col == 'BinLabel' else col for col in FINAL_LOG_COLUMNS}
+        extra_features = set(df_train.columns) - expected_columns
         logger.debug('UNSW extra features beyond mandatory set: %s', extra_features)
         if extra_features:
             raise RuntimeError('Unexpected UNSW features found. Diagnose before retraining.')
@@ -154,29 +183,22 @@ def ensure_model_artifacts(
             time.perf_counter() - start,
         )
 
-    if config.model_variant != ModelVariant.FEEDFORWARD and config.model_type == ModelType.MULTI:
+    if config.model_type == ModelType.MULTI:
         logger.info(
             "CE multiclass artifacts missing for '%s'; training now...",
             dataset_name,
         )
         start = time.perf_counter()
-        try:
-            train_ce_multiclass(
-                config,
-                str(config.aggregated_path),
-                variant=config.model_variant,
-                use_pca=config.use_pca,
-            )
-            logger.info(
-                'Multiclass CE training completed in %.4fs',
-                time.perf_counter() - start,
-            )
-        except NotImplementedError as exc:
-            logger.warning(
-                "Multiclass CE training not supported for variant '%s'; skipping: %s",
-                config.model_variant.value,
-                exc,
-            )
+        train_ce_multiclass(
+            config,
+            str(config.aggregated_path),
+            variant=config.model_variant,
+            use_pca=config.use_pca,
+        )
+        logger.info(
+            'Multiclass CE training completed in %.4fs',
+            time.perf_counter() - start,
+        )
 
 
 def create_rolling_logger(
@@ -222,10 +244,11 @@ def get_rolling_columns(config: SimulationConfig) -> list[str]:
         Rolling logger column list.
     """
     if config.is_unsw:
-        return ROLLING_COLS.copy()
+        return get_unsw_rolling_columns(config.model_type)
 
     drop_before_seed = set(get_seed_drop_columns())
-    return [col for col in FINAL_LOG_COLUMNS if col not in drop_before_seed]
+    label_col = _label_column(config.model_type)
+    return [label_col if col == 'BinLabel' else col for col in FINAL_LOG_COLUMNS if col not in drop_before_seed]
 
 
 def build_seed_frame(
@@ -335,6 +358,23 @@ def load_runtime_artifacts(
     )
 
 
+def load_label_encoder(config: SimulationConfig) -> Any | None:
+    """
+    Load the multiclass label encoder if applicable.
+
+    Args:
+        config: Simulation configuration.
+
+    Returns:
+        Fitted LabelEncoder for multiclass runs, or None for binary runs.
+    """
+    if config.model_type != ModelType.MULTI:
+        return None
+    dataset_name = config.aggregated_path.parent.name
+    encoder_path = Path('multi_class_models') / dataset_name / 'label_encoder_multi.pkl'
+    return joblib.load(encoder_path)
+
+
 def build_runtime_monitor(
     config: SimulationConfig,
     train_df: pd.DataFrame,
@@ -375,7 +415,7 @@ def build_runtime_monitor(
         else x_scaled
     )
 
-    y_train = train_df['BinLabel'] if config.model_type == ModelType.BINARY else train_df['Label']
+    y_train = train_df[_label_column(config.model_type)]
 
     monitor_model = _build_monitor_model(
         config=config,
@@ -448,7 +488,7 @@ def _build_monitor_model(
             device=config.device,
         )
 
-    return model
+    return clone_model(model)
 
 
 if __name__ == '__main__':

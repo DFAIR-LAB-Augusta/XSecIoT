@@ -1,29 +1,43 @@
+from __future__ import annotations
+
 import logging
 import time
 import warnings
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import pandas as pd
 import torch
-import xgboost as xgb
 
-from sklearn.base import ClassifierMixin
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-
+from firce.drift_monitor.conformal_monitor import ConformalDriftMonitor
 from firce.models.feedforward_binary import FeedForwardBinary
+from firce.models.feedforward_multiclass import FeedForwardMulticlass
+from firce.novelty.decision_rules import compute_all_class_p_values, is_novel, max_softmax_confidence
+from firce.novelty.explain import explain_with_lime, explain_with_shap, select_events_to_explain
+from firce.novelty.llm_reporting import generate_report
 from firce.runtime.constants import (
     DROP_COLS,
     FULL_DROP_COLS,
     PRED_THRESHOLD,
     ROLLING_COLS,
+    _label_column,
+    get_unsw_rolling_columns,
 )
 from firce.runtime.retraining import retrain_runtime
-from firce.runtime.sim_types import SimulationRuntime
 from firce.utils.circular_logger import CircularDequeLogger
 from firce.utils.config import ModelType, ModelVariant, MonitorType, SimulationConfig
 from fire.preprocessing import clean_data
 from fire.simulations import preprocess_chunk
+
+if TYPE_CHECKING:
+    import xgboost as xgb
+
+    from sklearn.base import ClassifierMixin
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import StandardScaler
+
+    from firce.runtime.sim_types import SimulationRuntime
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +48,7 @@ def predict_row(
     scaler: StandardScaler,
     pca: PCA | None,
     config: SimulationConfig,
-    model: ClassifierMixin | xgb.Booster | FeedForwardBinary,
+    model: ClassifierMixin | xgb.Booster | FeedForwardBinary | FeedForwardMulticlass,
     threshold: float,
 ) -> int:
     """
@@ -78,6 +92,9 @@ def predict_row(
         X_s = scaler.transform(X_row)
     X_p = pca.transform(X_s) if config.use_pca and pca is not None else X_s
 
+    if config.model_variant == ModelVariant.XGB:
+        import xgboost as xgb
+
     if config.model_variant == ModelVariant.XGB and isinstance(model, xgb.Booster):
         fnames = [f'f_{i}' for i in range(X_p.shape[1])]
         dtest = xgb.DMatrix(X_p, feature_names=fnames)
@@ -98,6 +115,16 @@ def predict_row(
             prob = torch.sigmoid(logits).flatten().item()
         logger.debug(f'[predict_row][ff] prob={prob:.6f}, thr={threshold}')
         return int(prob > threshold)
+
+    if config.model_variant == ModelVariant.FEEDFORWARD and isinstance(model, FeedForwardMulticlass):
+        dev = config.device
+        xt = torch.from_numpy(np.asarray(X_p, dtype=np.float32)).to(dev)
+        model.eval()
+        with torch.no_grad():
+            logits = model(xt)
+            pred_idx = int(torch.argmax(logits, dim=-1).item())
+        logger.debug(f'[predict_row][ff-multi] pred_idx={pred_idx}')
+        return pred_idx
 
     if hasattr(model, 'predict'):
         with warnings.catch_warnings():
@@ -134,6 +161,11 @@ def process_chunk(
     clean_chunk, ground_truth = _prepare_chunk(runtime, chunk)
     _process_chunk_rows(runtime, clean_chunk, ground_truth)
 
+    novelty_result = _score_chunk_novelty(runtime, clean_chunk)
+    if novelty_result is not None:
+        novelty_flags, x_monitor = novelty_result
+        _generate_novelty_reports(runtime, clean_chunk, x_monitor, novelty_flags)
+
     drift_detected = _detect_chunk_drift(runtime, clean_chunk)
     if drift_detected:
         _handle_detected_drift(runtime, chunk_num)
@@ -156,13 +188,14 @@ def _prepare_chunk(
         Tuple of cleaned chunk and optional ground-truth series.
     """
     logger.debug('Chunk initially has %d columns', len(chunk.columns))
-    clean_chunk = clean_data(chunk, False)
+    clean_chunk = clean_data(chunk, runtime.config.is_unsw)
     logger.debug('Chunk has %d columns post-cleaning', len(clean_chunk.columns))
 
-    ground_truth = clean_chunk['BinLabel'].reset_index(drop=True) if 'BinLabel' in clean_chunk.columns else None
+    label_col = _label_column(runtime.config.model_type)
+    ground_truth = clean_chunk[label_col].reset_index(drop=True) if label_col in clean_chunk.columns else None
 
-    if 'BinLabel' in clean_chunk.columns:
-        clean_chunk = clean_chunk.drop(columns=['BinLabel'])
+    if label_col in clean_chunk.columns:
+        clean_chunk = clean_chunk.drop(columns=[label_col])
 
     if runtime.config.is_unsw:
         to_drop = clean_chunk.columns.difference(ROLLING_COLS[:-1])
@@ -209,7 +242,10 @@ def _process_chunk_rows(
             PRED_THRESHOLD,
         )
 
-        if prediction not in [0, 1]:
+        if runtime.config.model_type == ModelType.BINARY:
+            if prediction not in (0, 1):
+                logger.error('Row %d prediction: %r', row_index, prediction)
+        elif runtime.label_encoder is not None and prediction not in range(len(runtime.label_encoder.classes_)):
             logger.error('Row %d prediction: %r', row_index, prediction)
 
         logger.debug('Classified row in %.4fs', time.perf_counter() - start)
@@ -283,7 +319,32 @@ def _record_prediction_outcome(
                 )
                 logger.debug('Row %d details: %s', row_index, raw_row.to_json())
     else:
-        row_to_log['Label'] = prediction
+        label = (
+            runtime.label_encoder.inverse_transform([prediction])[0]
+            if runtime.label_encoder is not None
+            else prediction
+        )
+        row_to_log['MC_Label'] = label
+        logger.debug('Row %d prediction: %r', row_index, label)
+
+        if ground_truth is not None:
+            true_value = ground_truth.iloc[row_index]
+            is_correct = label == true_value
+            runtime.perf_stats.correct_log.append(is_correct)
+
+            logger.debug(
+                '[Index %d] Predicted=%s, Actual=%s',
+                row_index,
+                label,
+                true_value,
+            )
+            if not is_correct:
+                logger.info(
+                    '[Incorrect] Predicted=%s, Actual=%s',
+                    label,
+                    true_value,
+                )
+                logger.debug('Row %d details: %s', row_index, raw_row.to_json())
 
 
 def _append_row_to_rolling_log(
@@ -316,10 +377,11 @@ def _append_unsw_row(
         row_to_log: Row to append.
 
     Raises:
-        ValueError: If BinLabel is invalid.
+        ValueError: If BinLabel is invalid (binary runs only).
         AssertionError: If logger schema does not match expected schema.
     """
-    allowed = ROLLING_COLS
+    allowed = get_unsw_rolling_columns(runtime.config.model_type)
+    label_col = _label_column(runtime.config.model_type)
     logger_obj = runtime.rolling
 
     if (
@@ -352,7 +414,8 @@ def _append_unsw_row(
         )
 
     pruned = series.reindex(index=allowed)
-    pruned['BinLabel'] = _coerce_binary_label(pruned['BinLabel'])
+    if runtime.config.model_type == ModelType.BINARY:
+        pruned[label_col] = _coerce_binary_label(pruned[label_col])
 
     assert len(pruned) == len(allowed), f'[rolling] row width mismatch: {len(pruned)} vs expected {len(allowed)}'
     logger_obj.append(pruned.tolist())
@@ -466,6 +529,100 @@ def _prepare_monitor_chunk_features(
     if runtime.config.monitor_type == MonitorType.CE and runtime.config.use_pca and runtime.pca is not None:
         return runtime.pca.transform(x_scaled)
     return x_scaled
+
+
+def _score_chunk_novelty(runtime: SimulationRuntime, clean_chunk: pd.DataFrame) -> tuple[np.ndarray, np.ndarray] | None:
+    """
+    Compute novelty flags for an entire chunk in one batched call, reusing
+    _prepare_monitor_chunk_features (already used for chunk-level drift
+    detection - produces exactly the feature matrix a CE-calibrated model expects).
+
+    Returns None when novelty detection isn't enabled or the configured
+    monitor isn't CE-calibrated (ConformalDriftMonitor) - CADE/None monitors
+    have no per-class calibration to build novelty p-values from.
+
+    Args:
+        runtime: Mutable simulation runtime.
+        clean_chunk: Cleaned chunk dataframe (post _prepare_chunk).
+
+    Returns:
+        (novelty_flags, x_monitor) if active, else None. novelty_flags is a
+        boolean array of shape (n_rows,); x_monitor is the feature matrix
+        used to compute it (also needed by _generate_novelty_reports for explanation).
+    """
+    if not runtime.config.novelty_enabled or not isinstance(runtime.monitor, ConformalDriftMonitor):
+        return None
+
+    x_monitor = _prepare_monitor_chunk_features(runtime, clean_chunk)
+    model = runtime.monitor.model
+    probas = model.predict_proba(x_monitor)
+    all_class_p_values = compute_all_class_p_values(model, runtime.monitor.calibration_scores, x_monitor)
+    novelty_flags = is_novel(
+        probas, all_class_p_values, tau=runtime.config.novelty_tau, alpha=runtime.config.novelty_alpha
+    )
+    return novelty_flags, x_monitor
+
+
+def _explain_model_type(config: SimulationConfig) -> str:
+    """Tree-based variants use SHAP's fast TreeExplainer path; everything else uses KernelExplainer."""
+    return 'tree' if config.model_variant in (ModelVariant.DT, ModelVariant.RF, ModelVariant.XGB) else 'kernel'
+
+
+def _generate_novelty_reports(
+    runtime: SimulationRuntime,
+    clean_chunk: pd.DataFrame,
+    x_monitor: np.ndarray,
+    novelty_flags: np.ndarray,
+) -> None:
+    """
+    Generate and record explanations (and, if a local LLM backend is
+    configured, structured reports) for the events selected by #98's
+    selective-generation policy.
+
+    Args:
+        runtime: Mutable simulation runtime (novelty_reports is appended to in place).
+        clean_chunk: Cleaned chunk dataframe (used only for column names as feature names).
+        x_monitor: The feature matrix novelty_flags was computed against (_score_chunk_novelty's output).
+        novelty_flags: Boolean novelty flags for this chunk.
+    """
+    config = runtime.config
+    selected_indices = select_events_to_explain(
+        novelty_flags,
+        mode=config.novelty_selective_mode,
+        sample_rate=config.novelty_sample_rate,
+        window_size=config.novelty_window_size,
+    )
+    if len(selected_indices) == 0:
+        return
+
+    model = runtime.monitor.model
+    feature_names = (
+        list(runtime.scaler.feature_names_in_)
+        if hasattr(runtime.scaler, 'feature_names_in_')
+        else [f'f{i}' for i in range(x_monitor.shape[1])]
+    )
+    model_type = _explain_model_type(config)
+    class_names = [str(c) for c in model.classes_]
+    max_softmax = max_softmax_confidence(model.predict_proba(x_monitor))
+
+    for idx in selected_indices:
+        if config.novelty_explain_method == 'lime':
+            explanation = explain_with_lime(model, x_monitor, x_monitor[idx], feature_names, class_names)
+        else:
+            explanation = explain_with_shap(model, x_monitor, x_monitor[idx], feature_names, model_type=model_type)
+
+        llm_report = None
+        if runtime.llm_backend is not None:
+            novelty_context = {
+                'max_softmax': float(max_softmax[idx]),
+                'tau': config.novelty_tau,
+                'alpha': config.novelty_alpha,
+            }
+            llm_report = generate_report(runtime.llm_backend, explanation, novelty_context)
+
+        record = {'row_index': int(idx), 'explanation': explanation, 'llm_report': llm_report}
+        runtime.novelty_reports.append(record)
+        logger.info('Novelty report generated for row %d: %s', idx, record)
 
 
 def _handle_detected_drift(
