@@ -1,155 +1,154 @@
-# import sys
+import sys
 
-# from pathlib import Path
+import numpy as np
+import pandas as pd
+import torch
 
-# import joblib
-# import numpy as np
-# import pandas as pd
-# import pytest
+from firce.ce_model_training import train_ce_binary
+from firce.utils.config import CEType, ModelType, ModelVariant, SimulationConfig
+from firce.utils.perf_stats import PerformanceStats
+from fire.simulations import (
+    _get_dataset_name,
+    _parse_args,
+    continuous_simulation,
+    parallel_simulation,
+    preprocess_chunk,
+    sequential_simulation,
+)
 
-# # ensure src/ on path
-# ROOT = Path(__file__).parent.parent
-# SRC = ROOT / 'src'
-# sys.path.insert(0, str(SRC))
-
-# from fire.simulations import (
-#     _get_dataset_name,
-#     _parse_args,
-#     continuous_simulation,
-#     parallel_simulation,
-#     preprocess_chunk,
-#     process_chunk,
-#     sequential_simulation,
-# )
+DEVICE = torch.device('cpu')
 
 
-# class DummyModel:
-#     def predict(self, X):
-#         # always return 0
-#         return np.zeros(X.shape[0], dtype=int)
+def _train_binary_fixture(tmp_path, csv_path):
+    config = SimulationConfig(
+        model_type=ModelType.BINARY,
+        model_variant=ModelVariant.DT,
+        ce_type=CEType.NONE,
+        aggregated_path=csv_path,
+        flows_path=csv_path,
+        is_unsw=False,
+        seed=0,
+        device=DEVICE,
+        use_pca=True,
+    )
+    train_ce_binary(config, str(csv_path), PerformanceStats())
 
 
-# @pytest.fixture
-# def setup_sim_dir(tmp_path):
-#     """
-#     Create a mini dataset + pre-trained scaler/pca/model pickles so that
-#     the simulations functions can load them.
-#     """
-#     # 1) dataset folder + CSV
-#     ds_dir = tmp_path / 'DATASET'
-#     ds_dir.mkdir()
-#     df = pd.DataFrame({
-#         'f1': [1.0, 2.0, 3.0],
-#         'f2': [4.0, 5.0, 6.0],
-#         'Label': ['Benign', 'Attack', 'Benign'],
-#         'end_time_x': ['2021-01-01 00:00:00'] * 3,
-#     })
-#     agg = ds_dir / 'aggregated_data.csv'
-#     df.to_csv(agg, index=False)
+def test_parse_args_defaults(monkeypatch):
+    monkeypatch.setattr(sys, 'argv', ['prog', 'agg.csv'])
+    args = _parse_args()
 
-#     # 2) train scaler + pca on the two numeric cols
-#     from sklearn.decomposition import PCA
-#     from sklearn.preprocessing import StandardScaler
-
-#     scaler = StandardScaler().fit(df[['f1', 'f2']])
-#     pca = PCA(n_components=1).fit(scaler.transform(df[['f1', 'f2']]))
-
-#     # 3) dump pickles in the expected structure
-#     bm = tmp_path / 'binary_models' / 'DATASET'
-#     mm = tmp_path / 'multi_class_models' / 'DATASET'
-#     bm.mkdir(parents=True)
-#     mm.mkdir(parents=True)
-
-#     joblib.dump(scaler, bm / 'scaler_binary.pkl')
-#     joblib.dump(pca, bm / 'pca_binary.pkl')
-#     joblib.dump(DummyModel(), bm / 'dt_model_binary.pkl')
-#     joblib.dump(scaler, mm / 'scaler_multi.pkl')
-#     joblib.dump(pca, mm / 'pca_multi.pkl')
-#     joblib.dump(DummyModel(), mm / 'decision_tree_multi.pkl')
-
-#     return agg
+    assert args.aggregated_file == 'agg.csv'
+    assert args.mode == 'sequential'
+    assert args.model_type == 'binary'
+    assert args.model_variant == 'dt'
+    assert args.chunk_size == 1000
+    assert not args.unsw
 
 
-# def test_parse_args_sim():
-#     sys.argv = ['prog', 'agg.csv', '--mode', 'parallel', '--model_type', 'multi', '--model_variant', 'rf', '--unsw']
-#     args = _parse_args()
-#     assert args.aggregated_file == 'agg.csv'
-#     assert args.mode == 'parallel'
-#     assert args.model_type == 'multi'
-#     assert args.model_variant == 'rf'
-#     assert args.unsw
+def test_parse_args_overrides(monkeypatch):
+    monkeypatch.setattr(
+        sys,
+        'argv',
+        ['prog', 'agg.csv', '--mode', 'parallel', '--model_type', 'multi', '--model_variant', 'rf', '--unsw'],
+    )
+    args = _parse_args()
+
+    assert args.mode == 'parallel'
+    assert args.model_type == 'multi'
+    assert args.model_variant == 'rf'
+    assert args.unsw
 
 
-# def test_preprocess_and_get_name():
-#     df = pd.DataFrame({'a': [1, np.nan], 'b': [np.nan, 2], 'drop': [9, 9]})
-#     cleaned = preprocess_chunk(df, ['drop'])
-#     assert 'drop' not in cleaned.columns
-#     assert not cleaned.isna().any().any()
-
-#     # get_dataset_name
-#     assert _get_dataset_name('/foo/BAR/agg.csv') == 'BAR'
+def test_get_dataset_name():
+    assert _get_dataset_name('/foo/BAR/agg.csv') == 'BAR'
 
 
-# def test_process_chunk_preds(setup_sim_dir, tmp_path, monkeypatch):
-#     agg = setup_sim_dir
-#     # switch cwd so _load picks up tmp_path/binary_models etc.
-#     monkeypatch.chdir(tmp_path)
+def test_preprocess_chunk_drops_columns_and_fills_na():
+    df = pd.DataFrame({'a': [1, np.nan], 'b': [np.nan, 2], 'drop': [9, 9]})
 
-#     chunk = pd.read_csv(agg, nrows=2)
-#     drop_cols = [
-#         'Label',
-#         'BinLabel',
-#         'src_ip',
-#         'dst_ip',
-#         'start_time',
-#         'end_time_x',
-#         'end_time_y',
-#         'time_diff',
-#         'time_diff_seconds',
-#         'Attack',
-#     ]
+    cleaned = preprocess_chunk(df, ['drop'])
 
-#     from fire.simulations import load_simulation_objects
-
-#     scaler, pca, model = load_simulation_objects(str(agg), 'binary', 'dt')
-
-#     preds = process_chunk(chunk, drop_cols, scaler, pca, model, model_variant='dt', model_type='binary', threshold=0.5)
-#     # DummyModel.predict -> zeros -> 'Benign'
-#     assert preds == ['Benign', 'Benign']
+    assert 'drop' not in cleaned.columns
+    assert not cleaned.isna().any().any()
 
 
-# def test_sequential_simulation(setup_sim_dir, tmp_path, monkeypatch):
-#     agg = setup_sim_dir
-#     monkeypatch.chdir(tmp_path)
-#     preds = sequential_simulation(
-#         str(agg), model_type='binary', model_variant='dt', chunk_size=2, delay=0, threshold=0.5, isUNSW=False
-#     )
-#     # 3 rows => 3 preds
-#     assert isinstance(preds, list)
-#     assert len(preds) == 3
+def _make_binary_sim_csv(csv_path, n=30, seed=0, with_end_time=False):
+    rng = np.random.default_rng(seed)
+    labels = np.array(['Benign', 'Attack'])
+    idx = rng.integers(0, 2, size=n)
+    data = {
+        'device_id': range(n),
+        'session_id': range(n),
+        'src_ip': ['192.168.1.1'] * n,
+        'dst_ip': ['192.168.1.2'] * n,
+        'src_port': rng.integers(1024, 65535, size=n),
+        'dst_port': rng.integers(1, 1024, size=n),
+        'protocol': rng.integers(0, 2, size=n),
+        'timestamp': ['01-01-2020 00:00'] * n,
+        'flow_duration': rng.random(n) * 100,
+        'tot_fwd_pkt': rng.integers(1, 50, size=n),
+        'tot_bwd_pkts': rng.integers(0, 50, size=n),
+        'totlen_fwd_pkts': rng.random(n) * 1000,
+        'totlen_bwd_pkts': rng.random(n) * 1000,
+        'Label': labels[idx],
+    }
+    if with_end_time:
+        data['end_time_x'] = pd.date_range('2020-01-01', periods=n, freq='s').astype(str)
+    pd.DataFrame(data).to_csv(csv_path, index=False)
 
 
-# def test_continuous_simulation(setup_sim_dir, tmp_path, monkeypatch):
-#     agg = setup_sim_dir
-#     monkeypatch.chdir(tmp_path)
-#     true_labels, preds = continuous_simulation(
-#         str(agg),
-#         model_type='binary',
-#         model_variant='dt',
-#         chunk_size=3,
-#         window_duration=3600,
-#         delay=0,
-#         threshold=0.5,
-#         isUNSW=False,
-#     )
-#     assert len(true_labels) == 3
-#     assert len(preds) == 3
+def test_sequential_simulation_binary(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    ds_dir = tmp_path / 'DS'
+    ds_dir.mkdir()
+    csv_path = ds_dir / 'flows.csv'
+    n = 30
+    _make_binary_sim_csv(csv_path, n=n)
+
+    _train_binary_fixture(tmp_path, csv_path)
+
+    preds = sequential_simulation(str(csv_path), model_type='binary', model_variant='dt', chunk_size=5, delay=0)
+
+    assert len(preds) == n
+    assert set(preds) <= {'Benign', 'Attack'}
 
 
-# def test_parallel_simulation(setup_sim_dir, tmp_path, monkeypatch):
-#     agg = setup_sim_dir
-#     monkeypatch.chdir(tmp_path)
-#     preds = parallel_simulation(
-#         str(agg), model_type='binary', model_variant='dt', chunk_size=2, num_processes=2, threshold=0.5, isUNSW=False
-#     )
-#     assert len(preds) == 3
+def test_continuous_simulation_binary(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    ds_dir = tmp_path / 'DS'
+    ds_dir.mkdir()
+    csv_path = ds_dir / 'flows.csv'
+    n = 30
+    _make_binary_sim_csv(csv_path, n=n, with_end_time=True)
+
+    _train_binary_fixture(tmp_path, csv_path)
+
+    true_labels, preds = continuous_simulation(
+        str(csv_path), model_type='binary', model_variant='dt', chunk_size=5, window_duration=300, delay=0
+    )
+
+    # window_duration=300s never trims this 30-row/30-second fixture, so each
+    # of the 6 chunks re-predicts the entire accumulated window (5, 10, 15,
+    # 20, 25, 30 rows) rather than just new rows - this is the function's
+    # actual designed behavior, not a bug.
+    expected_total = sum(range(5, n + 1, 5))
+    assert len(true_labels) == expected_total
+    assert len(preds) == expected_total
+    assert set(preds) <= {'Benign', 'Attack'}
+
+
+def test_parallel_simulation_binary(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    ds_dir = tmp_path / 'DS'
+    ds_dir.mkdir()
+    csv_path = ds_dir / 'flows.csv'
+    n = 30
+    _make_binary_sim_csv(csv_path, n=n)
+
+    _train_binary_fixture(tmp_path, csv_path)
+
+    preds = parallel_simulation(str(csv_path), model_type='binary', model_variant='dt', chunk_size=10, num_processes=1)
+
+    assert len(preds) == n
+    assert set(preds) <= {'Benign', 'Attack'}

@@ -30,6 +30,16 @@ class ConformalDriftMonitor:
             **ce_kwargs,
         )
 
+    @property
+    def model(self) -> Any:
+        """The underlying calibrated model this monitor's CE evaluator wraps."""
+        return self._evaluator.evaluator.model
+
+    @property
+    def calibration_scores(self) -> dict:
+        """Per-class calibration nonconformity scores, as produced by CE calibration."""
+        return self._evaluator.evaluator.calibration_scores
+
     def fit(
         self,
         X_train: np.ndarray,

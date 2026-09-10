@@ -1,108 +1,186 @@
-# import os
-# import sys
+import inspect
+import sys
 
-# import numpy as np
-# import pandas as pd
+import numpy as np
+import pandas as pd
+import pytest
 
-# sys.path.insert(0, os.path.abspath('src'))
+from sklearn.tree import DecisionTreeClassifier
 
-# from fire.models import _explain_with_lime, _explain_with_shap, _parse_args, run_feature_engineering
-
-
-# def test_parse_args_defaults(monkeypatch):
-#     monkeypatch.setattr(sys, 'argv', ['prog', 'data.csv'])
-#     args = _parse_args()
-#     assert args.aggregated_file == 'data.csv'
-#     assert not args.unsw
-#     assert not args.pca
-#     assert not args.shap
-#     assert not args.lime
+from fire.models import (
+    _explain_with_lime,
+    _explain_with_shap,
+    _parse_args,
+    run_binary_classification,
+    run_multiclass_classification,
+)
 
 
-# def test_explain_with_lime(tmp_path):
-#     class DummyModel:
-#         def predict_proba(self, x):
-#             return np.zeros((len(x), 2))
+def test_parse_args_defaults(monkeypatch):
+    monkeypatch.setattr(sys, 'argv', ['prog', 'data.csv'])
+    args = _parse_args()
 
-#     X_train = np.zeros((5, 3))
-#     X_test = np.zeros((1, 3))
-#     outdir = tmp_path / 'lime_out'
-#     outdir.mkdir()
-#     _explain_with_lime(
-#         DummyModel(),
-#         X_train,
-#         X_test,
-#         feature_names=['a', 'b', 'c'],
-#         class_names=['c0', 'c1'],
-#         outputPath=str(outdir),
-#         output_prefix='lpref',
-#     )
-#     assert (outdir / 'lpref_instance.html').exists()
+    assert args.aggregated_file == 'data.csv'
+    assert not args.unsw
+    assert not args.pca
+    assert not args.shap
+    assert not args.lime
 
 
-# def test_explain_with_shap(tmp_path, monkeypatch):
-#     import shap
-#     # stub the TreeExplainer and plotting
+def test_parse_args_xai_flags(monkeypatch):
+    monkeypatch.setattr(sys, 'argv', ['prog', 'data.csv', '--shap', '--lime', '--pca'])
+    args = _parse_args()
 
-#     class DummyExplainer:
-#         def __init__(self, model):
-#             pass
-
-#         def shap_values(self, x):
-#             return np.zeros((x.shape[0], x.shape[1]))
-
-#     monkeypatch.setattr(shap, 'TreeExplainer', lambda m: DummyExplainer(m))
-#     monkeypatch.setattr(shap, 'KernelExplainer', lambda f, d: DummyExplainer(None))
-#     monkeypatch.setattr(shap, 'summary_plot', lambda *a, **k: None)
-
-#     class DummyModel:
-#         pass
-
-#     X_sample = np.zeros((4, 2))
-#     outdir = tmp_path / 'shap_out'
-#     outdir.mkdir()
-#     _explain_with_shap(
-#         DummyModel(),
-#         X_sample,
-#         outputPath=str(outdir),
-#         feature_names=['f0', 'f1'],
-#         model_type='tree',
-#         output_prefix='spref',
-#     )
-#     # summary.png should be created
-#     assert (outdir / 'spref_summary.png').exists()
+    assert args.shap
+    assert args.lime
+    assert args.pca
 
 
-# def test_run_feature_engineering(tmp_path, monkeypatch):
-#     # create a minimal aggregated CSV
-#     df = pd.DataFrame({
-#         'f1': [1, 2, 3],
-#         'f2': [4, 5, 6],
-#         'Label': ['A', 'B', 'A'],
-#         'BinLabel': [0, 1, 0],
-#         'src_ip': ['x'] * 3,
-#         'dst_ip': ['y'] * 3,
-#         'start_time': ['t'] * 3,
-#         'end_time_x': ['t'] * 3,
-#         'end_time_y': ['t'] * 3,
-#         'time_diff': [1] * 3,
-#         'time_diff_seconds': [1] * 3,
-#         'Attack': [0, 1, 0],
-#         'start_time_x': ['t'] * 3,
-#         'start_time_y': ['t'] * 3,
-#     })
-#     agg = tmp_path / 'agg.csv'
-#     df.to_csv(agg, index=False)
-#     monkeypatch.chdir(tmp_path)
+def test_run_binary_classification_does_not_collide_with_firce_artifact_dir():
+    # fire.models.run_binary_classification (legacy Keras-based) used to write
+    # to the same 'binary_models/<dataset>' directory firce.ce_model_training's
+    # train_ce_binary uses, with overlapping filenames (scaler_binary.pkl,
+    # rf_model_binary.pkl, etc.) - see xseciot issue #126. Namespaced away
+    # instead of removed, since fire.simulations still expects to be able to
+    # read the un-suffixed 'binary_models' path (firce's own convention).
+    source = inspect.getsource(run_binary_classification)
+    assert "os.path.join(os.getcwd(), 'binary_models_legacy_fire', dataset_name)" in source
+    assert "os.path.join(os.getcwd(), 'binary_models', dataset_name)" not in source
 
-#     scaler, pca, X_pca = run_feature_engineering(str(agg))
-#     assert hasattr(scaler, 'transform')
-#     assert hasattr(pca, 'transform')
-#     assert isinstance(X_pca, np.ndarray)
-#     assert X_pca.shape[0] == 3
 
-#     # files on disk?
-#     ds = agg.parent.name
-#     fe = tmp_path / 'feature_engineering' / ds
-#     assert (fe / 'scaler.pkl').exists()
-#     assert (fe / 'pca.pkl').exists()
+def test_run_multiclass_classification_does_not_collide_with_firce_artifact_dir():
+    source = inspect.getsource(run_multiclass_classification)
+    assert "os.path.join(os.getcwd(), 'multi_class_models_legacy_fire', dataset_name)" in source
+    assert "os.path.join(os.getcwd(), 'multi_class_models', dataset_name)" not in source
+
+
+def _make_xai_fixture():
+    rng = np.random.default_rng(0)
+    X_train = rng.normal(size=(40, 4))
+    y_train = (X_train[:, 0] > 0).astype(int)
+    X_test = rng.normal(size=(5, 4))
+    model = DecisionTreeClassifier(random_state=0).fit(X_train, y_train)
+    return model, X_train, X_test
+
+
+def test_explain_with_lime_writes_instance_html(tmp_path):
+    model, X_train, X_test = _make_xai_fixture()
+
+    _explain_with_lime(
+        model,
+        X_train,
+        X_test,
+        feature_names=['f0', 'f1', 'f2', 'f3'],
+        class_names=['Benign', 'Attack'],
+        outputPath=str(tmp_path),
+        output_prefix='lime_test',
+    )
+
+    assert (tmp_path / 'lime_test_instance.html').exists()
+
+
+def test_explain_with_shap_writes_summary_png(tmp_path):
+    model, X_train, _ = _make_xai_fixture()
+
+    _explain_with_shap(
+        model,
+        X_train[:10],
+        outputPath=str(tmp_path),
+        feature_names=['f0', 'f1', 'f2', 'f3'],
+        model_type='tree',
+        output_prefix='shap_test',
+    )
+
+    assert (tmp_path / 'shap_test_summary.png').exists()
+
+
+def _make_multiclass_fixture_csv(tmp_path, n_per_class=12):
+    rng = np.random.default_rng(0)
+    rows = []
+    for label, offset in [('Benign', 0.0), ('PortScan', 3.0), ('XMasAttack', -3.0)]:
+        for _ in range(n_per_class):
+            rows.append({
+                'flow_duration': rng.normal(offset, 1.0),
+                'tot_fwd_pkt': rng.normal(offset, 1.0),
+                'tot_bwd_pkts': rng.normal(offset, 1.0),
+                'totlen_fwd_pkts': rng.normal(offset, 1.0),
+                'totlen_bwd_pkts': rng.normal(offset, 1.0),
+                'Label': label,
+            })
+    df = pd.DataFrame(rows).sample(frac=1.0, random_state=0).reset_index(drop=True)
+    dataset_dir = tmp_path / 'dataset'
+    dataset_dir.mkdir()
+    csv_path = dataset_dir / 'aggregated.csv'
+    df.to_csv(csv_path, index=False)
+    return csv_path
+
+
+def test_run_multiclass_classification_no_pca_does_not_crash(tmp_path, monkeypatch):
+    pytest.importorskip('xgboost')
+    pytest.importorskip('tensorflow')
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_multiclass_fixture_csv(tmp_path)
+
+    run_multiclass_classification(str(csv_path), isUNSW=False, isPCA=False)
+
+    models_dir = tmp_path / 'multi_class_models_legacy_fire' / 'dataset'
+    assert (models_dir / 'random_forest_multi.pkl').exists()
+    assert (models_dir / 'feedforward_multi.pkl').exists()
+    assert (models_dir / 'scaler_multi.pkl').exists()
+    assert not (models_dir / 'pca_multi.pkl').exists()
+
+
+def test_run_multiclass_classification_with_pca_writes_pca_artifact(tmp_path, monkeypatch):
+    pytest.importorskip('xgboost')
+    pytest.importorskip('tensorflow')
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_multiclass_fixture_csv(tmp_path)
+
+    run_multiclass_classification(str(csv_path), isUNSW=False, isPCA=True)
+
+    models_dir = tmp_path / 'multi_class_models_legacy_fire' / 'dataset'
+    assert (models_dir / 'pca_multi.pkl').exists()
+    assert (models_dir / 'random_forest_multi.pkl').exists()
+
+
+def _make_binary_fixture_csv(tmp_path, n_per_class=15):
+    rng = np.random.default_rng(1)
+    rows = []
+    for label, offset in [('Benign', 0.0), ('PortScan', 3.0)]:
+        for _ in range(n_per_class):
+            rows.append({
+                'flow_duration': rng.normal(offset, 1.0),
+                'tot_fwd_pkt': rng.normal(offset, 1.0),
+                'tot_bwd_pkts': rng.normal(offset, 1.0),
+                'totlen_fwd_pkts': rng.normal(offset, 1.0),
+                'totlen_bwd_pkts': rng.normal(offset, 1.0),
+                'Label': label,
+            })
+    df = pd.DataFrame(rows).sample(frac=1.0, random_state=0).reset_index(drop=True)
+    dataset_dir = tmp_path / 'bindataset'
+    dataset_dir.mkdir()
+    csv_path = dataset_dir / 'aggregated.csv'
+    df.to_csv(csv_path, index=False)
+    return csv_path
+
+
+def test_run_binary_classification_writes_expected_artifacts(tmp_path, monkeypatch):
+    pytest.importorskip('xgboost')
+    pytest.importorskip('tensorflow')
+    monkeypatch.chdir(tmp_path)
+    csv_path = _make_binary_fixture_csv(tmp_path)
+
+    run_binary_classification(str(csv_path), isUNSW=False, isPCA=False)
+
+    models_dir = tmp_path / 'binary_models_legacy_fire' / 'bindataset'
+    for filename in (
+        'scaler_binary.pkl',
+        'feedforward_model_binary.pkl',
+        'xgb_model_binary.pkl',
+        'svm_model_binary.pkl',
+        'dt_model_binary.pkl',
+        'knn_model_binary.pkl',
+        'rf_model_binary.pkl',
+    ):
+        assert (models_dir / filename).exists(), filename
+    assert not (models_dir / 'pca_binary.pkl').exists()

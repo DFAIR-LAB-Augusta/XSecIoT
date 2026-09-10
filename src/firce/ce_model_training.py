@@ -32,18 +32,18 @@ import shortuuid
 import torch
 import torch.mps
 import torch.nn as nn
-import xgboost as xgb
 
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from torch.utils.data import DataLoader, Subset, TensorDataset
 
 from firce.models.feedforward_binary import FeedForwardBinary
+from firce.models.feedforward_multiclass import FeedForwardMulticlass
 from firce.utils.config import ModelVariant, SimulationConfig
 from firce.utils.perf_stats import PerformanceStats
 from fire.preprocessing import clean_data
@@ -270,20 +270,9 @@ def train_ce_binary(
 
     else:
         if 'Label' in df.columns:
-            df['BinLabel'] = df['Label'].map({'Benign': 0}).fillna(1).astype(int)
+            df['BinLabel'] = df['Label']
         elif 'BinLabel' in df.columns:
-            if df['BinLabel'].dtype == object:
-                df['BinLabel'] = df['BinLabel'].map({'Benign': 0}).fillna(1)
-                logger.debug('')
-            non_finite_mask = ~np.isfinite(df['BinLabel'])
-            if non_finite_mask.any():
-                offending_vals = df.loc[non_finite_mask, 'BinLabel'].head(5).tolist()
-                logger.error(
-                    f"[train_ce_binary] Non-finite values found in 'BinLabel' before casting to int: {offending_vals}"
-                )
-                raise ValueError(f"Non-finite values in 'BinLabel': {offending_vals}")
-
-            df['BinLabel'] = df['BinLabel'].astype(int)
+            logger.debug("'BinLabel' already present; deferring normalization to the shared label-mapping step.")
         else:
             raise ValueError(
                 f"Dataset must contain either 'Label' or 'BinLabel' column.Columns found: {df.columns.tolist()}"
@@ -302,7 +291,7 @@ def train_ce_binary(
 
     y_series = df[label_col]
 
-    if y_series.dtype == object:
+    if pd.api.types.is_string_dtype(y_series):
         label_map = {
             'BENIGN': 0,
             'Benign': 0,
@@ -370,6 +359,8 @@ def train_ce_binary(
             model = SVC(kernel='rbf', probability=True, random_state=config.seed)
             model.fit(Xf, y)
         case ModelVariant.XGB:
+            import xgboost as xgb
+
             model = xgb.XGBClassifier(objective='binary:logistic', random_state=config.seed)
             model.fit(Xf, y)
         case ModelVariant.FEEDFORWARD:
@@ -540,46 +531,99 @@ def train_ce_multiclass(
     flows_csv: str,
     variant: ModelVariant,
     use_pca: bool = True,
-) -> None:
+    df_log: pd.DataFrame | None = None,
+) -> Path:
     """
-    Train a multiclass CE model and persist preprocessing artifacts and model.
+    Train a multiclass CE model on labeled flow data and save all artifacts.
 
-    This function drops unnecessary columns, scales numeric features, and
-    optionally reduces dimensionality with PCA. It then trains a multiclass
-    classifier using one of the supported variants. Artifacts are stored
-    under `multi_class_models/<dataset_name>/`.
-
-    After training, macro-averaged metrics (accuracy, precision, recall, F1) are logged on the training data.
+    Mirrors `train_ce_binary`'s preprocessing (numeric feature selection,
+    standard scaling, optional PCA) but resolves a categorical multiclass
+    label (`MC_Label`, or `Attack` for UNSW-style datasets) instead of a
+    binary one, integer-encodes it via a `LabelEncoder`, and reports
+    macro-averaged metrics.
 
     Args:
-        flows_csv (str): Path to the CSV file containing labeled CE flow data.
-        variant (ModelVariant): Model type to use. Supported options:
-            - "dt", "knn", "rf", "svm", "xgb"
-            (Note: "feedforward" is unsupported for multiclass classification.)
-        use_pca (bool): If True, apply PCA for dimensionality reduction.
+        config: Simulation configuration (uses `is_unsw`, `seed`, `device`).
+        flows_csv: Path to the CSV file containing labeled multiclass flow data.
+            Only used to name the output directory when `df_log` is given
+            (matching `train_ce_binary`'s retraining convention) — the data
+            itself comes from `df_log` in that case, not from re-reading this path.
+        variant: Model architecture to use. One of "dt", "knn", "rf", "svm",
+            "xgb", "feedforward".
+        use_pca: If True, apply PCA to reduce feature space to 95% explained variance.
+        df_log: If given, train on this in-memory dataframe instead of reading
+            `flows_csv` from disk (the retraining path — mirrors `train_ce_binary`'s
+            `df_log` parameter exactly, including the `Model_<variant>_Retraining_<uuid>/`
+            output directory convention and stale-directory cleanup).
+
+    Returns:
+        The output directory artifacts were written to.
 
     Raises:
-        ValueError: If an unsupported variant is given.
-        NotImplementedError: If "feedforward" is selected.
+        ValueError: If the dataset has no usable multiclass label column,
+            fewer than 2 distinct classes, or an unsupported variant is given.
     """
-    raise NotImplementedError('Multiclass CE model training is currently disabled.')
+    if df_log is None:
+        logger.info(f'Training multiclass CE model with {flows_csv} dataset')
+        df = clean_data(pd.read_csv(flows_csv), config.is_unsw)
+        dataset = Path(flows_csv).parent.name
+        outdir = Path('multi_class_models') / dataset
+        outdir.mkdir(parents=True, exist_ok=True)
+    else:
+        df = df_log
+        pattern = f'multi_class_models/Model_{variant.value}_Retraining_*'
+        for path in glob.glob(pattern):
+            if Path(path).is_dir():
+                logger.info(f'Removing old retraining directory: {path}')
+                shutil.rmtree(path)
+        outdir = (
+            Path('multi_class_models') / f'Model_{variant.value}_Retraining_{shortuuid.ShortUUID().random(length=8)}'
+        )
+        outdir.mkdir(parents=True, exist_ok=True)
+        logger.info(f'Output directory for multiclass model retraining artifacts: {outdir}')
 
-    if variant == 'feedforward':
-        raise NotImplementedError('Feedforward is not supported for multiclass CE models.')
-    df = pd.read_csv(flows_csv)
-    dataset = Path(flows_csv).parent.name
-    outdir = Path('multi_class_models') / dataset
-    outdir.mkdir(parents=True, exist_ok=True)
+    if config.is_unsw:
+        if 'MC_Label' not in df.columns:
+            if 'Attack' not in df.columns:
+                raise ValueError(
+                    f"UNSW multiclass dataset must contain 'Attack' or 'MC_Label'. Columns found: {df.columns.tolist()}"
+                )
+            logger.info("Using UNSW dataset format: mapping 'Attack' to multiclass 'MC_Label'")
+            df['MC_Label'] = df['Attack']
+        df = _unsw_clean(df)
+    elif 'MC_Label' not in df.columns:
+        raise ValueError(
+            f"Dataset must contain an 'MC_Label' column for multiclass training. Columns found: {df.columns.tolist()}"
+        )
 
-    X = df.drop(columns=CE_DROP_COLS, errors='ignore')
-    y = df['Label']
+    df = df.drop(columns=[c for c in df.columns if c.startswith('Unnamed')], errors='ignore')
+    df = df.drop(columns=CE_DROP_COLS, errors='ignore')
+
+    df['MC_Label'] = df['MC_Label'].astype(str).str.strip()
+    invalid = df['MC_Label'].isin(['', 'nan', 'None'])
+    if invalid.any():
+        n_bad = int(invalid.sum())
+        logger.warning(f'Dropping {n_bad} rows with missing/invalid MC_Label before training')
+        df = df.loc[~invalid].copy()
+
+    if df['MC_Label'].nunique() < 2:
+        raise ValueError(
+            f'Need at least 2 distinct MC_Label classes to train, found: {df["MC_Label"].unique().tolist()}'
+        )
+
+    X = df.select_dtypes(include=[np.number]).drop(columns=['MC_Label'], errors='ignore')
+    y_raw = df['MC_Label']
 
     if X.isna().any().any():
         X = X.fillna(X.mean())
 
+    label_encoder = LabelEncoder().fit(y_raw)
+    y = label_encoder.transform(y_raw)
+
     scaler = StandardScaler().fit(X)
     Xs = scaler.transform(X)
     joblib.dump(scaler, outdir / 'scaler_multi.pkl')
+    joblib.dump(label_encoder, outdir / 'label_encoder_multi.pkl')
 
     if use_pca:
         pca = PCA(n_components=0.95).fit(Xs)
@@ -588,40 +632,129 @@ def train_ce_multiclass(
     else:
         Xf = Xs
 
-    if variant == 'dt':
-        model = DecisionTreeClassifier(random_state=config.seed)
-    elif variant == 'knn':
-        model = KNeighborsClassifier()
-    elif variant == 'rf':
-        model = RandomForestClassifier(random_state=config.seed)
-    elif variant == 'svm':
-        model = SVC(kernel='rbf', probability=True, random_state=config.seed)
-    elif variant == 'xgb':
-        model = xgb.XGBClassifier(objective='multi:softmax', random_state=config.seed)
-    else:
-        raise ValueError(f"Unknown multiclass variant '{variant}'")
+    y_pred: NDArray[np.int_] | None = None
 
-    model.fit(Xf, y)
+    logger.debug(f"Training multiclass classifier model with variant '{variant.value}'")
+    match variant:
+        case ModelVariant.DT:
+            model = DecisionTreeClassifier(random_state=config.seed)
+            model.fit(Xf, y)
+        case ModelVariant.KNN:
+            model = KNeighborsClassifier()
+            model.fit(Xf, y)
+        case ModelVariant.RF:
+            model = RandomForestClassifier(random_state=config.seed)
+            model.fit(Xf, y)
+        case ModelVariant.SVM:
+            model = SVC(kernel='rbf', probability=True, random_state=config.seed)
+            model.fit(Xf, y)
+        case ModelVariant.XGB:
+            import xgboost as xgb
 
-    y_pred = model.predict(Xf)
+            model = xgb.XGBClassifier(
+                objective='multi:softmax', num_class=len(label_encoder.classes_), random_state=config.seed
+            )
+            model.fit(Xf, y)
+        case ModelVariant.FEEDFORWARD:
+            Xf = np.asarray(Xf, dtype=np.float32)
+            y_arr = y.astype(np.int64)
+
+            device = config.device
+            logger.info(f'[feedforward-multiclass] Using device: {device}')
+
+            torch.manual_seed(config.seed)
+            if device.type == 'cuda':
+                torch.cuda.manual_seed_all(config.seed)
+
+            X_tensor = torch.from_numpy(Xf)
+            Y_tensor = torch.from_numpy(y_arr)
+
+            epochs = 20
+            N = X_tensor.shape[0]
+            batch_size = 2048 if N >= 8192 else 512
+            ds = TensorDataset(X_tensor, Y_tensor)
+
+            model = FeedForwardMulticlass(input_dim=Xf.shape[1], num_classes=len(label_encoder.classes_)).to(device)
+            optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+            criterion = nn.CrossEntropyLoss()
+            logger.info('FFN Multiclass Model Training Starting (bs=%d, epochs=%d)', batch_size, epochs)
+
+            model.train()
+            for epoch in range(epochs):
+                rng = np.random.default_rng(config.seed + epoch)
+                idx = rng.permutation(N).tolist()
+                subset = Subset(ds, idx)
+                loader = DataLoader(subset, batch_size=batch_size, shuffle=False, num_workers=0)
+
+                running_loss = 0.0
+                for xb, yb in loader:
+                    xb = xb.to(device, non_blocking=False)
+                    yb = yb.to(device, non_blocking=False).view(-1).long()
+                    optimizer.zero_grad(set_to_none=True)
+                    logits = model(xb)
+                    loss = criterion(logits, yb)
+                    loss.backward()
+                    optimizer.step()
+                    running_loss += float(loss.item()) * xb.size(0)
+
+                logger.debug('[feedforward-multiclass][epoch %02d] loss=%.6f', epoch + 1, running_loss / N)
+
+            model.eval()
+            eval_bs = 4096
+            eval_loader = DataLoader(ds, batch_size=eval_bs, shuffle=False, num_workers=0)
+            logits_chunks = []
+            with torch.no_grad():
+                for xb, _ in eval_loader:
+                    xb = xb.to(device, dtype=torch.float32, non_blocking=False).contiguous()
+                    logits_chunks.append(model(xb).to('cpu').numpy())
+            logits_all = np.concatenate(logits_chunks, axis=0)
+            y_pred = np.argmax(logits_all, axis=1).astype(np.int_)
+        case _:
+            raise ValueError(f"Unknown variant '{variant.value}'")
+
+    if variant != ModelVariant.FEEDFORWARD:
+        sk = cast('SupportsPredict', model)
+        y_pred_np = np.asarray(sk.predict(Xf))
+        y_pred = y_pred_np.astype(np.int_, copy=False).reshape(-1)
+
+    if y_pred is None:
+        raise RuntimeError(f'Internal error: y_pred not computed for variant {variant.value!r}')
+
+    acc = float(accuracy_score(y, y_pred))
+    prec = float(precision_score(y, y_pred, average='macro', zero_division=0))
+    rec = float(recall_score(y, y_pred, average='macro', zero_division=0))
+    f1 = float(f1_score(y, y_pred, average='macro', zero_division=0))
+
     logger.info('Multiclass Model Performance on Training Data:')
-    logger.info(f'Accuracy:  {accuracy_score(y, y_pred):.4f}')
-    logger.info(f'Macro Precision: {precision_score(y, y_pred, average="macro", zero_division=0):.4f}')
-    logger.info(f'Macro Recall:    {recall_score(y, y_pred, average="macro", zero_division=0):.4f}')
-    logger.info(f'Macro F1 Score:  {f1_score(y, y_pred, average="macro", zero_division=0):.4f}')
-    report = classification_report(y, y_pred, digits=4)
+    logger.info(f'Accuracy:  {acc:.4f}')
+    logger.info(f'Macro Precision: {prec:.4f}')
+    logger.info(f'Macro Recall:    {rec:.4f}')
+    logger.info(f'Macro F1 Score:  {f1:.4f}')
+    report = classification_report(
+        y,
+        y_pred,
+        labels=range(len(label_encoder.classes_)),
+        target_names=label_encoder.classes_.astype(str),
+        digits=4,
+    )
     logger.info('\n%s', report)
 
-    fname_map = {
-        'dt': 'decision_tree_multi.pkl',
-        'knn': 'knearest_multi.pkl',
-        'rf': 'random_forest_multi.pkl',
-        'svm': 'svm_multi.pkl',
-        'xgb': 'xgboost_multi.pkl',
-    }
-    joblib.dump(model, outdir / fname_map[variant])
+    if variant == ModelVariant.FEEDFORWARD and isinstance(model, nn.Module):
+        torch.save(
+            {
+                'state_dict': model.state_dict(),
+                'input_dim': int(Xf.shape[1]),
+                'num_classes': len(label_encoder.classes_),
+                'dropout': 0.3,
+                'random_state': config.seed,
+            },
+            outdir / 'feedforward_model_multi.pt',
+        )
+    else:
+        joblib.dump(model, outdir / f'{variant.value}_model_multi.pkl')
 
-    logging.info(f"[ce_models] Trained '{variant}' multiclass CE model and wrote artifacts to {outdir}/")
+    logging.info(f"[ce_models] Trained '{variant.value}' multiclass CE model and wrote artifacts to {outdir}/")
+    return outdir
 
 
 if __name__ == '__main__':
