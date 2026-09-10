@@ -2,14 +2,10 @@ version = 1
 revision = 3
 requires-python = "==3.11.*"
 resolution-markers = [
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
     "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
@@ -22,33 +18,29 @@ resolution-markers = [
     "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
     "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "platform_machine == 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
 ]
 conflicts = [[
     { package = "xseciot", group = "tensorflow" },
     { package = "xseciot", group = "torch" },
 ], [
     { package = "xseciot", group = "lambda-tensorflow" },
+    { package = "xseciot", group = "torch" },
+], [
+    { package = "xseciot", group = "lambda-tensorflow" },
     { package = "xseciot", group = "lambda-torch" },
 ], [
     { package = "xseciot", group = "lambda-torch" },
     { package = "xseciot", group = "tensorflow" },
-], [
-    { package = "xseciot", group = "lambda-tensorflow" },
-    { package = "xseciot", group = "torch" },
 ]]
 
 [[package]]
@@ -302,7 +294,7 @@ name = "cuda-bindings"
 version = "13.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cuda-pathfinder", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
+    { name = "cuda-pathfinder", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e0/a9/3a8241c6e19483ac1f1dcf5c10238205dcb8a6e9d0d4d4709240dff28ff4/cuda_bindings-13.2.0-cp311-cp311-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:721104c603f059780d287969be3d194a18d0cc3b713ed9049065a1107706759d", size = 5730273, upload-time = "2026-03-11T00:12:37.18Z" },
@@ -779,12 +771,9 @@ name = "llvmlite"
 version = "0.47.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
     "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
@@ -795,17 +784,14 @@ resolution-markers = [
     "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
     "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/01/88/a8952b6d5c21e74cbf158515b779666f692846502623e9e3c39d8e8ba25f/llvmlite-0.47.0.tar.gz", hash = "sha256:62031ce968ec74e95092184d4b0e857e444f8fdff0b8f9213707699570c33ccc", size = 193614, upload-time = "2026-03-31T18:29:53.497Z" }
 wheels = [
@@ -1012,12 +998,9 @@ name = "numba"
 version = "0.65.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')",
     "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
@@ -1028,17 +1011,14 @@ resolution-markers = [
     "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
     "sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "platform_machine != 'x86_64' and sys_platform == 'darwin' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform == 'emscripten' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
     "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
-    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-lambda-torch' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
+    "sys_platform == 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "sys_platform == 'emscripten' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch'",
+    "(platform_machine != 'x86_64' and sys_platform == 'darwin' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow' and extra != 'group-7-xseciot-torch')",
 ]
 dependencies = [
     { name = "llvmlite", version = "0.47.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin' or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
@@ -1178,7 +1158,7 @@ name = "nvidia-cudnn-cu13"
 version = "9.20.0.48"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
+    { name = "nvidia-cublas", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/56/c5/83384d846b2fd17c44bd499b36c75a45ed4f095fbbb2252294e89cea5c5c/nvidia_cudnn_cu13-9.20.0.48-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:e31454ae00094b0c55319d9d15b6fa2fc50a9e1c0f5c8c80fb75258234e731e1", size = 444574296, upload-time = "2026-03-09T19:28:27.751Z" },
@@ -1191,7 +1171,7 @@ name = "nvidia-cufft"
 version = "12.0.0.61"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
+    { name = "nvidia-nvjitlink", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8b/ae/f417a75c0259e85c1d2f83ca4e960289a5f814ed0cea74d18c353d3e989d/nvidia_cufft-12.0.0.61-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:2708c852ef8cd89d1d2068bdbece0aa188813a0c934db3779b9b1faa8442e5f5", size = 214053554, upload-time = "2025-09-04T08:31:38.196Z" },
@@ -1246,9 +1226,9 @@ name = "nvidia-cusolver"
 version = "12.0.4.66"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
-    { name = "nvidia-cusparse", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
-    { name = "nvidia-nvjitlink", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
+    { name = "nvidia-cublas", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "nvidia-cusparse", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "nvidia-nvjitlink", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/c3/b30c9e935fc01e3da443ec0116ed1b2a009bb867f5324d3f2d7e533e776b/nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:02c2457eaa9e39de20f880f4bd8820e6a1cfb9f9a34f820eb12a155aa5bc92d2", size = 223467760, upload-time = "2025-09-04T08:33:04.222Z" },
@@ -1276,7 +1256,7 @@ name = "nvidia-cusparse"
 version = "12.6.3.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink", marker = "(platform_machine != 'x86_64' and sys_platform == 'darwin') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32')" },
+    { name = "nvidia-nvjitlink", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f8/94/5c26f33738ae35276672f12615a64bd008ed5be6d1ebcb23579285d960a9/nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:80bcc4662f23f1054ee334a15c72b8940402975e0eab63178fc7e670aa59472c", size = 162155568, upload-time = "2025-09-04T08:33:42.864Z" },
@@ -1426,23 +1406,23 @@ wheels = [
 
 [[package]]
 name = "pandas"
-version = "3.0.3"
+version = "3.0.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "python-dateutil" },
     { name = "tzdata", marker = "sys_platform == 'emscripten' or sys_platform == 'win32' or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f8/87/4341c6252d1c47b08768c3d25ac487362bf403f0313ddae4a2a26c9b1b4c/pandas-3.0.3.tar.gz", hash = "sha256:696a4a00a2a2a35d4e5deb3fc946641b96c944f02230e4f76137fe35d806c4fc", size = 4651414, upload-time = "2026-05-11T18:54:29.21Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/be/4f/5f3422a2afec5ffc46308b79e53291365a93748b498ac2e58bead0197916/pandas-3.0.5.tar.gz", hash = "sha256:dca3734d6ab7c906e6730f0788b0a1dbb9f2467731f9711f77995c8e9d62d712", size = 4658219, upload-time = "2026-07-22T22:19:28.819Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/42/16/b5c76b838fd9bf6ce84d3a53346b8874ec05c5f0040d75ef2c320100cd2a/pandas-3.0.3-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:455f6f8139d4282188f526868dbc3c828470e88a3d9d59a891bd46a455f21b98", size = 10338495, upload-time = "2026-05-11T18:52:11.558Z" },
-    { url = "https://files.pythonhosted.org/packages/5a/b0/a4ffc4ae74d2d822200dcc46898987d8eb6032d1e2b219cae39da6f5cbcc/pandas-3.0.3-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:4e15135e2ee5df1063313e2425ceef8ac0f4ae775893815b0923651b806a5639", size = 9938250, upload-time = "2026-05-11T18:52:17.005Z" },
-    { url = "https://files.pythonhosted.org/packages/2e/b2/3323601a52caee42c019e370090ca4544b241437240ca04f786cce82b0cf/pandas-3.0.3-cp311-cp311-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:05f1f1752b8533ea03f7f39a9c15b1a058d067bb48f4748948e7a8691e0510f2", size = 10770558, upload-time = "2026-05-11T18:52:19.865Z" },
-    { url = "https://files.pythonhosted.org/packages/32/f1/bbecd2f867b97abebe0f9b53d750f862251b40337e061b36676ded3d920f/pandas-3.0.3-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:8a1e45c80cceb3b4a21bc5939d52e8cbd8d9b7305309219d59e9754d9ce09e27", size = 11274611, upload-time = "2026-05-11T18:52:22.622Z" },
-    { url = "https://files.pythonhosted.org/packages/7f/4f/eafabf2d5fae5adf143b4d18d3706c5efdc368a7c4eb1ee8a3eddabbd0f6/pandas-3.0.3-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:14da8316da4d0c5a77618425996bfb1248ca87fc2c1486e6fde4652bd18b5824", size = 11784670, upload-time = "2026-05-11T18:52:25.4Z" },
-    { url = "https://files.pythonhosted.org/packages/49/44/1eb20389301b57b19cc099a1c2f662501f72f08a65f912d05822613c1532/pandas-3.0.3-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:a55066a0505dae0ba2b50a46637db34b46f9094c65c5d4800794ef6335010938", size = 12353708, upload-time = "2026-05-11T18:52:28.139Z" },
-    { url = "https://files.pythonhosted.org/packages/eb/62/c321f13b5ba1819fc8dca456c7fce578da2dcfecff1abbf0eaddf8406c0f/pandas-3.0.3-cp311-cp311-win_amd64.whl", hash = "sha256:6674ab18ad8c57802867264b00e15e7bb904700cdd9046e3b2fa1fce237439ea", size = 9907609, upload-time = "2026-05-11T18:52:30.982Z" },
-    { url = "https://files.pythonhosted.org/packages/53/85/1b7f563ebc6357c27233a02a96b589bcce1fa9c6eb89fb4f0e56421d277e/pandas-3.0.3-cp311-cp311-win_arm64.whl", hash = "sha256:5cc09a68b3120e0f54870dede8287a7bb1fa463907e4fcec1ea77cab6179bf7a", size = 9165596, upload-time = "2026-05-11T18:52:33.334Z" },
+    { url = "https://files.pythonhosted.org/packages/48/ef/f1fd7431d635bf20015489bf0bd69c17fff1018de773540f651455a3916b/pandas-3.0.5-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:2946e77e4a53cd248cbde631a12f0e51c8324ce354c3eba4d20147c1ad6f4282", size = 10397178, upload-time = "2026-07-22T22:17:48.274Z" },
+    { url = "https://files.pythonhosted.org/packages/31/b4/0eafac990a431561187694126de01f9b12559549b4d86360c0c4bd870fde/pandas-3.0.5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:71ecc8fb7ed1a7aa4392316b5309a6347e8e7f832f38fd897846b3a1457a9298", size = 9990736, upload-time = "2026-07-22T22:17:52.388Z" },
+    { url = "https://files.pythonhosted.org/packages/de/21/359880af3ea9b7cb23bea5b51e8e70ef3866c03be09da9a2787e18e330a8/pandas-3.0.5-cp311-cp311-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:b173f5951ff6b8b0ec7675e20dff3c97b7e7a57dfcce387c2d7c5afe87cb7899", size = 10814438, upload-time = "2026-07-22T22:17:54.708Z" },
+    { url = "https://files.pythonhosted.org/packages/d1/50/d6cc4d7e508bbccf5d6027314a8312bc7ac73d0ec7f195f53838daafab40/pandas-3.0.5-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2c0cf1dd9b55a22d105fc46c1b489af3bd42264fcba7c66297bf47a9a1d9c78a", size = 11323634, upload-time = "2026-07-22T22:17:56.858Z" },
+    { url = "https://files.pythonhosted.org/packages/70/2b/d5f0a8c90dd0ae04e64ba53b871afb796ec026b615086d382ddc2ade729b/pandas-3.0.5-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:0fac0010c75e4efb6b99e249c183a8993ce0dc95c240f9b120a5e67c727b7928", size = 11850860, upload-time = "2026-07-22T22:17:59.1Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/30/183aec2e19adf778a98d29b5729a0a68f4cc4ebf9b9c3b70d0297355bcb1/pandas-3.0.5-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:08d24fe11a17dc33bd6e937dc9c665f9cba08fbdc9f657f405713515febe300d", size = 12411100, upload-time = "2026-07-22T22:18:01.485Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/9a/31f4983f191af51ab2a8f2d0c7b33dff3a84da26533f982fff02c2f9e28b/pandas-3.0.5-cp311-cp311-win_amd64.whl", hash = "sha256:b1261758dfb6cf12c3cff8300e21cefad30e7ec709abb4c24ac7318e6a52462a", size = 9968804, upload-time = "2026-07-22T22:18:03.903Z" },
+    { url = "https://files.pythonhosted.org/packages/49/97/7886c89a39045c69ad82cbceaf3343810480c8ef49a216319ce8183860a6/pandas-3.0.5-cp311-cp311-win_arm64.whl", hash = "sha256:679f4e85b30ddb1515458ab1e788d3e260eae369b1f78da7a3aa4cac8ebf4a2a", size = 9205447, upload-time = "2026-07-22T22:18:06.134Z" },
 ]
 
 [[package]]
@@ -2127,7 +2107,7 @@ version = "2.12.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cuda-bindings", marker = "sys_platform == 'linux'" },
-    { name = "cuda-toolkit", extra = ["cudart", "cufft", "cufile", "cupti", "curand", "cusolver", "cusparse", "nvjitlink", "nvrtc", "nvtx"], marker = "(sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform == 'linux' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
+    { name = "cuda-toolkit", extra = ["cudart", "cufft", "cufile", "cupti", "curand", "cusolver", "cusparse", "nvjitlink", "nvrtc", "nvtx"], marker = "(sys_platform == 'linux' and extra == 'group-7-xseciot-lambda-torch') or (sys_platform == 'linux' and extra != 'group-7-xseciot-lambda-tensorflow' and extra != 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-torch' and extra == 'group-7-xseciot-tensorflow') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-lambda-torch') or (extra == 'group-7-xseciot-lambda-tensorflow' and extra == 'group-7-xseciot-torch') or (extra == 'group-7-xseciot-tensorflow' and extra == 'group-7-xseciot-torch')" },
     { name = "filelock" },
     { name = "fsspec" },
     { name = "jinja2" },
