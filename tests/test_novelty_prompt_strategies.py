@@ -3,7 +3,6 @@ from transformers import GPT2Config, GPT2LMHeadModel, PreTrainedTokenizerFast
 
 from firce.novelty.llm_reporting import TransformersLocalBackend, evaluate_prompt_strategies
 
-
 _CORPUS = (
     'novelty detected class benign portscan xmasattack summary label suggested feature '
     'contributes value increase decrease scanning burst possible unknown emerging behavior '
