@@ -122,9 +122,7 @@ def _format_context_block(xai_result: dict, novelty_context: dict, top_k: int) -
     )
 
 
-def build_report_prompt(
-    xai_result: dict, novelty_context: dict, top_k: int = 5, strategy: str = 'zero_shot'
-) -> str:
+def build_report_prompt(xai_result: dict, novelty_context: dict, top_k: int = 5, strategy: str = 'zero_shot') -> str:
     """
     Build a constrained, structured prompt from #98's XAI output and #97's
     novelty-signal context.
@@ -198,9 +196,7 @@ def build_report_prompt(
 
     # strategy == 'zero_shot' (#99's original template, unchanged)
     return (
-        intro
-        + context_block
-        + 'Respond in exactly this format:\n'
+        intro + context_block + 'Respond in exactly this format:\n'
         'Summary: <one sentence describing the anomalous behavior>\n'
         'Suggested label: <a short descriptive phrase, not a definitive classification>\n'
     )

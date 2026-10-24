@@ -140,9 +140,7 @@ def test_retrain_runtime_multiclass_updates_model_and_scaler(tmp_path, monkeypat
 with:
 
 ```python
-@pytest.mark.parametrize(
-    'model_variant', [ModelVariant.DT, ModelVariant.KNN, ModelVariant.RF, ModelVariant.SVM]
-)
+@pytest.mark.parametrize('model_variant', [ModelVariant.DT, ModelVariant.KNN, ModelVariant.RF, ModelVariant.SVM])
 def test_retrain_runtime_multiclass_updates_model_and_scaler(tmp_path, monkeypatch, model_variant):
     monkeypatch.chdir(tmp_path)
     runtime = _make_runtime(tmp_path, model_variant=model_variant)

@@ -46,16 +46,12 @@ from scripts.mc_labeling import AttackMapping, _parse_mapping
 
 def test_parse_mapping_valid():
     mapping = _parse_mapping('192.168.1.192,192.168.1.103,XMasAttack')
-    assert mapping == AttackMapping(
-        src_ip='192.168.1.192', dst_ip='192.168.1.103', attack_name='XMasAttack'
-    )
+    assert mapping == AttackMapping(src_ip='192.168.1.192', dst_ip='192.168.1.103', attack_name='XMasAttack')
 
 
 def test_parse_mapping_strips_whitespace():
     mapping = _parse_mapping(' 192.168.1.192 , 192.168.1.103 , XMasAttack ')
-    assert mapping == AttackMapping(
-        src_ip='192.168.1.192', dst_ip='192.168.1.103', attack_name='XMasAttack'
-    )
+    assert mapping == AttackMapping(src_ip='192.168.1.192', dst_ip='192.168.1.103', attack_name='XMasAttack')
 
 
 def test_parse_mapping_wrong_field_count():
@@ -138,9 +134,7 @@ def _parse_mapping(raw: str) -> AttackMapping:
     """
     fields = [f.strip() for f in raw.split(',')]
     if len(fields) != 3:
-        raise ValueError(
-            f"Mapping '{raw}' must have exactly 3 comma-separated fields: src_ip,dst_ip,attack_name"
-        )
+        raise ValueError(f"Mapping '{raw}' must have exactly 3 comma-separated fields: src_ip,dst_ip,attack_name")
     src_ip, dst_ip, attack_name = fields
     if not _is_valid_ip(src_ip):
         raise ValueError(f'Invalid source IP address in mapping: {src_ip}')
@@ -188,7 +182,8 @@ from scripts.mc_labeling import MCLabelConfig, _parse_arguments
 def test_parse_arguments_single_mapping():
     config = _parse_arguments([
         'data.csv',
-        '--mapping', '192.168.1.192,192.168.1.103,XMasAttack',
+        '--mapping',
+        '192.168.1.192,192.168.1.103,XMasAttack',
     ])
     assert config == MCLabelConfig(
         dataset_path=Path('data.csv'),
@@ -199,8 +194,10 @@ def test_parse_arguments_single_mapping():
 def test_parse_arguments_multiple_mappings():
     config = _parse_arguments([
         'data.csv',
-        '--mapping', '192.168.1.192,192.168.1.103,XMasAttack',
-        '--mapping', '10.0.0.1,10.0.0.2,PortScan',
+        '--mapping',
+        '192.168.1.192,192.168.1.103,XMasAttack',
+        '--mapping',
+        '10.0.0.1,10.0.0.2,PortScan',
     ])
     assert config.mappings == (
         AttackMapping('192.168.1.192', '192.168.1.103', 'XMasAttack'),
@@ -342,10 +339,7 @@ def _validate_inputs(dataset_path: Path, mappings: Tuple[AttackMapping, ...]) ->
     for mapping in mappings:
         pair = (mapping.src_ip, mapping.dst_ip)
         if pair in seen and seen[pair] != mapping.attack_name:
-            raise ValueError(
-                f'duplicate mapping for {pair}: '
-                f"'{seen[pair]}' vs '{mapping.attack_name}'"
-            )
+            raise ValueError(f"duplicate mapping for {pair}: '{seen[pair]}' vs '{mapping.attack_name}'")
         seen[pair] = mapping.attack_name
 ```
 

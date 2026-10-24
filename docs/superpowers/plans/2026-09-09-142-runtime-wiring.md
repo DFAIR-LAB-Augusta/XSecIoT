@@ -46,7 +46,9 @@ def test_conformal_drift_monitor_exposes_model_and_calibration_scores():
     X = rng.normal(size=(60, 4))
     y = np.select([X[:, 0] > 0.5], ['Attack'], default='Benign')
 
-    monitor = ConformalDriftMonitor(CEType.ICE, DecisionTreeClassifier(random_state=0), calibration_split=0.3, random_state=0)
+    monitor = ConformalDriftMonitor(
+        CEType.ICE, DecisionTreeClassifier(random_state=0), calibration_split=0.3, random_state=0
+    )
     monitor.fit(X, y, PerformanceStats())
 
     assert hasattr(monitor.model, 'predict_proba')
@@ -63,15 +65,16 @@ Expected: FAIL with `AttributeError: 'ConformalDriftMonitor' object has no attri
 In `src/firce/drift_monitor/conformal_monitor.py`, add after `__init__`:
 
 ```python
-    @property
-    def model(self) -> Any:
-        """The underlying calibrated model this monitor's CE evaluator wraps."""
-        return self._evaluator.evaluator.model
+@property
+def model(self) -> Any:
+    """The underlying calibrated model this monitor's CE evaluator wraps."""
+    return self._evaluator.evaluator.model
 
-    @property
-    def calibration_scores(self) -> dict:
-        """Per-class calibration nonconformity scores, as produced by CE calibration."""
-        return self._evaluator.evaluator.calibration_scores
+
+@property
+def calibration_scores(self) -> dict:
+    """Per-class calibration nonconformity scores, as produced by CE calibration."""
+    return self._evaluator.evaluator.calibration_scores
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -176,31 +179,33 @@ Add after the existing `monitor_kwargs: Dict[str, Any] = Field(default_factory=d
 Add a new validator near the existing `_threshold_in_unit_interval` validator:
 
 ```python
-    @field_validator('novelty_tau', 'novelty_alpha', 'novelty_sample_rate')
-    @classmethod
-    def _novelty_float_in_unit_interval(cls, value: float) -> float:
-        """Validate that novelty tau/alpha/sample_rate lie within [0, 1]."""
-        if not (0.0 <= value <= 1.0):
-            raise ValueError('must be in [0, 1]')
-        return value
+@field_validator('novelty_tau', 'novelty_alpha', 'novelty_sample_rate')
+@classmethod
+def _novelty_float_in_unit_interval(cls, value: float) -> float:
+    """Validate that novelty tau/alpha/sample_rate lie within [0, 1]."""
+    if not (0.0 <= value <= 1.0):
+        raise ValueError('must be in [0, 1]')
+    return value
 
-    @field_validator('novelty_selective_mode')
-    @classmethod
-    def _novelty_selective_mode_is_valid(cls, value: str) -> str:
-        """Validate novelty_selective_mode against firce.novelty.explain's supported modes."""
-        valid_modes = ('sampled', 'unknown_only', 'windowed')
-        if value not in valid_modes:
-            raise ValueError(f'novelty_selective_mode must be one of {valid_modes}')
-        return value
 
-    @field_validator('novelty_explain_method')
-    @classmethod
-    def _novelty_explain_method_is_valid(cls, value: str) -> str:
-        """Validate novelty_explain_method against firce.novelty.explain's supported methods."""
-        valid_methods = ('shap', 'lime')
-        if value not in valid_methods:
-            raise ValueError(f'novelty_explain_method must be one of {valid_methods}')
-        return value
+@field_validator('novelty_selective_mode')
+@classmethod
+def _novelty_selective_mode_is_valid(cls, value: str) -> str:
+    """Validate novelty_selective_mode against firce.novelty.explain's supported modes."""
+    valid_modes = ('sampled', 'unknown_only', 'windowed')
+    if value not in valid_modes:
+        raise ValueError(f'novelty_selective_mode must be one of {valid_modes}')
+    return value
+
+
+@field_validator('novelty_explain_method')
+@classmethod
+def _novelty_explain_method_is_valid(cls, value: str) -> str:
+    """Validate novelty_explain_method against firce.novelty.explain's supported methods."""
+    valid_methods = ('shap', 'lime')
+    if value not in valid_methods:
+        raise ValueError(f'novelty_explain_method must be one of {valid_methods}')
+    return value
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -348,12 +353,10 @@ def _make_novelty_test_runtime(tmp_path, novelty_enabled=True, **config_override
     dummy.write_text('a\n1\n')
     rng = np.random.default_rng(0)
     n = 60
-    X = pd.DataFrame(
-        {
-            'flow_duration': rng.normal(size=n),
-            'tot_fwd_pkt': rng.normal(size=n),
-        }
-    )
+    X = pd.DataFrame({
+        'flow_duration': rng.normal(size=n),
+        'tot_fwd_pkt': rng.normal(size=n),
+    })
     y = np.select([X['flow_duration'] > 0.5], ['Attack'], default='Benign')
 
     scaler = StandardScaler().fit(X)
@@ -413,7 +416,9 @@ def test_score_chunk_novelty_returns_flags_and_features_when_enabled(tmp_path):
 
 def test_generate_novelty_reports_populates_runtime_with_explanations_only_by_default(tmp_path):
     # novelty_llm_backend_type stays None (default) - explanation-only path.
-    runtime, clean_chunk = _make_novelty_test_runtime(tmp_path, novelty_enabled=True, novelty_tau=0.99, novelty_alpha=0.99)
+    runtime, clean_chunk = _make_novelty_test_runtime(
+        tmp_path, novelty_enabled=True, novelty_tau=0.99, novelty_alpha=0.99
+    )
     novelty_flags, x_monitor = _score_chunk_novelty(runtime, clean_chunk)
 
     _generate_novelty_reports(runtime, clean_chunk, x_monitor, novelty_flags)
@@ -444,9 +449,7 @@ from firce.novelty.llm_reporting import generate_report
 Add near the end of the file (before `_handle_detected_drift`, or anywhere at module scope after the existing chunk-drift helpers):
 
 ```python
-def _score_chunk_novelty(
-    runtime: SimulationRuntime, clean_chunk: pd.DataFrame
-) -> tuple[np.ndarray, np.ndarray] | None:
+def _score_chunk_novelty(runtime: SimulationRuntime, clean_chunk: pd.DataFrame) -> tuple[np.ndarray, np.ndarray] | None:
     """
     Compute novelty flags for an entire chunk in one batched call, reusing
     _prepare_monitor_chunk_features (already used for chunk-level drift
@@ -472,7 +475,9 @@ def _score_chunk_novelty(
     model = runtime.monitor.model
     probas = model.predict_proba(x_monitor)
     all_class_p_values = compute_all_class_p_values(model, runtime.monitor.calibration_scores, x_monitor)
-    novelty_flags = is_novel(probas, all_class_p_values, tau=runtime.config.novelty_tau, alpha=runtime.config.novelty_alpha)
+    novelty_flags = is_novel(
+        probas, all_class_p_values, tau=runtime.config.novelty_tau, alpha=runtime.config.novelty_alpha
+    )
     return novelty_flags, x_monitor
 
 
