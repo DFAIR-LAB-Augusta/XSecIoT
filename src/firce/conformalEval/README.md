@@ -100,22 +100,22 @@ from firce.conformalEval.conformal_evaluators import ConformalEvaluator
 # Instantiate (5% significance)
 ce = ConformalEvaluator(
     evaluator_type='approx_cce',  # 'ice' | 'cce' | 'tce' | 'approx_tce' | 'approx_cce'
-    model=my_model,               # implements fit(), predict(), predict_proba()
+    model=my_model,  # implements fit(), predict(), predict_proba()
     significance=0.05,
-    calibration_split=0.2,        # used for ICE/Approx-CCE proper/cal splits when applicable
-    folds=5                       # used for CCE/Approx-TCE/Approx-CCE scoring partitions
+    calibration_split=0.2,  # used for ICE/Approx-CCE proper/cal splits when applicable
+    folds=5,  # used for CCE/Approx-TCE/Approx-CCE scoring partitions
 )
 
 # Calibrate on historical data
 ce.calibrate(X_cal, y_cal)
 
 # Score new data
-p_vals      = ce.predict_p_values(X_new)         # shape [n_samples]
-y_pred      = ce.evaluator.predict(X_new)
-drift_mask  = p_vals < ce.thresholds_[y_pred]    # per-class thresholds
+p_vals = ce.predict_p_values(X_new)  # shape [n_samples]
+y_pred = ce.evaluator.predict(X_new)
+drift_mask = p_vals < ce.thresholds_[y_pred]  # per-class thresholds
 
 if drift_mask.any():
-    print(" Concept drift detected — consider retraining/recalibration.")
+    print(' Concept drift detected — consider retraining/recalibration.')
 ```
 
 ---

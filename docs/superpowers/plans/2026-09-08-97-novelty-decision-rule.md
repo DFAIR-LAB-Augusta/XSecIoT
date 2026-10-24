@@ -115,7 +115,9 @@ import numpy as np
 from firce.conformalEval.utils import compute_nonconformity_scores, compute_p_values
 
 
-def compute_all_class_p_values(model: Any, calibration_scores: Dict[Any, np.ndarray], X: np.ndarray) -> Dict[Any, np.ndarray]:
+def compute_all_class_p_values(
+    model: Any, calibration_scores: Dict[Any, np.ndarray], X: np.ndarray
+) -> Dict[Any, np.ndarray]:
     """
     Compute a conformal p-value for every known class, for every sample in X.
 
@@ -225,9 +227,7 @@ def max_softmax_confidence(probas: np.ndarray) -> np.ndarray:
     return np.max(probas, axis=1)
 
 
-def is_novel(
-    probas: np.ndarray, all_class_p_values: Dict[Any, np.ndarray], tau: float, alpha: float
-) -> np.ndarray:
+def is_novel(probas: np.ndarray, all_class_p_values: Dict[Any, np.ndarray], tau: float, alpha: float) -> np.ndarray:
     """
     Primary novelty decision rule (proposal Section 4.4.2):
 

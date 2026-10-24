@@ -168,7 +168,9 @@ def train_ce_multiclass(
             if Path(path).is_dir():
                 logger.info(f'Removing old retraining directory: {path}')
                 shutil.rmtree(path)
-        outdir = Path('multi_class_models') / f'Model_{variant.value}_Retraining_{shortuuid.ShortUUID().random(length=8)}'
+        outdir = (
+            Path('multi_class_models') / f'Model_{variant.value}_Retraining_{shortuuid.ShortUUID().random(length=8)}'
+        )
         outdir.mkdir(parents=True, exist_ok=True)
         logger.info(f'Output directory for multiclass model retraining artifacts: {outdir}')
 ```
@@ -272,6 +274,7 @@ class _StubMonitor:
 
     def fit(self, X, y, perf_stats):
         self.fit_calls.append((X, y))
+
 
 ROLLING_COLUMNS = [
     'device_id',

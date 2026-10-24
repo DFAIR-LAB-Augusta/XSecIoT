@@ -64,9 +64,7 @@ def test_main_no_pre_skips_preprocessing(tmp_path, monkeypatch):
     dataset_path = tmp_path / 'data.csv'
     aggregated = tmp_path / 'aggregated_data.csv'
     aggregated.write_text('placeholder')
-    monkeypatch.setattr(
-        sys, 'argv', ['prog', str(dataset_path), '--noPre', '--noMod', '--noSim']
-    )
+    monkeypatch.setattr(sys, 'argv', ['prog', str(dataset_path), '--noPre', '--noMod', '--noSim'])
 
     fire_main.main()
 

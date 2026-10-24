@@ -45,7 +45,13 @@ import numpy as np
 
 from sklearn.tree import DecisionTreeClassifier
 
-from fire.models import _explain_with_lime, _explain_with_shap, _parse_args, run_binary_classification, run_multiclass_classification
+from fire.models import (
+    _explain_with_lime,
+    _explain_with_shap,
+    _parse_args,
+    run_binary_classification,
+    run_multiclass_classification,
+)
 ```
 
 Add at the end of the file:

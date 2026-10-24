@@ -271,16 +271,14 @@ Then change:
 to:
 
 ```python
-    if model_type == 'binary':
-        logger.debug(f'Rebuilding FeedForwardBinary(input_dim={input_dim}, p_drop={p_drop})')
-        torch_model = FeedForwardBinary(input_dim=input_dim, p_drop=p_drop)
-    else:
-        num_classes = int(ckpt['num_classes'])
-        logger.debug(
-            f'Rebuilding FeedForwardMulticlass(input_dim={input_dim}, num_classes={num_classes}, p_drop={p_drop})'
-        )
-        torch_model = FeedForwardMulticlass(input_dim=input_dim, num_classes=num_classes, p_drop=p_drop)
-    missing, unexpected = torch_model.load_state_dict(state_dict, strict=False)
+if model_type == 'binary':
+    logger.debug(f'Rebuilding FeedForwardBinary(input_dim={input_dim}, p_drop={p_drop})')
+    torch_model = FeedForwardBinary(input_dim=input_dim, p_drop=p_drop)
+else:
+    num_classes = int(ckpt['num_classes'])
+    logger.debug(f'Rebuilding FeedForwardMulticlass(input_dim={input_dim}, num_classes={num_classes}, p_drop={p_drop})')
+    torch_model = FeedForwardMulticlass(input_dim=input_dim, num_classes=num_classes, p_drop=p_drop)
+missing, unexpected = torch_model.load_state_dict(state_dict, strict=False)
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
