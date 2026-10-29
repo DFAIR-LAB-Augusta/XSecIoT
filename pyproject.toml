@@ -66,7 +66,7 @@ dependencies = [
     "toml>=0.10.2,<1",
     "tqdm>=4.68.3,<5",
     "pydantic>=2.13.5,<3",
-    "pyarrow>=25.0.1,<26",
+    "pyarrow>=25.0.1,<27",
 ]
 
 [project.urls]
