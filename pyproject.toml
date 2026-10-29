@@ -85,7 +85,7 @@ dev = [
 ]
 
 torch = [
-    "torch==2.14.0",
+    "torch==2.14.1",
     "transformers>=5.16.1,<6",
     "outlines>=0.1.0,<2",
 ]
