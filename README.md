@@ -94,13 +94,17 @@ It is used for:
 ## Installation
 
 ```bash
-uv sync
+uv sync --frozen --group torch   # or: make sync-lean
 ```
 
-Optional (GPU / ML stack depending on config):
+This is the CI environment for FIRCE. Notes:
+
+* The `torch` and `tensorflow` dependency groups conflict; FIRCE uses `torch`.
+* The `cade` group pulls in `tensorflow`, so it cannot be installed together with `torch`.
+* If `xgboost` is removed from a torch environment, NCCL must be reinstalled:
 
 ```bash
-uv sync --extra tf
+uv sync --frozen --group torch --reinstall-package nvidia-nccl-cu13
 ```
 
 ---
