@@ -21,6 +21,7 @@ import torch
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
 
+from firce.classes import CANONICAL_CLASSES
 from firce.models.torch_device import pick_device
 
 
@@ -148,6 +149,8 @@ class SimulationConfig(BaseModel):
     log_to_file: bool = False
     use_svm: bool = False
     use_mlp: bool = False
+    label_column: str | None = None
+    held_out: tuple[str, ...] = ()
     use_adaptive_chunking: bool = False
     use_cuml: bool = False
     seed: int = 42
@@ -200,6 +203,15 @@ class SimulationConfig(BaseModel):
         valid_methods = ('shap', 'lime')
         if value not in valid_methods:
             raise ValueError(f'novelty_explain_method must be one of {valid_methods}')
+        return value
+
+    @field_validator('held_out')
+    @classmethod
+    def _held_out_is_canonical(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        """Validate that every held-out name is a canonical class."""
+        unknown = [name for name in value if name not in CANONICAL_CLASSES]
+        if unknown:
+            raise ValueError(f'held_out contains non-canonical classes: {unknown}')
         return value
 
     @model_validator(mode='after')
