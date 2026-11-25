@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import torch
 
+from firce.classes import derive_mc_label
 from firce.drift_monitor.conformal_monitor import ConformalDriftMonitor
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.feedforward_multiclass import FeedForwardMulticlass
@@ -188,7 +189,10 @@ def _prepare_chunk(
         Tuple of cleaned chunk and optional ground-truth series.
     """
     logger.debug('Chunk initially has %d columns', len(chunk.columns))
-    clean_chunk = clean_data(chunk, runtime.config.is_unsw)
+    config = runtime.config
+    if config.model_type == ModelType.MULTI and config.label_column and not config.is_unsw:
+        chunk = derive_mc_label(chunk, config.label_column, drop_held_out=False)
+    clean_chunk = clean_data(chunk, config.is_unsw)
     logger.debug('Chunk has %d columns post-cleaning', len(clean_chunk.columns))
 
     label_col = _label_column(runtime.config.model_type)

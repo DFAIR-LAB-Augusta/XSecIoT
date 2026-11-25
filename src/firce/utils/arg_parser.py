@@ -142,6 +142,14 @@ def parse_sim_args() -> argparse.Namespace:
         default='simulation',
         help='Pipeline mode to run.',
     )
+    p.add_argument('--labelColumn', type=str, default=None, help='Dataset label column to map to canonical MC_Label')
+    p.add_argument(
+        '--heldOut',
+        type=str,
+        nargs='+',
+        default=[],
+        help='Canonical class names excluded from training and calibration but kept in the evaluation stream',
+    )
     p.add_argument('--novelty', action='store_true', help='Enable novelty detection')
     p.add_argument('--noveltyTau', type=float, default=0.6, help='Novelty tau threshold in [0, 1]')
     p.add_argument('--noveltyAlpha', type=float, default=0.3, help='Novelty alpha in [0, 1]')

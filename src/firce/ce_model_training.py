@@ -42,6 +42,7 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from torch.utils.data import DataLoader, Subset, TensorDataset
 
+from firce.classes import derive_mc_label
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.feedforward_multiclass import FeedForwardMulticlass
 from firce.utils.config import ModelVariant, SimulationConfig
@@ -565,7 +566,10 @@ def train_ce_multiclass(
     """
     if df_log is None:
         logger.info(f'Training multiclass CE model with {flows_csv} dataset')
-        df = clean_data(pd.read_csv(flows_csv), config.is_unsw)
+        df_raw = pd.read_csv(flows_csv)
+        if config.label_column and not config.is_unsw:
+            df_raw = derive_mc_label(df_raw, config.label_column, config.held_out, drop_held_out=True)
+        df = clean_data(df_raw, config.is_unsw)
         dataset = Path(flows_csv).parent.name
         outdir = Path('multi_class_models') / dataset
         outdir.mkdir(parents=True, exist_ok=True)
