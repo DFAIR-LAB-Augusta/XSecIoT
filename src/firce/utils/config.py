@@ -23,6 +23,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_valid
 
 from firce.classes import CANONICAL_CLASSES
 from firce.models.torch_device import pick_device
+from firce.novelty.decision_rules import NOVELTY_RULES
 
 
 class ModelType(str, Enum):
@@ -162,6 +163,7 @@ class SimulationConfig(BaseModel):
     novelty_enabled: bool = False
     novelty_tau: float = 0.6
     novelty_alpha: float = 0.3
+    novelty_rule: str = 'combined'
     novelty_selective_mode: str = 'unknown_only'
     novelty_sample_rate: float = 0.1
     novelty_window_size: int = 10
@@ -185,6 +187,14 @@ class SimulationConfig(BaseModel):
         """Validate that novelty tau/alpha/sample_rate lie within [0, 1]."""
         if not (0.0 <= value <= 1.0):
             raise ValueError('must be in [0, 1]')
+        return value
+
+    @field_validator('novelty_rule')
+    @classmethod
+    def _novelty_rule_is_valid(cls, value: str) -> str:
+        """Validate novelty_rule against firce.novelty.decision_rules.NOVELTY_RULES."""
+        if value not in NOVELTY_RULES:
+            raise ValueError(f'novelty_rule must be one of {NOVELTY_RULES}')
         return value
 
     @field_validator('novelty_selective_mode')

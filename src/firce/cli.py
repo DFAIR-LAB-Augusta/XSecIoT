@@ -77,6 +77,7 @@ def _build_config_from_args(args) -> SimulationConfig:
         novelty_enabled=args.novelty,
         novelty_explain_method=args.noveltyExplainMethod,
         novelty_llm_backend_type=args.noveltyLlmBackendType,
+        novelty_rule=args.noveltyRule,
         novelty_selective_mode=args.noveltySelectiveMode,
         novelty_tau=args.noveltyTau,
         pipeline=args.pipeline,

@@ -14,7 +14,7 @@ from firce.classes import derive_mc_label
 from firce.drift_monitor.conformal_monitor import ConformalDriftMonitor
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.feedforward_multiclass import FeedForwardMulticlass
-from firce.novelty.decision_rules import compute_all_class_p_values, is_novel, max_softmax_confidence
+from firce.novelty.decision_rules import apply_novelty_rule, compute_all_class_p_values, max_softmax_confidence
 from firce.novelty.explain import explain_with_lime, explain_with_shap, select_events_to_explain
 from firce.novelty.llm_reporting import generate_report
 from firce.runtime.constants import (
@@ -562,8 +562,12 @@ def _score_chunk_novelty(runtime: SimulationRuntime, clean_chunk: pd.DataFrame) 
     model = runtime.monitor.model
     probas = model.predict_proba(x_monitor)
     all_class_p_values = compute_all_class_p_values(model, runtime.monitor.calibration_scores, x_monitor)
-    novelty_flags = is_novel(
-        probas, all_class_p_values, tau=runtime.config.novelty_tau, alpha=runtime.config.novelty_alpha
+    novelty_flags = apply_novelty_rule(
+        runtime.config.novelty_rule,
+        probas,
+        all_class_p_values,
+        tau=runtime.config.novelty_tau,
+        alpha=runtime.config.novelty_alpha,
     )
     return novelty_flags, x_monitor
 
