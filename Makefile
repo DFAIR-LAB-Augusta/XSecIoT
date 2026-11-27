@@ -16,7 +16,7 @@ TARGET_IP ?= 192.168.1.0/24
 
 .PHONY: help sync sync-lean test clean \
         sim-bin sim-mc xseciot \
-        bin-label mc-label merge \
+        bin-label mc-label capex-label merge \
         overall-perf overall-scrape
 
 help: 
@@ -33,6 +33,7 @@ help:
 	@echo "  make xseciot"
 	@echo "  make bin-label UNLABELED_DATASET_PATH=datasets/CEFlows2/CEFlows2_merged.csv"
 	@echo "  make mc-label  UNLABELED_DATASET_PATH=datasets/CEFlows2/CEFlows2_merged.csv MC_MAPPING_ARGS='--mapping 192.168.1.192,192.168.1.103,XMasAttack'"
+	@echo "  make capex-label FLOWS_CSV=flows.csv GT_CSV='capex_gt_a.csv capex_gt_b.csv' [FLOW_TZ=America/New_York]"
 	@echo "  make merge     LABELED_DATASET_PATH=datasets/CEFlows2/indiv"
 	@echo "  make overall-perf   LOG_DIR=logs"
 	@echo "  make overall-scrape LOG_DIR=logs"
@@ -79,6 +80,11 @@ mc-label:
 	@if [ -z "$(UNLABELED_DATASET_PATH)" ]; then echo "ERROR: set UNLABELED_DATASET_PATH=..."; exit 1; fi
 	@if [ -z "$(MC_MAPPING_ARGS)" ]; then echo "ERROR: set MC_MAPPING_ARGS='--mapping SRC_IP,DST_IP,ATTACK_NAME [--mapping ...]'"; exit 1; fi
 	$(UV) run scripts/mc_labeling.py "$(UNLABELED_DATASET_PATH)" $(MC_MAPPING_ARGS)
+
+capex-label:
+	@if [ -z "$(FLOWS_CSV)" ]; then echo "ERROR: set FLOWS_CSV=..."; exit 1; fi
+	@if [ -z "$(GT_CSV)" ]; then echo "ERROR: set GT_CSV=..."; exit 1; fi
+	$(UV) run scripts/capex_labeling.py "$(FLOWS_CSV)" $(GT_CSV) $(if $(FLOW_TZ),--flowTz "$(FLOW_TZ)")
 
 merge:
 	@if [ -z "$(LABELED_DATASET_PATH)" ]; then echo "ERROR: set LABELED_DATASET_PATH=..."; exit 1; fi
