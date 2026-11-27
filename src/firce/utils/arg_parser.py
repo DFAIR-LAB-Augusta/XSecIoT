@@ -142,6 +142,29 @@ def parse_sim_args() -> argparse.Namespace:
         default='simulation',
         help='Pipeline mode to run.',
     )
+    p.add_argument('--novelty', action='store_true', help='Enable novelty detection')
+    p.add_argument('--noveltyTau', type=float, default=0.6, help='Novelty tau threshold in [0, 1]')
+    p.add_argument('--noveltyAlpha', type=float, default=0.3, help='Novelty alpha in [0, 1]')
+    p.add_argument(
+        '--noveltySelectiveMode',
+        type=str,
+        choices=['sampled', 'unknown_only', 'windowed'],
+        default='unknown_only',
+        help='Selective explanation mode for novelty detection',
+    )
+    p.add_argument(
+        '--noveltyExplainMethod',
+        type=str,
+        choices=['shap', 'lime'],
+        default='shap',
+        help='Explanation method for novelty detection',
+    )
+    p.add_argument(
+        '--noveltyLlmBackendType',
+        type=str,
+        default=None,
+        help='Optional LLM backend type for novelty reporting',
+    )
     return p.parse_args()
 
 

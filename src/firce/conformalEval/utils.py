@@ -152,7 +152,7 @@ def pick_average_strategy(y) -> str:
     return 'binary' if unique_labels <= {0, 1} else 'weighted'
 
 
-def load_conformal_config(path: Path = Path('src/firce/conformalEval/conformal_config.toml')) -> dict:
+def load_conformal_config(path: Path = Path(__file__).parent / 'conformal_config.toml') -> dict:
     """
     Load conformal evaluator configuration from TOML file.
 

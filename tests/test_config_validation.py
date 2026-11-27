@@ -316,3 +316,10 @@ def test_simulation_config_novelty_selective_mode_must_be_valid(tmp_path):
 def test_simulation_config_novelty_explain_method_must_be_valid(tmp_path):
     with pytest.raises(ValidationError, match='novelty_explain_method'):
         _make_config(tmp_path, novelty_explain_method='not_a_real_method')
+
+
+def test_novelty_cade_rejected_and_ce_allowed(tmp_path):
+    with pytest.raises(ValidationError):
+        _make_config(tmp_path, novelty_enabled=True, monitor_type=MonitorType.CADE)
+    cfg = _make_config(tmp_path, novelty_enabled=True, monitor_type=MonitorType.CE)
+    assert cfg.novelty_enabled

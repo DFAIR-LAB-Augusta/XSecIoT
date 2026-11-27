@@ -19,7 +19,7 @@ from typing import Any, Dict, Optional
 
 import torch
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
 
 from firce.models.torch_device import pick_device
 
@@ -201,6 +201,13 @@ class SimulationConfig(BaseModel):
         if value not in valid_methods:
             raise ValueError(f'novelty_explain_method must be one of {valid_methods}')
         return value
+
+    @model_validator(mode='after')
+    def _novelty_incompatible_with_cade(self) -> 'SimulationConfig':
+        """Reject novelty detection combined with the CADE monitor."""
+        if self.novelty_enabled and self.monitor_type == MonitorType.CADE:
+            raise ValueError('novelty detection is not supported with the CADE monitor')
+        return self
 
     @field_validator('chunk_size', 'max_rows')
     @classmethod
