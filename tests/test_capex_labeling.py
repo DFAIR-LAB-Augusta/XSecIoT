@@ -106,6 +106,26 @@ def test_end_before_start_rejected(tmp_path, capsys):
     assert 'end_unix' in capsys.readouterr().err
 
 
+@pytest.mark.parametrize('column', ['target_ip', 'start_unix', 'end_unix'])
+def test_blank_gt_field_rejected(tmp_path, capsys, column):
+    f = _write_flows(tmp_path / 'flows.csv', [('1.1.1.1', '10.0.0.5', 0, 1)])
+    g = _write_gt(tmp_path / 'gt.csv', [('10.0.0.5', 'UDP_Flood', 0, 10)])
+    frame = pd.read_csv(g, dtype=str)
+    frame[column] = ''
+    frame.to_csv(g, index=False)
+    with pytest.raises(SystemExit) as excinfo:
+        capex_labeling.main([str(f), str(g), '--flowTz', 'UTC'])
+    assert excinfo.value.code == 1
+    err = capsys.readouterr().err
+    assert column in err
+    assert '1 row(s)' in err
+
+
+def test_blank_gt_whitespace_padded_target_ip_still_labels(tmp_path):
+    out = _run(tmp_path, [('1.1.1.1', '10.0.0.5', 2, 1)], [(' 10.0.0.5 ', 'UDP_Flood', 0, 10)])
+    assert out['MC_Label'].tolist() == ['UDP_Flood']
+
+
 def test_unknown_timezone(tmp_path, capsys):
     f = _write_flows(tmp_path / 'flows.csv', [('1.1.1.1', '10.0.0.5', 0, 1)])
     g = _write_gt(tmp_path / 'gt.csv', [('10.0.0.5', 'UDP_Flood', 0, 10)])

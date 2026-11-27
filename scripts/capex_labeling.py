@@ -122,6 +122,17 @@ def _load_ground_truth(gt_paths: tuple[Path, ...]) -> pd.DataFrame:
         frames.append(gt)
     gt = pd.concat(frames, ignore_index=True)
 
+    blank_counts = {}
+    for column in ('target_ip', 'label', 'start_unix', 'end_unix'):
+        values = gt[column].astype('string').str.strip()
+        gt[column] = values.mask(values == '').astype(object)
+        blank = int(gt[column].isna().sum())
+        if blank:
+            blank_counts[column] = blank
+    if blank_counts:
+        details = ', '.join(f'{column} ({count} row(s))' for column, count in blank_counts.items())
+        raise ValueError(f'Ground-truth rows with blank required field(s): {details}')
+
     bad = sorted(set(gt['label'].astype(str)) - CANONICAL_CLASSES)
     if bad:
         raise ValueError(f'Non-canonical ground-truth label(s): {", ".join(bad)}')
