@@ -1,13 +1,7 @@
-import sys
-
-from pathlib import Path
-
 import pandas as pd
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'scripts'))
-
-import capex_labeling
+from scripts import capex_labeling
 
 GT_HEADER = 'session_id,device,target_ip,label,attempt,start_unix,end_unix\n'
 # 2024-01-01 00:00:00 UTC
