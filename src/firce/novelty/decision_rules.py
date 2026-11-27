@@ -56,30 +56,57 @@ def max_softmax_confidence(probas: np.ndarray) -> np.ndarray:
     return np.max(probas, axis=1)
 
 
+NOVELTY_RULES = ('confidence', 'conformal', 'combined')
+
+
+def apply_novelty_rule(
+    rule: str, probas: np.ndarray, all_class_p_values: Dict[Any, np.ndarray], tau: float, alpha: float
+) -> np.ndarray:
+    """
+    Apply a named novelty decision rule (proposal Section 4.4.2).
+
+    Rules:
+        confidence: max softmax < tau (alpha is ignored).
+        conformal: for all known classes c, p_c < alpha (tau is ignored).
+        combined: both of the above, to reduce false "unknown" alerts from either signal alone.
+
+    Args:
+        rule: One of NOVELTY_RULES.
+        probas: Predicted probability matrix of shape (n_samples, n_classes).
+        all_class_p_values: Per-class p-value arrays, as returned by compute_all_class_p_values.
+        tau: Confidence threshold - samples with max softmax >= tau are not low-confidence.
+        alpha: Conformal significance threshold - a sample is conformally rejected only if
+            every class's p-value is below this.
+
+    Returns:
+        Boolean array of shape (n_samples,), True where the sample is flagged as novel/unknown.
+
+    Raises:
+        ValueError: If rule is not in NOVELTY_RULES.
+    """
+    if rule not in NOVELTY_RULES:
+        raise ValueError(f'Unknown novelty rule {rule!r}; expected one of {NOVELTY_RULES}')
+    if rule == 'confidence':
+        return max_softmax_confidence(probas) < tau
+    p_value_matrix = np.stack(list(all_class_p_values.values()), axis=1)
+    all_classes_rejected = np.all(p_value_matrix < alpha, axis=1)
+    if rule == 'conformal':
+        return all_classes_rejected
+    return (max_softmax_confidence(probas) < tau) & all_classes_rejected
+
+
 def is_novel(probas: np.ndarray, all_class_p_values: Dict[Any, np.ndarray], tau: float, alpha: float) -> np.ndarray:
     """
     Primary novelty decision rule (proposal Section 4.4.2):
 
         (max softmax < tau) AND (for all known classes c, p_c < alpha)
 
-    Both a low model-confidence signal AND low conformal support across every
-    known class are required, to reduce false "unknown" alerts from either
-    signal alone.
-
-    Args:
-        probas: Predicted probability matrix of shape (n_samples, n_classes).
-        all_class_p_values: Per-class p-value arrays, as returned by compute_all_class_p_values.
-        tau: Confidence threshold - samples with max softmax >= tau are never flagged.
-        alpha: Conformal significance threshold - a sample is only flagged if every
-            class's p-value is below this.
+    Delegates to apply_novelty_rule with the 'combined' rule.
 
     Returns:
         Boolean array of shape (n_samples,), True where the sample is flagged as novel/unknown.
     """
-    low_confidence = max_softmax_confidence(probas) < tau
-    p_value_matrix = np.stack(list(all_class_p_values.values()), axis=1)
-    all_classes_rejected = np.all(p_value_matrix < alpha, axis=1)
-    return low_confidence & all_classes_rejected
+    return apply_novelty_rule('combined', probas, all_class_p_values, tau, alpha)
 
 
 def margin_confidence(probas: np.ndarray) -> np.ndarray:

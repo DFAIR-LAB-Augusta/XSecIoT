@@ -2,6 +2,7 @@ import argparse
 
 from pathlib import Path
 
+from firce.novelty.decision_rules import NOVELTY_RULES
 from firce.utils.config import CEType, ModelType, ModelVariant, MonitorType
 
 
@@ -153,6 +154,13 @@ def parse_sim_args() -> argparse.Namespace:
     p.add_argument('--novelty', action='store_true', help='Enable novelty detection')
     p.add_argument('--noveltyTau', type=float, default=0.6, help='Novelty tau threshold in [0, 1]')
     p.add_argument('--noveltyAlpha', type=float, default=0.3, help='Novelty alpha in [0, 1]')
+    p.add_argument(
+        '--noveltyRule',
+        type=str,
+        choices=NOVELTY_RULES,
+        default='combined',
+        help='Unknown-detection rule: confidence-only, conformal-only, or combined',
+    )
     p.add_argument(
         '--noveltySelectiveMode',
         type=str,
