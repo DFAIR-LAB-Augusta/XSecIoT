@@ -17,6 +17,7 @@ DEFAULT_LABEL = 'Benign'
 GT_COLUMNS = ('session_id', 'device', 'target_ip', 'label', 'attempt', 'start_unix', 'end_unix')
 FLOW_COLUMNS = ('src_ip', 'dst_ip', 'timestamp', 'flow_duration')
 TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
+EXCLUDED_CAPEX_LABELS = frozenset({'Config_Tamper_Setup_CGI', 'Config_Tamper_TR064_SOAP'})
 
 
 @dataclass(frozen=True)
@@ -133,6 +134,13 @@ def _load_ground_truth(gt_paths: tuple[Path, ...]) -> pd.DataFrame:
         details = ', '.join(f'{column} ({count} row(s))' for column, count in blank_counts.items())
         raise ValueError(f'Ground-truth rows with blank required field(s): {details}')
 
+    excluded = sorted(set(gt['label'].astype(str)) & EXCLUDED_CAPEX_LABELS)
+    if excluded:
+        raise ValueError(
+            f'Ground-truth label(s) {", ".join(excluded)} are excluded from Direction 3 (#194); '
+            'rerun the session without them or remove their rows.'
+        )
+
     bad = sorted(set(gt['label'].astype(str)) - CANONICAL_CLASSES)
     if bad:
         raise ValueError(f'Non-canonical ground-truth label(s): {", ".join(bad)}')
@@ -144,27 +152,34 @@ def _load_ground_truth(gt_paths: tuple[Path, ...]) -> pd.DataFrame:
     return gt.sort_values('start_unix', kind='stable').reset_index(drop=True)
 
 
-def _flow_start_unix(timestamps: pd.Series, tz: object) -> np.ndarray:
+def _flow_start_unix(timestamps: pd.Series, tz: object) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Return (unix seconds, valid mask). Timestamps that are ambiguous or nonexistent in tz (a DST
+    transition hour) are invalid; their unix value is NaN.
+    """
     parsed = pd.to_datetime(timestamps, format=TIMESTAMP_FORMAT, errors='raise')
     localized = parsed.dt.tz_localize(tz, ambiguous='NaT', nonexistent='NaT')
-    if localized.isna().any():
-        raise ValueError('Some flow timestamps are ambiguous or nonexistent in the chosen timezone.')
-    return (
+    unix = (
         (localized.dt.tz_convert('UTC').dt.tz_localize(None) - pd.Timestamp('1970-01-01')).dt.total_seconds().to_numpy()
     )
+    return unix, ~localized.isna().to_numpy()
 
 
-def _label_flows(flows: pd.DataFrame, gt: pd.DataFrame, tz: object) -> pd.DataFrame:
+def _label_flows(flows: pd.DataFrame, gt: pd.DataFrame, tz: object) -> tuple[pd.DataFrame, int]:
     """
     Add MC_Label and MC_Partial to flows. A flow takes the label of the matching window with the
     largest overlap (earliest start on a tie); it is partial when not fully inside that window
-    or when it matched more than one window.
+    or when it matched more than one window. Flows whose timestamp is ambiguous or nonexistent in tz
+    are dropped; returns the labeled flows and the dropped count.
     """
     missing = [c for c in FLOW_COLUMNS if c not in flows.columns]
     if missing:
         raise ValueError(f'Flow CSV is missing column(s): {", ".join(missing)}')
 
-    t0 = _flow_start_unix(flows['timestamp'], tz)
+    t0, valid = _flow_start_unix(flows['timestamp'], tz)
+    dropped = int((~valid).sum())
+    flows = flows[valid]
+    t0 = t0[valid]
     t1 = t0 + pd.to_numeric(flows['flow_duration'], errors='raise').to_numpy(dtype=float)
     src = flows['src_ip'].to_numpy()
     dst = flows['dst_ip'].to_numpy()
@@ -187,19 +202,19 @@ def _label_flows(flows: pd.DataFrame, gt: pd.DataFrame, tz: object) -> pd.DataFr
     out = flows.copy()
     out['MC_Label'] = labels
     out['MC_Partial'] = (n_match > 0) & (~inside | (n_match > 1))
-    return out
+    return out, dropped
 
 
-def _add_capex_labels(config: CapexLabelConfig) -> tuple[Path, str, pd.DataFrame, list[str]]:
+def _add_capex_labels(config: CapexLabelConfig) -> tuple[Path, str, pd.DataFrame, list[str], int]:
     gt = _load_ground_truth(config.gt_paths)
     tz, tz_name = _resolve_timezone(config.flow_tz)
     flows = _read_csv(config.flows_path, 'flow')
-    labeled = _label_flows(flows, gt, tz)
+    labeled, dropped = _label_flows(flows, gt, tz)
 
     output_path = config.output_path or config.flows_path.with_name(config.flows_path.stem + '_mc_labeled.csv')
     labeled.to_csv(output_path, index=False)
     names = [DEFAULT_LABEL] + sorted(set(gt['label']) - {DEFAULT_LABEL})
-    return output_path, tz_name, labeled, names
+    return output_path, tz_name, labeled, names, dropped
 
 
 def main(argv: List[str] | None = None) -> None:
@@ -208,13 +223,20 @@ def main(argv: List[str] | None = None) -> None:
     """
     try:
         config = _parse_arguments(argv)
-        output_path, tz_name, labeled, names = _add_capex_labels(config)
+        output_path, tz_name, labeled, names, dropped = _add_capex_labels(config)
         counts = labeled['MC_Label'].value_counts()
         print(f'Labeled dataset saved to: {output_path}')
         print(f'Flow timezone: {tz_name}')
         for name in names:
             print(f'{name}: {int(counts.get(name, 0))}')
         print(f'MC_Partial: {int(labeled["MC_Partial"].sum())}')
+        print(f'Dropped (DST transition): {dropped}')
+        if dropped:
+            print(
+                f'Warning: dropped {dropped} flow(s) whose timestamp is ambiguous or nonexistent in {tz_name}; '
+                'extract with TZ=UTC and pass --flowTz UTC to avoid this.',
+                file=sys.stderr,
+            )
     except SystemExit:
         raise
     except Exception as exc:

@@ -83,6 +83,19 @@ def test_non_canonical_label_rejected(tmp_path, capsys):
     assert 'NotAnAttack' in capsys.readouterr().err
 
 
+@pytest.mark.parametrize('label', ['Config_Tamper_Setup_CGI', 'Config_Tamper_TR064_SOAP'])
+def test_config_tamper_label_excluded(tmp_path, capsys, label):
+    f = _write_flows(tmp_path / 'flows.csv', [('1.1.1.1', '10.0.0.5', 0, 1)])
+    g = _write_gt(tmp_path / 'gt.csv', [('10.0.0.5', label, 0, 10)])
+    with pytest.raises(SystemExit) as exc:
+        capex_labeling.main([str(f), str(g), '--flowTz', 'UTC'])
+    assert exc.value.code == 1
+    err = capsys.readouterr().err
+    assert label in err
+    assert 'excluded from Direction 3' in err
+    assert '#194' in err
+
+
 def test_missing_gt_column(tmp_path, capsys):
     f = _write_flows(tmp_path / 'flows.csv', [('1.1.1.1', '10.0.0.5', 0, 1)])
     g = tmp_path / 'gt.csv'
@@ -157,6 +170,34 @@ def test_default_flow_tz_host_zone_honours_dst(tmp_path, monkeypatch):
 
     assert label(1783180800) == 'UDP_Flood'
     assert label(1783184400) == 'Benign'
+
+
+def test_dst_transition_flows_dropped_and_reported(tmp_path, capsys):
+    # 2026-11-01 01:30 is ambiguous (fall-back) and 2026-03-08 02:30 is nonexistent (spring-forward) in New York.
+    f = tmp_path / 'flows.csv'
+    f.write_text(
+        'src_ip,dst_ip,timestamp,flow_duration\n'
+        '1.1.1.1,10.0.0.5,2024-01-01 00:00:02,1\n'
+        '1.1.1.1,10.0.0.5,2026-11-01 01:30:00,1\n'
+        '1.1.1.1,10.0.0.5,2026-03-08 02:30:00,1\n'
+        '1.1.1.1,10.0.0.7,2024-01-01 00:00:02,1\n'
+    )
+    # 2024-01-01 00:00:00 New York is 05:00:00 UTC.
+    g = _write_gt(tmp_path / 'gt.csv', [('10.0.0.5', 'UDP_Flood', 5 * 3600, 5 * 3600 + 10)])
+    capex_labeling.main([str(f), str(g), '--flowTz', 'America/New_York'])
+    captured = capsys.readouterr()
+    df = pd.read_csv(tmp_path / 'flows_mc_labeled.csv')
+    assert list(df['timestamp']) == ['2024-01-01 00:00:02', '2024-01-01 00:00:02']
+    assert list(df['MC_Label']) == ['UDP_Flood', 'Benign']
+    assert 'Warning' in captured.err
+    assert 'Dropped (DST transition): 2' in captured.out
+
+
+def test_dst_transition_none_reports_zero(tmp_path, capsys):
+    _run(tmp_path, [('1.1.1.1', '10.0.0.5', 2, 1)], [('10.0.0.5', 'UDP_Flood', 0, 10)])
+    captured = capsys.readouterr()
+    assert 'Dropped (DST transition): 0' in captured.out
+    assert 'Warning' not in captured.err
 
 
 def test_report_counts_and_timezone(tmp_path, capsys):

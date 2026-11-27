@@ -94,7 +94,7 @@ uv run scripts/<script_name>.py --help
 
 ```bash
 uv run scripts/labeling.py \
-  --dataset_path datasets/CEFlows/unlabeled
+  --dataset_path datasets/CEFlows2/CEFlows2_merged.csv
 ```
 
 ---
@@ -103,7 +103,7 @@ uv run scripts/labeling.py \
 
 ```bash
 uv run scripts/merge.py \
-  --dataset_path datasets/CEFlows/mc_labeled
+  --dataset_path datasets/CEFlows2/indiv
 ```
 
 ---
@@ -167,8 +167,8 @@ uv run scripts/scanner.py \
 Many of these scripts are exposed via `Makefile` targets:
 
 ```bash
-make bin-label
-make merge
+make bin-label UNLABELED_DATASET_PATH=datasets/CEFlows2/CEFlows2_merged.csv
+make merge LABELED_DATASET_PATH=datasets/CEFlows2/indiv
 make overall-perf
 make overall-scrape
 ```
