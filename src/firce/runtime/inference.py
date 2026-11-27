@@ -17,6 +17,7 @@ from firce.models.feedforward_multiclass import FeedForwardMulticlass
 from firce.novelty.decision_rules import apply_novelty_rule, compute_all_class_p_values, max_softmax_confidence
 from firce.novelty.explain import explain_with_lime, explain_with_shap, select_events_to_explain
 from firce.novelty.llm_reporting import generate_report
+from firce.novelty.template_report import TemplateReportBackend, generate_template_report
 from firce.runtime.constants import (
     DROP_COLS,
     FULL_DROP_COLS,
@@ -644,7 +645,10 @@ def _generate_novelty_reports(
                 'tau': config.novelty_tau,
                 'alpha': config.novelty_alpha,
             }
-            llm_report = generate_report(runtime.llm_backend, explanation, novelty_context)
+            if isinstance(runtime.llm_backend, TemplateReportBackend):
+                llm_report = generate_template_report(explanation, novelty_context)
+            else:
+                llm_report = generate_report(runtime.llm_backend, explanation, novelty_context)
 
         record = {'row_index': int(idx), 'explanation': explanation, 'llm_report': llm_report}
         runtime.novelty_reports.append(record)

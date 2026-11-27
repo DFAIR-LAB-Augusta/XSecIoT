@@ -26,6 +26,8 @@ import torch
 
 from pydantic import BaseModel, Field
 
+from firce.novelty.template_report import TemplateReportBackend
+
 logger = logging.getLogger(__name__)
 
 
@@ -81,14 +83,15 @@ class TransformersLocalBackend:
         return self.tokenizer.decode(generated_ids, skip_special_tokens=True)
 
 
-_BACKEND_TYPES = ('transformers',)
+_BACKEND_TYPES = ('transformers', 'template')
 
 
 def create_local_llm_backend(backend_type: str, **kwargs) -> LocalLLMBackend:
     """
     Construct a LocalLLMBackend by type name.
 
-    Currently supports 'transformers' (TransformersLocalBackend.from_pretrained).
+    Supports 'transformers' (TransformersLocalBackend.from_pretrained) and
+    'template' (TemplateReportBackend; loads no model and ignores kwargs).
     Kept as an explicit factory (rather than calling TransformersLocalBackend
     directly) so additional local-inference backends (e.g. llama.cpp, vllm,
     ollama) can be added later without changing call sites - "variety of
@@ -106,6 +109,8 @@ def create_local_llm_backend(backend_type: str, **kwargs) -> LocalLLMBackend:
     """
     if backend_type == 'transformers':
         return TransformersLocalBackend.from_pretrained(**kwargs)
+    if backend_type == 'template':
+        return TemplateReportBackend()
     raise ValueError(f'Unknown local LLM backend type {backend_type!r}; expected one of {_BACKEND_TYPES}')
 
 
