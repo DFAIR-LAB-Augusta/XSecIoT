@@ -94,13 +94,17 @@ It is used for:
 ## Installation
 
 ```bash
-uv sync
+uv sync --frozen --group torch   # or: make sync-lean
 ```
 
-Optional (GPU / ML stack depending on config):
+This is the CI environment for FIRCE. Notes:
+
+* The `torch` and `tensorflow` dependency groups conflict; FIRCE uses `torch`.
+* The `cade` group pulls in `tensorflow`, so it cannot be installed together with `torch`.
+* If `xgboost` is removed from a torch environment, NCCL must be reinstalled:
 
 ```bash
-uv sync --extra tf
+uv sync --frozen --group torch --reinstall-package nvidia-nccl-cu13
 ```
 
 ---
@@ -166,10 +170,13 @@ Examples:
 
 ```bash
 # Label dataset
-make label UNLABELED_DATASET_PATH=datasets/CEFlows/unlabeled
+make label UNLABELED_DATASET_PATH=datasets/CEFlows2/CEFlows2_merged.csv
 
 # Merge datasets
-make merge LABELED_DATASET_PATH=datasets/CEFlows/mc_labeled
+make merge LABELED_DATASET_PATH=datasets/CEFlows2/indiv
+
+# Label CAPEX captures by attack window (see docs/CAPEX_LABELING.md)
+make capex-label FLOWS_CSV=data/flows/<device>_<session>_flow.csv GT_CSV=data/logs/<device>_<session>_GT.csv FLOW_TZ=UTC
 
 # Aggregate performance
 make overall.perf LOG_DIR=logging

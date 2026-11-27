@@ -19,9 +19,11 @@ from typing import Any, Dict, Optional
 
 import torch
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
 
+from firce.classes import CANONICAL_CLASSES
 from firce.models.torch_device import pick_device
+from firce.novelty.decision_rules import NOVELTY_RULES
 
 
 class ModelType(str, Enum):
@@ -148,6 +150,8 @@ class SimulationConfig(BaseModel):
     log_to_file: bool = False
     use_svm: bool = False
     use_mlp: bool = False
+    label_column: str | None = None
+    held_out: tuple[str, ...] = ()
     use_adaptive_chunking: bool = False
     use_cuml: bool = False
     seed: int = 42
@@ -159,6 +163,7 @@ class SimulationConfig(BaseModel):
     novelty_enabled: bool = False
     novelty_tau: float = 0.6
     novelty_alpha: float = 0.3
+    novelty_rule: str = 'combined'
     novelty_selective_mode: str = 'unknown_only'
     novelty_sample_rate: float = 0.1
     novelty_window_size: int = 10
@@ -184,6 +189,14 @@ class SimulationConfig(BaseModel):
             raise ValueError('must be in [0, 1]')
         return value
 
+    @field_validator('novelty_rule')
+    @classmethod
+    def _novelty_rule_is_valid(cls, value: str) -> str:
+        """Validate novelty_rule against firce.novelty.decision_rules.NOVELTY_RULES."""
+        if value not in NOVELTY_RULES:
+            raise ValueError(f'novelty_rule must be one of {NOVELTY_RULES}')
+        return value
+
     @field_validator('novelty_selective_mode')
     @classmethod
     def _novelty_selective_mode_is_valid(cls, value: str) -> str:
@@ -201,6 +214,22 @@ class SimulationConfig(BaseModel):
         if value not in valid_methods:
             raise ValueError(f'novelty_explain_method must be one of {valid_methods}')
         return value
+
+    @field_validator('held_out')
+    @classmethod
+    def _held_out_is_canonical(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        """Validate that every held-out name is a canonical class."""
+        unknown = [name for name in value if name not in CANONICAL_CLASSES]
+        if unknown:
+            raise ValueError(f'held_out contains non-canonical classes: {unknown}')
+        return value
+
+    @model_validator(mode='after')
+    def _novelty_incompatible_with_cade(self) -> 'SimulationConfig':
+        """Reject novelty detection combined with the CADE monitor."""
+        if self.novelty_enabled and self.monitor_type == MonitorType.CADE:
+            raise ValueError('novelty detection is not supported with the CADE monitor')
+        return self
 
     @field_validator('chunk_size', 'max_rows')
     @classmethod

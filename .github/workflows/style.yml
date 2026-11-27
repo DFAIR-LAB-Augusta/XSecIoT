@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   ruff-style:
-    runs-on: [self-hosted, dfair-gha-runner]
+    runs-on: ${{ github.event_name == 'push' && github.ref_protected && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && vars.DFAIR_ARC_TRUSTED_PUSH == 'true' && 'dfair-gha-runner-arc' || 'ubuntu-latest' }}
     env:
       UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv
 

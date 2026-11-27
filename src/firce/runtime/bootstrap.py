@@ -7,15 +7,18 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import joblib
+import numpy as np
 import pandas as pd
 
 from sklearn.svm import SVC
 
 from firce.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
+from firce.classes import derive_mc_label
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
 from firce.conformalEval.utils import clone_model
 from firce.drift_monitor.factory import build_monitor
 from firce.models.mlp_ce import MLP_CE
+from firce.models.mlp_ce_multiclass import MLPCEMulticlass
 from firce.novelty.llm_reporting import create_local_llm_backend
 from firce.runtime.constants import FINAL_LOG_COLUMNS, FULL_DROP_COLS, _label_column, get_unsw_rolling_columns
 from firce.runtime.monitoring import filter_ce_kwargs
@@ -146,6 +149,9 @@ def load_training_frame(config: SimulationConfig) -> pd.DataFrame:
         and 'Attack' in df_train.columns
     ):
         df_train['MC_Label'] = df_train['Attack']
+
+    if config.model_type == ModelType.MULTI and config.label_column and not config.is_unsw:
+        df_train = derive_mc_label(df_train, config.label_column, config.held_out, drop_held_out=True)
 
     df_train = df_train.drop(columns='Label', errors='ignore')
     df_train = df_train.drop(columns='Unnamed: 0', errors='ignore')
@@ -422,6 +428,7 @@ def build_runtime_monitor(
         model=model,
         input_dim=x_monitor.shape[1],
         ce_kwargs=ce_kwargs,
+        y_train=y_train.to_numpy(),
     )
 
     if config.monitor_type == MonitorType.CE:
@@ -448,7 +455,8 @@ def _build_monitor_model(
     model: ClassifierMixin | xgb.Booster | FeedForwardBinary,
     input_dim: int,
     ce_kwargs: dict[str, Any],
-) -> ClassifierMixin | xgb.Booster | FeedForwardBinary | MLP_CE:
+    y_train: np.ndarray | None = None,
+) -> ClassifierMixin | xgb.Booster | FeedForwardBinary | MLP_CE | MLPCEMulticlass:
     """
     Build the model used internally by the monitor.
 
@@ -457,6 +465,7 @@ def _build_monitor_model(
         model: Main classifier model.
         input_dim: Monitor input dimension.
         ce_kwargs: Filtered conformal evaluator keyword arguments.
+        y_train: Labels passed to `monitor.fit`; their sorted unique values are the classes of the multiclass MLP.
 
     Returns:
         Model instance used by the drift monitor.
@@ -476,6 +485,18 @@ def _build_monitor_model(
 
     if config.use_mlp:
         ce_kwargs.setdefault('n_jobs', 1)
+        if config.model_type == ModelType.MULTI:
+            return MLPCEMulticlass(
+                input_dim=input_dim,
+                classes=np.unique(y_train).tolist(),
+                widths=tuple(ce_kwargs.get('widths', (256, 128, 64))),
+                p_drop=float(ce_kwargs.get('dropout', 0.2)),
+                lr=float(ce_kwargs.get('lr', 1e-3)),
+                epochs=int(ce_kwargs.get('epochs', 20)),
+                batch_size=ce_kwargs.get('batch_size', None),
+                random_state=config.seed,
+                device=config.device,
+            )
         return MLP_CE(
             input_dim=input_dim,
             widths=tuple(ce_kwargs.get('widths', (256, 128, 64))),

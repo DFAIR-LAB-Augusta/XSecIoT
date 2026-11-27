@@ -2,6 +2,7 @@ import argparse
 
 from pathlib import Path
 
+from firce.novelty.decision_rules import NOVELTY_RULES
 from firce.utils.config import CEType, ModelType, ModelVariant, MonitorType
 
 
@@ -141,6 +142,44 @@ def parse_sim_args() -> argparse.Namespace:
         choices=['simulation', 'streaming'],
         default='simulation',
         help='Pipeline mode to run.',
+    )
+    p.add_argument('--labelColumn', type=str, default=None, help='Dataset label column to map to canonical MC_Label')
+    p.add_argument(
+        '--heldOut',
+        type=str,
+        nargs='+',
+        default=[],
+        help='Canonical class names excluded from training and calibration but kept in the evaluation stream',
+    )
+    p.add_argument('--novelty', action='store_true', help='Enable novelty detection')
+    p.add_argument('--noveltyTau', type=float, default=0.6, help='Novelty tau threshold in [0, 1]')
+    p.add_argument('--noveltyAlpha', type=float, default=0.3, help='Novelty alpha in [0, 1]')
+    p.add_argument(
+        '--noveltyRule',
+        type=str,
+        choices=NOVELTY_RULES,
+        default='combined',
+        help='Unknown-detection rule: confidence-only, conformal-only, or combined',
+    )
+    p.add_argument(
+        '--noveltySelectiveMode',
+        type=str,
+        choices=['sampled', 'unknown_only', 'windowed'],
+        default='unknown_only',
+        help='Selective explanation mode for novelty detection',
+    )
+    p.add_argument(
+        '--noveltyExplainMethod',
+        type=str,
+        choices=['shap', 'lime'],
+        default='shap',
+        help='Explanation method for novelty detection',
+    )
+    p.add_argument(
+        '--noveltyLlmBackendType',
+        type=str,
+        default=None,
+        help='Optional LLM backend type for novelty reporting',
     )
     return p.parse_args()
 

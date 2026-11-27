@@ -10,12 +10,14 @@ import numpy as np
 import pandas as pd
 import torch
 
+from firce.classes import derive_mc_label
 from firce.drift_monitor.conformal_monitor import ConformalDriftMonitor
 from firce.models.feedforward_binary import FeedForwardBinary
 from firce.models.feedforward_multiclass import FeedForwardMulticlass
-from firce.novelty.decision_rules import compute_all_class_p_values, is_novel, max_softmax_confidence
+from firce.novelty.decision_rules import apply_novelty_rule, compute_all_class_p_values, max_softmax_confidence
 from firce.novelty.explain import explain_with_lime, explain_with_shap, select_events_to_explain
 from firce.novelty.llm_reporting import generate_report
+from firce.novelty.template_report import TemplateReportBackend, generate_template_report
 from firce.runtime.constants import (
     DROP_COLS,
     FULL_DROP_COLS,
@@ -164,6 +166,7 @@ def process_chunk(
     novelty_result = _score_chunk_novelty(runtime, clean_chunk)
     if novelty_result is not None:
         novelty_flags, x_monitor = novelty_result
+        _log_novelty_counts(chunk_num, novelty_flags, ground_truth)
         _generate_novelty_reports(runtime, clean_chunk, x_monitor, novelty_flags)
 
     drift_detected = _detect_chunk_drift(runtime, clean_chunk)
@@ -188,7 +191,10 @@ def _prepare_chunk(
         Tuple of cleaned chunk and optional ground-truth series.
     """
     logger.debug('Chunk initially has %d columns', len(chunk.columns))
-    clean_chunk = clean_data(chunk, runtime.config.is_unsw)
+    config = runtime.config
+    if config.model_type == ModelType.MULTI and config.label_column and not config.is_unsw:
+        chunk = derive_mc_label(chunk, config.label_column, drop_held_out=False)
+    clean_chunk = clean_data(chunk, config.is_unsw)
     logger.debug('Chunk has %d columns post-cleaning', len(clean_chunk.columns))
 
     label_col = _label_column(runtime.config.model_type)
@@ -557,8 +563,12 @@ def _score_chunk_novelty(runtime: SimulationRuntime, clean_chunk: pd.DataFrame) 
     model = runtime.monitor.model
     probas = model.predict_proba(x_monitor)
     all_class_p_values = compute_all_class_p_values(model, runtime.monitor.calibration_scores, x_monitor)
-    novelty_flags = is_novel(
-        probas, all_class_p_values, tau=runtime.config.novelty_tau, alpha=runtime.config.novelty_alpha
+    novelty_flags = apply_novelty_rule(
+        runtime.config.novelty_rule,
+        probas,
+        all_class_p_values,
+        tau=runtime.config.novelty_tau,
+        alpha=runtime.config.novelty_alpha,
     )
     return novelty_flags, x_monitor
 
@@ -566,6 +576,23 @@ def _score_chunk_novelty(runtime: SimulationRuntime, clean_chunk: pd.DataFrame) 
 def _explain_model_type(config: SimulationConfig) -> str:
     """Tree-based variants use SHAP's fast TreeExplainer path; everything else uses KernelExplainer."""
     return 'tree' if config.model_variant in (ModelVariant.DT, ModelVariant.RF, ModelVariant.XGB) else 'kernel'
+
+
+def _log_novelty_counts(chunk_num: int, novelty_flags: np.ndarray, ground_truth: pd.Series | None) -> None:
+    """
+    Log one INFO line with the number of rows flagged novel in a chunk.
+
+    Args:
+        chunk_num: Chunk index.
+        novelty_flags: Boolean novelty flags for this chunk.
+        ground_truth: Optional ground-truth labels aligned with the flags.
+    """
+    flags = np.asarray(novelty_flags, dtype=bool)
+    by_class: dict[str, int] = {}
+    if ground_truth is not None:
+        counts = ground_truth.reset_index(drop=True)[flags].value_counts()
+        by_class = {str(label): int(count) for label, count in counts.items()}
+    logger.info('[novelty] chunk=%d rows=%d flagged=%d by_class=%s', chunk_num, len(flags), int(flags.sum()), by_class)
 
 
 def _generate_novelty_reports(
@@ -618,7 +645,10 @@ def _generate_novelty_reports(
                 'tau': config.novelty_tau,
                 'alpha': config.novelty_alpha,
             }
-            llm_report = generate_report(runtime.llm_backend, explanation, novelty_context)
+            if isinstance(runtime.llm_backend, TemplateReportBackend):
+                llm_report = generate_template_report(explanation, novelty_context)
+            else:
+                llm_report = generate_report(runtime.llm_backend, explanation, novelty_context)
 
         record = {'row_index': int(idx), 'explanation': explanation, 'llm_report': llm_report}
         runtime.novelty_reports.append(record)

@@ -7,6 +7,9 @@ in deployment:
   1. evaluate_closed_world - standard multiclass metrics on known classes.
   2. evaluate_open_world_novelty - unknown-detection quality when a class is
      held out from training entirely.
+     evaluate_detection_delay is its streaming companion: delay from a logged
+     change point to the first unknown flag, plus false-alert burden, per
+     session type (stable control, attack-driven, benign-driven).
   3. evaluate_explanation_utility - explanation latency and attribution
      stability (#98's SHAP/LIME output).
 
@@ -32,6 +35,8 @@ from sklearn.metrics import (
 )
 
 logger = logging.getLogger(__name__)
+
+SESSION_TYPES = ('stable', 'attack', 'benign')
 
 
 def evaluate_closed_world(y_true: np.ndarray, y_pred: np.ndarray, labels: Optional[list] = None) -> Dict[str, Any]:
@@ -98,6 +103,81 @@ def evaluate_open_world_novelty(
         'auroc': float(roc_auc_score(is_actually_unknown, novelty_scores)),
         'auprc': float(average_precision_score(is_actually_unknown, novelty_scores)),
         'alert_burden': float(np.mean(novelty_flags)),
+    }
+
+
+def evaluate_detection_delay(
+    timestamps: np.ndarray, novelty_flags: np.ndarray, session_type: str, change_point: float | None = None
+) -> Dict[str, Any]:
+    """
+    Stage 2 companion: detection delay and false-alert burden for one session
+    (proposal Section 4.4.6, item 2; Study A session types).
+
+    Args:
+        timestamps: Per-flow timestamps in seconds (any order; sorted internally
+            with novelty_flags kept aligned).
+        novelty_flags: Per-flow unknown/novelty decision, same length as timestamps.
+        session_type: One of SESSION_TYPES. 'attack' sessions start an unseen
+            attack at change_point; 'stable' and 'benign' sessions have no
+            change point worth detecting, so every flag is a false alert.
+        change_point: Logged change time in seconds. Required for 'attack',
+            must be None otherwise.
+
+    Returns:
+        Dict with keys: session_type, detected (bool, None for stable/benign),
+        delay_seconds (first post-change flagged timestamp minus change_point,
+        None if not detected), delay_flows (flows at or after the change point
+        before the first post-change flag, None if not detected),
+        false_alerts, false_alert_rate (false alerts / flows in the
+        false-alert window; 0.0 for an empty window), n_flows.
+
+    Raises:
+        ValueError: Unknown session_type, mismatched array lengths, or a
+            change_point that is missing for 'attack' or given otherwise.
+    """
+    if session_type not in SESSION_TYPES:
+        raise ValueError(f'session_type must be one of {SESSION_TYPES}, got {session_type!r}')
+    times = np.asarray(timestamps, dtype=float)
+    flags = np.asarray(novelty_flags, dtype=bool)
+    if times.shape != flags.shape or times.ndim != 1:
+        raise ValueError(f'timestamps and novelty_flags must be 1-D and equal length, got {times.shape}, {flags.shape}')
+    if session_type == 'attack' and change_point is None:
+        raise ValueError("change_point is required for session_type 'attack'")
+    if session_type != 'attack' and change_point is not None:
+        raise ValueError(f'change_point must be None for session_type {session_type!r}')
+
+    order = np.argsort(times, kind='stable')
+    times = times[order]
+    flags = flags[order]
+
+    if change_point is None:
+        window_size = len(times)
+        false_alerts = int(flags.sum())
+        detected = None
+        delay_seconds = None
+        delay_flows = None
+    else:
+        post = times >= change_point
+        window_size = int((~post).sum())
+        false_alerts = int(flags[~post].sum())
+        post_flags = flags[post]
+        detected = bool(post_flags.any())
+        if detected:
+            first = int(np.argmax(post_flags))
+            delay_seconds = float(times[post][first] - change_point)
+            delay_flows = first
+        else:
+            delay_seconds = None
+            delay_flows = None
+
+    return {
+        'session_type': session_type,
+        'detected': detected,
+        'delay_seconds': delay_seconds,
+        'delay_flows': delay_flows,
+        'false_alerts': false_alerts,
+        'false_alert_rate': float(false_alerts / window_size) if window_size else 0.0,
+        'n_flows': int(len(times)),
     }
 
 
