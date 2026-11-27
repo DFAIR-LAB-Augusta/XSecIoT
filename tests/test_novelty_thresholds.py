@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from firce.novelty.decision_rules import NOVELTY_RULES, apply_novelty_rule
-from firce.novelty.thresholds import DEFAULT_FA_TARGETS, select_thresholds
+from firce.novelty.thresholds import DEFAULT_FA_TARGETS, _select_combined, select_thresholds
 
 N_ROWS = 6000
 N_CLASSES = 3
@@ -61,3 +61,52 @@ def test_matched_false_alert_rejects_invalid_input(known_class_splits):
             select_thresholds('confidence', probas_val, p_val, bad_target)
     with pytest.raises(ValueError):
         select_thresholds('confidence', probas_val[:0], {c: v[:0] for c, v in p_val.items()}, 0.05)
+
+
+def _combined_flags(confidence, max_p, tau, alpha):
+    return (confidence < tau) & (max_p < alpha)
+
+
+def _tied_signals(seed, tied_share):
+    rng = np.random.default_rng(seed)
+    confidence = np.round(rng.beta(5.0, 1.5, size=2500), 2)
+    max_p = np.round(rng.uniform(size=2500) * (0.5 + 0.5 * confidence), 2)
+    if tied_share:
+        confidence[rng.uniform(size=2500) < tied_share] = 1.0
+    return confidence, max_p
+
+
+def test_combined_shared_quantile_false_alert_and_monotone():
+    confidence, max_p = _tied_signals(7, 0.0)
+    picks = [_select_combined(confidence, max_p, target) for target in DEFAULT_FA_TARGETS]
+    previous = None
+    for target, (tau, alpha) in zip(DEFAULT_FA_TARGETS, picks):
+        flags = _combined_flags(confidence, max_p, tau, alpha)
+        assert float(np.mean(flags)) <= target
+        if previous is not None:
+            assert tau >= previous[0]
+            assert alpha >= previous[1]
+            assert not np.any(previous[2] & ~flags)
+        previous = (tau, alpha, flags)
+
+
+def test_combined_shared_quantile_deterministic():
+    confidence, max_p = _tied_signals(7, 0.0)
+    assert _select_combined(confidence, max_p, 0.05) == _select_combined(confidence, max_p, 0.05)
+
+
+@pytest.mark.parametrize(['target'], [[target] for target in DEFAULT_FA_TARGETS])
+def test_combined_shared_quantile_heavy_ties(target):
+    confidence, max_p = _tied_signals(11, 0.9)
+    tau, alpha = _select_combined(confidence, max_p, target)
+    assert float(np.mean(_combined_flags(confidence, max_p, tau, alpha))) <= target
+
+
+def test_combined_shared_quantile_select_thresholds_monotone(known_class_splits):
+    (probas_val, p_val), _ = known_class_splits
+    selected = [select_thresholds('combined', probas_val, p_val, target) for target in DEFAULT_FA_TARGETS]
+    for target, row in zip(DEFAULT_FA_TARGETS, selected):
+        assert row['achieved_fa'] <= target
+    for smaller, larger in zip(selected, selected[1:]):
+        assert smaller['tau'] <= larger['tau']
+        assert smaller['alpha'] <= larger['alpha']
