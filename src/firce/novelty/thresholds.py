@@ -4,7 +4,9 @@ Threshold selection for the novelty decision rules.
 
 Picks tau and/or alpha on known-class validation data so that a rule's false-alert
 rate (the share of known-class samples it flags as novel) matches a target. The
-caller supplies the validation split; nothing here is random.
+combined rule uses one shared validation quantile for tau and alpha, so its thresholds and
+flagged set grow monotonically with the target. The caller supplies the validation split;
+nothing here is random.
 """
 
 from typing import Any, Dict
@@ -14,7 +16,6 @@ import numpy as np
 from firce.novelty.decision_rules import NOVELTY_RULES, apply_novelty_rule, max_softmax_confidence
 
 DEFAULT_FA_TARGETS = (0.01, 0.05, 0.10)
-_GRID_QUANTILES = 101
 
 
 def _quantile_threshold(signal: np.ndarray, target_fa: float) -> float:
@@ -24,27 +25,29 @@ def _quantile_threshold(signal: np.ndarray, target_fa: float) -> float:
 
 
 def _select_combined(confidence: np.ndarray, max_p: np.ndarray, target_fa: float) -> tuple[float, float]:
-    """Grid search over tau and alpha; closest rate at or below target, ties to lower tau then higher alpha."""
+    """
+    Shared-quantile thresholds for the combined rule.
+
+    tau and alpha are the k-th order statistics of confidence and max_p for one shared rank k, so the
+    false-alert rate (confidence < tau) & (max_p < alpha) is nondecreasing in k. Returns the pair for the
+    largest k whose rate is at or below target_fa, found by binary search; k = 0 flags nothing, so a
+    solution always exists. Ties resolve to the strict < comparison, which never over-flags.
+    """
     n = confidence.shape[0]
-    quantiles = np.linspace(0.0, 1.0, _GRID_QUANTILES)
-    taus = np.quantile(confidence, quantiles)
-    alphas = np.quantile(max_p, quantiles)
-    best: tuple[float, float, float] | None = None
-    for tau in taus:
-        sorted_p = np.sort(max_p[confidence < tau])
-        rates = np.searchsorted(sorted_p, alphas, side='left') / n
-        for alpha, rate in zip(alphas, rates):
-            if rate > target_fa:
-                continue
-            gap = target_fa - rate
-            if (
-                best is None
-                or gap < best[0] - 1e-12
-                or (abs(gap - best[0]) <= 1e-12 and tau == best[1] and alpha > best[2])
-            ):
-                best = (float(gap), float(tau), float(alpha))
-    assert best is not None
-    return best[1], best[2]
+    sorted_c = np.sort(confidence)
+    sorted_p = np.sort(max_p)
+
+    def rate(k: int) -> float:
+        return float(np.mean((confidence < sorted_c[k]) & (max_p < sorted_p[k])))
+
+    lo, hi = 0, n - 1
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if rate(mid) <= target_fa:
+            lo = mid
+        else:
+            hi = mid - 1
+    return float(sorted_c[lo]), float(sorted_p[lo])
 
 
 def select_thresholds(
