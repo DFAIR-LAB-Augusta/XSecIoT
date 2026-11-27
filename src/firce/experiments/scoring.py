@@ -37,6 +37,7 @@ class ScoredSplit:
     y_true: np.ndarray
     device: np.ndarray
     timestamp: np.ndarray
+    features: np.ndarray | None = None
 
 
 @contextmanager
@@ -104,7 +105,7 @@ def score_frame(runtime: SimulationRuntime, df: pd.DataFrame, preset: DatasetPre
         preset: Dataset preset naming the label, device and timestamp columns.
 
     Returns:
-        Probabilities, per-class p-values, canonical labels, device and epoch-second timestamps.
+        Probabilities, per-class p-values, canonical labels, device, epoch-second timestamps and the monitor feature matrix.
     """
     frame = derive_mc_label(df, preset.label_column, drop_held_out=False).reset_index(drop=True)
     device = frame[preset.device_column].to_numpy()
@@ -117,4 +118,6 @@ def score_frame(runtime: SimulationRuntime, df: pd.DataFrame, preset: DatasetPre
     model = runtime.monitor.model
     probas = model.predict_proba(x_monitor)
     p_values = compute_all_class_p_values(model, runtime.monitor.calibration_scores, x_monitor)
-    return ScoredSplit(probas=probas, p_values=p_values, y_true=y_true, device=device, timestamp=timestamp)
+    return ScoredSplit(
+        probas=probas, p_values=p_values, y_true=y_true, device=device, timestamp=timestamp, features=x_monitor
+    )
