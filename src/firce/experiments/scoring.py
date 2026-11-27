@@ -58,6 +58,7 @@ def build_runtime(
     seed: int,
     model_variant: str = 'rf',
     ce_type: str = 'ice',
+    use_mlp: bool = False,
 ) -> SimulationRuntime:
     """
     Train the multiclass model and calibrate the CE monitor on `train_df`.
@@ -69,6 +70,7 @@ def build_runtime(
         seed: Model seed.
         model_variant: Classifier variant name.
         ce_type: Conformal evaluator type name.
+        use_mlp: Use the multiclass MLP as the conformal monitor model.
 
     Returns:
         Initialized simulation runtime.
@@ -86,6 +88,7 @@ def build_runtime(
         aggregated_path=train_path,
         flows_path=train_path,
         monitor_type=MonitorType.CE,
+        use_mlp=use_mlp,
         label_column=preset.label_column,
         held_out=preset.held_out,
         novelty_enabled=False,

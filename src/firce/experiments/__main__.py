@@ -21,6 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument('--out', type=Path, default=Path('results'))
     parser.add_argument('--modelVariant', default='rf')
     parser.add_argument('--ceType', default='ice')
+    parser.add_argument('--useMLP', action='store_true', help='Use the multiclass MLP as the conformal model')
     parser.add_argument('--studyB', action='store_true', help='Explanation latency and stability')
     parser.add_argument('--studyBSamples', type=int, default=50)
     parser.add_argument('--studyC', action='store_true', help='Template (and LLM) reports')
@@ -42,6 +43,7 @@ def main(argv: list[str] | None = None) -> None:
         held_out=args.heldOut,
         model_variant=args.modelVariant,
         ce_type=args.ceType,
+        use_mlp=args.useMLP,
         study_b=args.studyB,
         study_c=args.studyC,
         study_b_samples=args.studyBSamples,

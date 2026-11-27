@@ -109,6 +109,7 @@ def run_experiment(
     held_out: Sequence[str] | None = None,
     model_variant: str = 'rf',
     ce_type: str = 'ice',
+    use_mlp: bool = False,
     study_b: bool = False,
     study_c: bool = False,
     study_b_samples: int = 50,
@@ -125,6 +126,7 @@ def run_experiment(
         held_out: Held-out class names overriding `preset.held_out`.
         model_variant: Classifier variant name.
         ce_type: Conformal evaluator type name.
+        use_mlp: Use the multiclass MLP as the conformal monitor model.
         study_b: Also explain flagged flows and write `seed_<k>/study_b.json`.
         study_c: Also write template reports to `seed_<k>/study_c.jsonl`.
         study_b_samples: Maximum flows explained per seed.
@@ -153,7 +155,7 @@ def run_experiment(
         split = split_device_time_blocks(data, preset, seed)
         val_strategies[seed] = split.val_strategy
         seed_dir = run_dir / f'seed_{seed}'
-        runtime = build_runtime(split.train, preset, seed_dir / 'work', seed, model_variant, ce_type)
+        runtime = build_runtime(split.train, preset, seed_dir / 'work', seed, model_variant, ce_type, use_mlp)
         val = score_frame(runtime, split.val, preset)
         stream = score_frame(runtime, split.stream, preset)
         names = class_names_of(runtime)
@@ -185,6 +187,7 @@ def run_experiment(
         'held_out': list(preset.held_out),
         'model_variant': model_variant,
         'ce_type': ce_type,
+        'use_mlp': use_mlp,
         'study_b': study_b,
         'study_b_samples': study_b_samples,
         'study_c': study_c,
