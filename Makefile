@@ -5,8 +5,6 @@ UV  ?= uv
 PY  ?= python
 RUFF ?= ruff
 
-LABELED_DATASET_PATH ?= ./datasets/CEFlows2/mc_labeled/
-UNLABELED_DATASET_PATH ?= ./datasets/CEFlows2/unlabeled/
 MC_MAPPING_ARGS ?=
 LOG_DIR      ?=
 
