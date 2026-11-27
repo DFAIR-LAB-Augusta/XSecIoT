@@ -13,6 +13,7 @@ from firce.experiments.study_a import (
     build_sessions,
     evaluate_seed,
     make_run_id,
+    summarize,
     write_results,
 )
 from firce.novelty.decision_rules import NOVELTY_RULES
@@ -132,3 +133,18 @@ def test_study_a_write_results_layout_and_roundtrip(tmp_path, fixture_rows):
 
 def test_study_a_make_run_id_format():
     assert re.fullmatch(r'\d{8}T\d{6}Z-([0-9a-f]{4,40}|nogit)', make_run_id())
+
+
+def test_summarize_non_null_counts():
+    base = {'rule': 'r', 'target_fa': 0.05}
+    per_seed = {
+        0: [{**base, 'median_delay_s': None, 'never_set': None}],
+        1: [{**base, 'median_delay_s': 4.0, 'never_set': None}],
+        2: [{**base, 'median_delay_s': None, 'never_set': None}],
+    }
+    row = summarize(per_seed).iloc[0]
+    assert row['median_delay_s_n'] == 1
+    assert row['median_delay_s_mean'] == 4.0
+    assert row['never_set_n'] == 0
+    assert np.isnan(row['never_set_mean'])
+    assert row['n_seeds'] == 3

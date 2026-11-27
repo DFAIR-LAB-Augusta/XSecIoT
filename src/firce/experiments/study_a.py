@@ -214,12 +214,15 @@ def build_scores_frame(stream: ScoredSplit, rows: Sequence[dict[str, Any]]) -> p
 
 
 def summarize(per_seed: dict[int, list[dict[str, Any]]]) -> pd.DataFrame:
-    """One row per rule x target with `<metric>_mean`, `<metric>_std` across seeds and `n_seeds`."""
+    """One row per rule x target with `<metric>_mean`, `<metric>_std`, `<metric>_n` (non-null seeds) and `n_seeds`."""
     table = pd.DataFrame([row for rows in per_seed.values() for row in rows])
     metrics = [c for c in table.columns if c not in _KEY_COLUMNS]
     table[metrics] = table[metrics].apply(pd.to_numeric)
     grouped = table.groupby(list(_KEY_COLUMNS), sort=False)[metrics].agg(['mean', 'std'])
     grouped.columns = [f'{metric}_{stat}' for metric, stat in grouped.columns]
+    counts = table.groupby(list(_KEY_COLUMNS), sort=False)[metrics].count()
+    for metric in metrics:
+        grouped[f'{metric}_n'] = counts[metric]
     grouped['n_seeds'] = table.groupby(list(_KEY_COLUMNS), sort=False).size()
     return grouped.reset_index()
 
