@@ -5,8 +5,8 @@ UV  ?= uv
 PY  ?= python
 RUFF ?= ruff
 
-LABELED_DATASET_PATH ?= ./datasets/CEFlows/mc_labeled/
-UNLABELED_DATASET_PATH ?= ./datasets/CEFlows/unlabeled/
+LABELED_DATASET_PATH ?= ./datasets/CEFlows2/mc_labeled/
+UNLABELED_DATASET_PATH ?= ./datasets/CEFlows2/unlabeled/
 MC_MAPPING_ARGS ?=
 LOG_DIR      ?=
 
@@ -31,9 +31,9 @@ help:
 	@echo "  make sim-bin"
 	@echo "  make sim-mc"
 	@echo "  make xseciot"
-	@echo "  make bin-label UNLABELED_DATASET_PATH=datasets/CEFlows/CEFlows2_merged.csv"
-	@echo "  make mc-label  UNLABELED_DATASET_PATH=datasets/CEFlows/CEFlows2_merged.csv MC_MAPPING_ARGS='--mapping 192.168.1.192,192.168.1.103,XMasAttack'"
-	@echo "  make merge     LABELED_DATASET_PATH=datasets/CEFlows/indiv"
+	@echo "  make bin-label UNLABELED_DATASET_PATH=datasets/CEFlows2/CEFlows2_merged.csv"
+	@echo "  make mc-label  UNLABELED_DATASET_PATH=datasets/CEFlows2/CEFlows2_merged.csv MC_MAPPING_ARGS='--mapping 192.168.1.192,192.168.1.103,XMasAttack'"
+	@echo "  make merge     LABELED_DATASET_PATH=datasets/CEFlows2/indiv"
 	@echo "  make overall-perf   LOG_DIR=logs"
 	@echo "  make overall-scrape LOG_DIR=logs"
 
