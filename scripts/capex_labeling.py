@@ -17,6 +17,7 @@ DEFAULT_LABEL = 'Benign'
 GT_COLUMNS = ('session_id', 'device', 'target_ip', 'label', 'attempt', 'start_unix', 'end_unix')
 FLOW_COLUMNS = ('src_ip', 'dst_ip', 'timestamp', 'flow_duration')
 TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
+EXCLUDED_CAPEX_LABELS = frozenset({'Config_Tamper_Setup_CGI', 'Config_Tamper_TR064_SOAP'})
 
 
 @dataclass(frozen=True)
@@ -132,6 +133,13 @@ def _load_ground_truth(gt_paths: tuple[Path, ...]) -> pd.DataFrame:
     if blank_counts:
         details = ', '.join(f'{column} ({count} row(s))' for column, count in blank_counts.items())
         raise ValueError(f'Ground-truth rows with blank required field(s): {details}')
+
+    excluded = sorted(set(gt['label'].astype(str)) & EXCLUDED_CAPEX_LABELS)
+    if excluded:
+        raise ValueError(
+            f'Ground-truth label(s) {", ".join(excluded)} are excluded from Direction 3 (#194); '
+            'rerun the session without them or remove their rows.'
+        )
 
     bad = sorted(set(gt['label'].astype(str)) - CANONICAL_CLASSES)
     if bad:

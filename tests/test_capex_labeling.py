@@ -83,6 +83,19 @@ def test_non_canonical_label_rejected(tmp_path, capsys):
     assert 'NotAnAttack' in capsys.readouterr().err
 
 
+@pytest.mark.parametrize('label', ['Config_Tamper_Setup_CGI', 'Config_Tamper_TR064_SOAP'])
+def test_config_tamper_label_excluded(tmp_path, capsys, label):
+    f = _write_flows(tmp_path / 'flows.csv', [('1.1.1.1', '10.0.0.5', 0, 1)])
+    g = _write_gt(tmp_path / 'gt.csv', [('10.0.0.5', label, 0, 10)])
+    with pytest.raises(SystemExit) as exc:
+        capex_labeling.main([str(f), str(g), '--flowTz', 'UTC'])
+    assert exc.value.code == 1
+    err = capsys.readouterr().err
+    assert label in err
+    assert 'excluded from Direction 3' in err
+    assert '#194' in err
+
+
 def test_missing_gt_column(tmp_path, capsys):
     f = _write_flows(tmp_path / 'flows.csv', [('1.1.1.1', '10.0.0.5', 0, 1)])
     g = tmp_path / 'gt.csv'
