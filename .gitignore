@@ -174,3 +174,4 @@ datasets/CEFlows/*
 *.tmp
 
 .continue/*
+results/
