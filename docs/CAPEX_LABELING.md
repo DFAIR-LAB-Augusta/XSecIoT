@@ -21,14 +21,19 @@ is `Benign`.
 
 ## Timezones
 
-Flow timestamps are naive local times, so the zone they were captured in must be known. `--flowTz` takes an IANA
-zone name and defaults to the host's local zone (DST-aware).
+CICFlowMeter writes naive local time cut to whole seconds, so the zone the flows were captured in must be known.
+`--flowTz` names that zone (an IANA zone name) and defaults to the host's local zone (DST-aware).
+
+Flows whose timestamp falls in a repeated or skipped DST hour cannot be placed on the timeline. They are dropped
+from the output, counted in the `Dropped (DST transition): N` report line, and a warning goes to stderr.
+
+To avoid this, run the extraction in CAPEX with `TZ=UTC scripts/run_flows.sh` and label with `--flowTz UTC`
+(`FLOW_TZ=UTC` for `make capex-label`).
 
 ## Rejected input
 
 The script exits 1 with an error for a missing flow or ground-truth file, a missing column, blank `target_ip`,
-`label`, `start_unix` or `end_unix` values, `end_unix < start_unix`, an unknown timezone, ambiguous or nonexistent
-flow timestamps, an excluded label (below), and any label outside the canonical class set.
+`label`, `start_unix` or `end_unix` values, `end_unix < start_unix`, an unknown timezone, an excluded label (below), and any label outside the canonical class set.
 
 ## Excluded CAPEX labels
 
