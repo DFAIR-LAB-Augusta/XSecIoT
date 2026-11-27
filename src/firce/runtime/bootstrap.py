@@ -12,6 +12,7 @@ import pandas as pd
 from sklearn.svm import SVC
 
 from firce.ce_model_training import _unsw_clean, train_ce_binary, train_ce_multiclass
+from firce.classes import derive_mc_label
 from firce.conformalEval.adaptive_sig_ctlr import AdaptiveSignificanceController
 from firce.conformalEval.utils import clone_model
 from firce.drift_monitor.factory import build_monitor
@@ -146,6 +147,9 @@ def load_training_frame(config: SimulationConfig) -> pd.DataFrame:
         and 'Attack' in df_train.columns
     ):
         df_train['MC_Label'] = df_train['Attack']
+
+    if config.model_type == ModelType.MULTI and config.label_column and not config.is_unsw:
+        df_train = derive_mc_label(df_train, config.label_column, config.held_out, drop_held_out=True)
 
     df_train = df_train.drop(columns='Label', errors='ignore')
     df_train = df_train.drop(columns='Unnamed: 0', errors='ignore')

@@ -45,7 +45,9 @@ def _build_config_from_args(args) -> SimulationConfig:
         chunk_size=args.chunk_size,
         debug=args.debug,
         flows_path=args.flows_file,
+        held_out=tuple(args.heldOut),
         is_unsw=args.unsw,
+        label_column=args.labelColumn,
         log_to_file=args.log2File,
         max_rows=args.max_rows,
         monitor_kwargs=(
