@@ -1,8 +1,9 @@
 import argparse
+import os
 import sys
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, tzinfo
 from pathlib import Path
 from typing import List
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -55,12 +56,43 @@ def _parse_arguments(argv: List[str] | None = None) -> CapexLabelConfig:
     )
 
 
+def _host_zone() -> tzinfo:
+    """
+    Return the host's DST-aware local zone, falling back to the current fixed offset with a warning.
+    """
+    env_tz = os.environ.get('TZ', '').lstrip(':')
+    if env_tz:
+        try:
+            return ZoneInfo(env_tz)
+        except (ZoneInfoNotFoundError, ValueError):
+            pass
+    localtime = Path('/etc/localtime')
+    if localtime.exists():
+        parts = localtime.resolve().parts
+        if 'zoneinfo' in parts:
+            key = '/'.join(parts[len(parts) - parts[::-1].index('zoneinfo') :])
+            try:
+                return ZoneInfo(key)
+            except (ZoneInfoNotFoundError, ValueError):
+                pass
+        try:
+            with localtime.open('rb') as fh:
+                return ZoneInfo.from_file(fh)
+        except (OSError, ValueError):
+            pass
+    print(
+        'Warning: could not resolve the host IANA zone; using a fixed UTC offset, DST will not be honoured.',
+        file=sys.stderr,
+    )
+    return datetime.now().astimezone().tzinfo
+
+
 def _resolve_timezone(name: str | None) -> tuple[object, str]:
     """
     Return (tzinfo, display name). Raises ValueError for an unknown zone name.
     """
     if name is None:
-        tz = datetime.now().astimezone().tzinfo
+        tz = _host_zone()
         return tz, f'{tz} (host local)'
     try:
         return ZoneInfo(name), name

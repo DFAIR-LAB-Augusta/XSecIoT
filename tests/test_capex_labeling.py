@@ -129,6 +129,22 @@ def test_flow_tz_conversion(tmp_path):
     assert list(df['MC_Label']) == ['UDP_Flood', 'Benign']
 
 
+def test_default_flow_tz_host_zone_honours_dst(tmp_path, monkeypatch):
+    # 2026-07-04 12:00:00 New York (EDT) is 16:00:00 UTC (1783180800), not 17:00:00 as a fixed EST offset gives.
+    monkeypatch.setenv('TZ', 'America/New_York')
+    f = tmp_path / 'flows.csv'
+    f.write_text('src_ip,dst_ip,timestamp,flow_duration\n1.1.1.1,10.0.0.5,2026-07-04 12:00:00,1\n')
+
+    def label(start):
+        g = tmp_path / 'gt.csv'
+        g.write_text(GT_HEADER + f'0,dev,10.0.0.5,UDP_Flood,1,{start},{start + 10}\n')
+        capex_labeling.main([str(f), str(g)])
+        return pd.read_csv(tmp_path / 'flows_mc_labeled.csv')['MC_Label'][0]
+
+    assert label(1783180800) == 'UDP_Flood'
+    assert label(1783184400) == 'Benign'
+
+
 def test_report_counts_and_timezone(tmp_path, capsys):
     gt = [('10.0.0.5', 'UDP_Flood', 0, 10), ('10.0.0.5', 'Slowloris', 20, 30)]
     _run(tmp_path, [('1.1.1.1', '10.0.0.5', 2, 1), ('1.1.1.1', '10.0.0.7', 2, 1)], gt)
