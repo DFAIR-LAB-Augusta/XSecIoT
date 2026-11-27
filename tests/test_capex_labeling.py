@@ -1,0 +1,149 @@
+import sys
+
+from pathlib import Path
+
+import pandas as pd
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'scripts'))
+
+import capex_labeling
+
+GT_HEADER = 'session_id,device,target_ip,label,attempt,start_unix,end_unix\n'
+# 2024-01-01 00:00:00 UTC
+BASE = 1704067200.0
+
+
+def _write_gt(path, rows):
+    lines = [f'{i},dev,{ip},{label},1,{BASE + s},{BASE + e}' for i, (ip, label, s, e) in enumerate(rows)]
+    path.write_text(GT_HEADER + '\n'.join(lines) + '\n')
+    return path
+
+
+def _write_flows(path, rows):
+    lines = ['src_ip,dst_ip,timestamp,flow_duration']
+    for src, dst, offset, dur in rows:
+        ts = pd.Timestamp(BASE + offset, unit='s').strftime('%Y-%m-%d %H:%M:%S')
+        lines.append(f'{src},{dst},{ts},{dur}')
+    path.write_text('\n'.join(lines) + '\n')
+    return path
+
+
+def _run(tmp_path, flows, gt, extra=()):
+    f = _write_flows(tmp_path / 'flows.csv', flows)
+    g = _write_gt(tmp_path / 'gt.csv', gt)
+    capex_labeling.main([str(f), str(g), '--flowTz', 'UTC', *extra])
+    return pd.read_csv(tmp_path / 'flows_mc_labeled.csv')
+
+
+def test_back_to_back_attacks_one_device(tmp_path):
+    gt = [('10.0.0.5', 'UDP_Flood', 0, 10), ('10.0.0.5', 'TCP_SYN_Flood', 20, 30)]
+    flows = [('1.1.1.1', '10.0.0.5', 2, 3), ('10.0.0.5', '1.1.1.1', 22, 3)]
+    df = _run(tmp_path, flows, gt)
+    assert list(df['MC_Label']) == ['UDP_Flood', 'TCP_SYN_Flood']
+    assert not df['MC_Partial'].any()
+
+
+def test_partial_overlap_picks_larger_overlap(tmp_path):
+    gt = [('10.0.0.5', 'UDP_Flood', 0, 10), ('10.0.0.5', 'TCP_SYN_Flood', 10, 30)]
+    flows = [('1.1.1.1', '10.0.0.5', 8, 10), ('1.1.1.1', '10.0.0.5', 9, 3)]
+    df = _run(tmp_path, flows, gt)
+    assert list(df['MC_Label']) == ['TCP_SYN_Flood', 'TCP_SYN_Flood']
+    assert df['MC_Partial'].all()
+
+
+def test_tie_takes_earlier_window(tmp_path):
+    gt = [('10.0.0.5', 'TCP_SYN_Flood', 10, 20), ('10.0.0.5', 'UDP_Flood', 0, 10)]
+    df = _run(tmp_path, [('1.1.1.1', '10.0.0.5', 5, 10)], gt)
+    assert df['MC_Label'][0] == 'UDP_Flood'
+    assert bool(df['MC_Partial'][0])
+
+
+def test_partial_flow_touching_one_window_edge(tmp_path):
+    gt = [('10.0.0.5', 'UDP_Flood', 0, 10)]
+    df = _run(tmp_path, [('1.1.1.1', '10.0.0.5', 8, 5)], gt)
+    assert df['MC_Label'][0] == 'UDP_Flood'
+    assert bool(df['MC_Partial'][0])
+
+
+def test_benign_gaps(tmp_path):
+    gt = [('10.0.0.5', 'UDP_Flood', 10, 20)]
+    flows = [('1.1.1.1', '10.0.0.5', 0, 2), ('1.1.1.1', '10.0.0.5', 40, 2)]
+    df = _run(tmp_path, flows, gt)
+    assert list(df['MC_Label']) == ['Benign', 'Benign']
+    assert not df['MC_Partial'].any()
+
+
+def test_non_target_ip_in_window_is_benign(tmp_path):
+    gt = [('10.0.0.5', 'UDP_Flood', 0, 10)]
+    df = _run(tmp_path, [('1.1.1.1', '10.0.0.9', 2, 3)], gt)
+    assert df['MC_Label'][0] == 'Benign'
+
+
+def test_non_canonical_label_rejected(tmp_path, capsys):
+    f = _write_flows(tmp_path / 'flows.csv', [('1.1.1.1', '10.0.0.5', 0, 1)])
+    g = _write_gt(tmp_path / 'gt.csv', [('10.0.0.5', 'NotAnAttack', 0, 10)])
+    with pytest.raises(SystemExit) as exc:
+        capex_labeling.main([str(f), str(g), '--flowTz', 'UTC'])
+    assert exc.value.code == 1
+    assert 'NotAnAttack' in capsys.readouterr().err
+
+
+def test_missing_gt_column(tmp_path, capsys):
+    f = _write_flows(tmp_path / 'flows.csv', [('1.1.1.1', '10.0.0.5', 0, 1)])
+    g = tmp_path / 'gt.csv'
+    g.write_text('session_id,device,target_ip,label,attempt,start_unix\n1,d,10.0.0.5,UDP_Flood,1,5\n')
+    with pytest.raises(SystemExit):
+        capex_labeling.main([str(f), str(g), '--flowTz', 'UTC'])
+    assert 'end_unix' in capsys.readouterr().err
+
+
+def test_end_before_start_rejected(tmp_path, capsys):
+    f = _write_flows(tmp_path / 'flows.csv', [('1.1.1.1', '10.0.0.5', 0, 1)])
+    g = _write_gt(tmp_path / 'gt.csv', [('10.0.0.5', 'UDP_Flood', 10, 5)])
+    with pytest.raises(SystemExit):
+        capex_labeling.main([str(f), str(g), '--flowTz', 'UTC'])
+    assert 'end_unix' in capsys.readouterr().err
+
+
+def test_unknown_timezone(tmp_path, capsys):
+    f = _write_flows(tmp_path / 'flows.csv', [('1.1.1.1', '10.0.0.5', 0, 1)])
+    g = _write_gt(tmp_path / 'gt.csv', [('10.0.0.5', 'UDP_Flood', 0, 10)])
+    with pytest.raises(SystemExit):
+        capex_labeling.main([str(f), str(g), '--flowTz', 'Mars/Olympus'])
+    assert 'Mars/Olympus' in capsys.readouterr().err
+
+
+def test_flow_tz_conversion(tmp_path):
+    # Window is 00:00:00-00:00:10 UTC. Naive stamps written as UTC wall clock read 19:00 the prior day in New York.
+    gt = [('10.0.0.5', 'UDP_Flood', 0, 10)]
+    f = tmp_path / 'flows.csv'
+    f.write_text(
+        'src_ip,dst_ip,timestamp,flow_duration\n'
+        '1.1.1.1,10.0.0.5,2023-12-31 19:00:02,1\n'
+        '1.1.1.1,10.0.0.5,2024-01-01 00:00:02,1\n'
+    )
+    g = _write_gt(tmp_path / 'gt.csv', gt)
+    capex_labeling.main([str(f), str(g), '--flowTz', 'America/New_York'])
+    df = pd.read_csv(tmp_path / 'flows_mc_labeled.csv')
+    assert list(df['MC_Label']) == ['UDP_Flood', 'Benign']
+
+
+def test_report_counts_and_timezone(tmp_path, capsys):
+    gt = [('10.0.0.5', 'UDP_Flood', 0, 10), ('10.0.0.5', 'Slowloris', 20, 30)]
+    _run(tmp_path, [('1.1.1.1', '10.0.0.5', 2, 1), ('1.1.1.1', '10.0.0.7', 2, 1)], gt)
+    out = capsys.readouterr().out
+    assert 'UTC' in out
+    assert 'Benign: 1' in out
+    assert 'UDP_Flood: 1' in out
+    assert 'Slowloris: 0' in out
+    assert 'MC_Partial: 0' in out
+
+
+def test_columns_preserved_and_custom_output(tmp_path):
+    f = _write_flows(tmp_path / 'flows.csv', [('1.1.1.1', '10.0.0.5', 0, 1)])
+    g = _write_gt(tmp_path / 'gt.csv', [('10.0.0.5', 'UDP_Flood', 0, 10)])
+    out = tmp_path / 'custom.csv'
+    capex_labeling.main([str(f), str(g), '--flowTz', 'UTC', '--output', str(out)])
+    df = pd.read_csv(out)
+    assert list(df.columns) == ['src_ip', 'dst_ip', 'timestamp', 'flow_duration', 'MC_Label', 'MC_Partial']
